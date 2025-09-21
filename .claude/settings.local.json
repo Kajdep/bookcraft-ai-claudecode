@@ -1,0 +1,35 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cat:*)",
+      "Bash(tree:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx typescript:*)",
+      "Bash(./node_modules/.bin/tsc:*)",
+      "Bash(xargs ls:*)",
+      "Bash(node:*)",
+      "Bash(npm install)",
+      "WebSearch",
+      "Bash(npm install:*)",
+      "Bash(npm run dev:*)",
+      "Bash(mkdir:*)",
+      "Bash(npm run build:*)",
+      "Bash(pkill:*)",
+      "Bash(taskkill:*)",
+      "Bash(start msedge http://localhost:5173/)",
+      "Bash(findstr:*)",
+      "Bash(npx playwright install:*)",
+      "Bash(curl:*)",
+      "Bash(timeout:*)",
+      "Bash(dir)",
+      "Bash(dir:*)",
+      "Bash(npx tailwindcss init:*)",
+      "Bash(start msedge http://localhost:5174/)",
+      "Bash(npm uninstall:*)",
+      "Bash(start msedge http://localhost:5175/)"
+    ],
+    "deny": [],
+    "ask": []
+  },
+  "outputStyle": "Explanatory"
+}

@@ -1,0 +1,155 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Basic styles for the Lexical editor */
+.lexical-editor {
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+/* Animation classes */
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Prose styling for the editor content */
+.prose {
+  max-width: none;
+}
+
+.prose h1,
+.prose h2,
+.prose h3 {
+  color: inherit;
+  font-weight: bold;
+}
+
+.prose p {
+  margin-bottom: 1rem;
+}
+
+.prose ul,
+.prose ol {
+  padding-left: 1.5rem;
+}
+
+.prose blockquote {
+  border-left: 4px solid #94a3b8;
+  padding-left: 1rem;
+  font-style: italic;
+  margin: 1rem 0;
+}
+
+.prose a {
+  color: #3b82f6;
+  text-decoration: underline;
+}
+
+.prose a:hover {
+  color: #1d4ed8;
+}
+
+/* Lexical specific styles */
+.editor-input {
+  min-height: 150px;
+  resize: none;
+  font-size: 15px;
+  caret-color: rgb(5, 5, 5);
+  position: relative;
+  tab-size: 1;
+  outline: 0;
+  padding: 15px 10px;
+  caret-color: #444;
+}
+
+.editor-placeholder {
+  color: #999;
+  overflow: hidden;
+  position: absolute;
+  text-overflow: ellipsis;
+  top: 15px;
+  left: 10px;
+  font-size: 15px;
+  user-select: none;
+  display: inline-block;
+  pointer-events: none;
+}
+
+.PlaygroundEditorTheme__paragraph {
+  margin: 0;
+  margin-bottom: 8px;
+  position: relative;
+}
+
+.PlaygroundEditorTheme__quote {
+  margin: 0;
+  margin-left: 20px;
+  margin-bottom: 10px;
+  padding-left: 16px;
+  border-left: 4px solid #ccc;
+  font-style: italic;
+}
+
+.PlaygroundEditorTheme__heading {
+  font-weight: bold;
+  margin: 0;
+  margin-bottom: 10px;
+}
+
+.PlaygroundEditorTheme__list {
+  margin: 0;
+  margin-left: 16px;
+  padding: 0;
+}
+
+.PlaygroundEditorTheme__listItem {
+  margin: 8px 32px 8px 32px;
+}
+
+.PlaygroundEditorTheme__listItemChecked,
+.PlaygroundEditorTheme__listItemUnchecked {
+  position: relative;
+  margin-left: 8px;
+  margin-right: 8px;
+  padding-left: 24px;
+  padding-right: 24px;
+  list-style-type: none;
+  outline: none;
+}
+
+.PlaygroundEditorTheme__link {
+  color: #3b82f6;
+  text-decoration: none;
+}
+
+.PlaygroundEditorTheme__link:hover {
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.PlaygroundEditorTheme__textBold {
+  font-weight: bold;
+}
+
+.PlaygroundEditorTheme__textItalic {
+  font-style: italic;
+}
+
+.PlaygroundEditorTheme__textUnderline {
+  text-decoration: underline;
+}
+
+.PlaygroundEditorTheme__textStrikethrough {
+  text-decoration: line-through;
+}

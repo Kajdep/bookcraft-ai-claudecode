@@ -145,85 +145,102 @@ export const LexicalToolbar: React.FC = () => {
   });
 
   const updateToolbar = useCallback(() => {
-    const selection = $getSelection();
-    if ($isRangeSelection(selection)) {
-      const anchorNode = selection.anchor.getNode();
-      let element =
-        anchorNode.getKey() === 'root'
-          ? anchorNode
-          : $getNearestNodeOfType(anchorNode, 'element');
+    try {
+      const selection = $getSelection();
+      if ($isRangeSelection(selection)) {
+        const anchorNode = selection.anchor.getNode();
+        let element =
+          anchorNode.getKey() === 'root'
+            ? anchorNode
+            : $getNearestNodeOfType(anchorNode, 'element');
 
-      if (element === null) {
-        element = anchorNode.getTopLevelElementOrThrow();
-      }
+        if (element === null) {
+          element = anchorNode.getTopLevelElementOrThrow();
+        }
 
-      const elementKey = element.getKey();
-      const elementDOM = editor.getElementByKey(elementKey);
+        const elementKey = element.getKey();
+        const elementDOM = editor.getElementByKey(elementKey);
 
-      // Update format state
-      setToolbarState(prevState => ({
-        ...prevState,
-        isBold: selection.hasFormat('bold'),
-        isItalic: selection.hasFormat('italic'),
-        isUnderline: selection.hasFormat('underline'),
-        isStrikethrough: selection.hasFormat('strikethrough'),
-        isLink: false,
-        blockType: 'paragraph',
-      }));
-
-      // Check if we're in a link
-      const node = getSelectedNode(selection);
-      const parent = node.getParent();
-      if ($isLinkNode(parent) || $isLinkNode(node)) {
+        // Update format state
         setToolbarState(prevState => ({
           ...prevState,
-          isLink: true,
+          isBold: selection.hasFormat('bold'),
+          isItalic: selection.hasFormat('italic'),
+          isUnderline: selection.hasFormat('underline'),
+          isStrikethrough: selection.hasFormat('strikethrough'),
+          isLink: false,
+          blockType: 'paragraph',
         }));
-      }
 
-      // Determine block type
-      if ($isListNode(element)) {
-        const parentList = $getNearestNodeOfType(anchorNode, 'list');
-        const type = parentList ? parentList.getListType() : element.getListType();
-        setToolbarState(prevState => ({
-          ...prevState,
-          blockType: type === 'bullet' ? 'bullet' : 'number',
-        }));
-      } else {
-        const type = $isHeadingNode(element)
-          ? element.getTag()
-          : element.getType();
-        if (['h1', 'h2', 'h3', 'quote'].includes(type)) {
-          setToolbarState(prevState => ({
-            ...prevState,
-            blockType: type as BlockType,
-          }));
-        } else {
-          setToolbarState(prevState => ({
-            ...prevState,
-            blockType: 'paragraph',
-          }));
+        // Check if we're in a link
+        try {
+          const node = getSelectedNode(selection);
+          const parent = node.getParent();
+          if ($isLinkNode(parent) || $isLinkNode(node)) {
+            setToolbarState(prevState => ({
+              ...prevState,
+              isLink: true,
+            }));
+          }
+        } catch (linkError) {
+          console.warn('Error checking link state:', linkError);
+        }
+
+        // Determine block type
+        try {
+          if ($isListNode(element)) {
+            const parentList = $getNearestNodeOfType(anchorNode, 'list');
+            const type = parentList ? parentList.getListType() : element.getListType();
+            setToolbarState(prevState => ({
+              ...prevState,
+              blockType: type === 'bullet' ? 'bullet' : 'number',
+            }));
+          } else {
+            const type = $isHeadingNode(element)
+              ? element.getTag()
+              : element.getType();
+            if (['h1', 'h2', 'h3', 'quote'].includes(type)) {
+              setToolbarState(prevState => ({
+                ...prevState,
+                blockType: type as BlockType,
+              }));
+            } else {
+              setToolbarState(prevState => ({
+                ...prevState,
+                blockType: 'paragraph',
+              }));
+            }
+          }
+        } catch (blockError) {
+          console.warn('Error determining block type:', blockError);
         }
       }
+    } catch (error) {
+      console.error('Error updating toolbar state:', error);
     }
   }, [editor]);
 
   useEffect(() => {
-    return mergeRegister(
-      editor.registerUpdateListener(({ editorState }) => {
-        editorState.read(() => {
-          updateToolbar();
-        });
-      }),
-      editor.registerCommand(
-        SELECTION_CHANGE_COMMAND,
-        () => {
-          updateToolbar();
-          return false;
-        },
-        1
-      )
-    );
+    try {
+      return mergeRegister(
+        editor.registerUpdateListener(({ editorState }) => {
+          editorState.read(() => {
+            updateToolbar();
+          });
+        }),
+        editor.registerCommand(
+          SELECTION_CHANGE_COMMAND,
+          () => {
+            updateToolbar();
+            return false;
+          },
+          1
+        )
+      );
+    } catch (error) {
+      console.error('Error registering toolbar listeners:', error);
+      return () => {}; // Return empty cleanup function
+    }
   }, [editor, updateToolbar]);
 
   const handleHistoryStateChange = useCallback((historyState: { canUndo?: boolean; canRedo?: boolean }) => {
@@ -235,90 +252,112 @@ export const LexicalToolbar: React.FC = () => {
 
   const formatText = useCallback(
     (format: FormatType) => {
-      editor.dispatchCommand(FORMAT_TEXT_COMMAND, format);
+      try {
+        editor.update(() => {
+          editor.dispatchCommand(FORMAT_TEXT_COMMAND, format);
+        });
+      } catch (error) {
+        console.error('Format text command failed:', error);
+      }
     },
     [editor]
   );
 
   const formatHeading = useCallback(
     (headingSize: HeadingTagType) => {
-      if (toolbarState.blockType !== headingSize) {
+      try {
         editor.update(() => {
           const selection = $getSelection();
           if ($isRangeSelection(selection)) {
-            const node = $createHeadingNode(headingSize);
-            selection.getNodes().forEach((n) => {
-              if ($isHeadingNode(n)) {
-                n.replace(node, true);
-              } else {
-                n.insertBefore(node);
-                n.remove();
-              }
-            });
+            editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, headingSize);
           }
         });
+      } catch (error) {
+        console.error('Format heading command failed:', error);
       }
     },
-    [editor, toolbarState.blockType]
+    [editor]
   );
 
   const formatParagraph = useCallback(() => {
-    editor.update(() => {
-      const selection = $getSelection();
-      if ($isRangeSelection(selection)) {
-        editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, 'paragraph');
-      }
-    });
-  }, [editor]);
-
-  const formatQuote = useCallback(() => {
-    if (toolbarState.blockType !== 'quote') {
+    try {
       editor.update(() => {
         const selection = $getSelection();
         if ($isRangeSelection(selection)) {
-          const node = $createQuoteNode();
-          selection.getNodes().forEach((n) => {
-            n.insertBefore(node);
-            n.remove();
-          });
+          editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, 'paragraph');
         }
       });
+    } catch (error) {
+      console.error('Format paragraph command failed:', error);
     }
-  }, [editor, toolbarState.blockType]);
+  }, [editor]);
+
+  const formatQuote = useCallback(() => {
+    try {
+      editor.update(() => {
+        const selection = $getSelection();
+        if ($isRangeSelection(selection)) {
+          editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, 'quote');
+        }
+      });
+    } catch (error) {
+      console.error('Format quote command failed:', error);
+    }
+  }, [editor]);
 
   const formatBulletList = useCallback(() => {
-    if (toolbarState.blockType !== 'bullet') {
-      editor.dispatchCommand(INSERT_UNORDERED_LIST_COMMAND, undefined);
-    } else {
-      editor.dispatchCommand(REMOVE_LIST_COMMAND, undefined);
+    try {
+      if (toolbarState.blockType !== 'bullet') {
+        editor.dispatchCommand(INSERT_UNORDERED_LIST_COMMAND, undefined);
+      } else {
+        editor.dispatchCommand(REMOVE_LIST_COMMAND, undefined);
+      }
+    } catch (error) {
+      console.error('Format bullet list command failed:', error);
     }
   }, [editor, toolbarState.blockType]);
 
   const formatNumberedList = useCallback(() => {
-    if (toolbarState.blockType !== 'number') {
-      editor.dispatchCommand(INSERT_ORDERED_LIST_COMMAND, undefined);
-    } else {
-      editor.dispatchCommand(REMOVE_LIST_COMMAND, undefined);
+    try {
+      if (toolbarState.blockType !== 'number') {
+        editor.dispatchCommand(INSERT_ORDERED_LIST_COMMAND, undefined);
+      } else {
+        editor.dispatchCommand(REMOVE_LIST_COMMAND, undefined);
+      }
+    } catch (error) {
+      console.error('Format numbered list command failed:', error);
     }
   }, [editor, toolbarState.blockType]);
 
   const insertLink = useCallback(() => {
-    if (!toolbarState.isLink) {
-      const url = prompt('Enter the URL');
-      if (url) {
-        editor.dispatchCommand(TOGGLE_LINK_COMMAND, url);
+    try {
+      if (!toolbarState.isLink) {
+        const url = prompt('Enter the URL');
+        if (url) {
+          editor.dispatchCommand(TOGGLE_LINK_COMMAND, url);
+        }
+      } else {
+        editor.dispatchCommand(TOGGLE_LINK_COMMAND, null);
       }
-    } else {
-      editor.dispatchCommand(TOGGLE_LINK_COMMAND, null);
+    } catch (error) {
+      console.error('Insert link command failed:', error);
     }
   }, [editor, toolbarState.isLink]);
 
   const undo = useCallback(() => {
-    editor.dispatchCommand(UNDO_COMMAND, undefined);
+    try {
+      editor.dispatchCommand(UNDO_COMMAND, undefined);
+    } catch (error) {
+      console.error('Undo command failed:', error);
+    }
   }, [editor]);
 
   const redo = useCallback(() => {
-    editor.dispatchCommand(REDO_COMMAND, undefined);
+    try {
+      editor.dispatchCommand(REDO_COMMAND, undefined);
+    } catch (error) {
+      console.error('Redo command failed:', error);
+    }
   }, [editor]);
 
   return (

@@ -50,6 +50,8 @@ interface BookCraftActions {
     deleteProject: (id: string) => void;
     setActiveProject: (id: string | null) => void;
     toggleCreateModal: (isOpen: boolean) => void;
+    closeAllModals: () => void;
+    initializeApp: () => void;
 
     // Settings Management
     updateSettings: (newSettings: Partial<Settings>) => void;
@@ -197,6 +199,8 @@ export const useBookCraftStore = create<BookCraftState & BookCraftActions>()(
                 };
                 set((state) => {
                     state.projects[id] = newProject;
+                    // Automatically set the new project as active
+                    state.activeProjectId = id;
                 });
             },
             updateProject: (id, updates) => {
@@ -219,7 +223,58 @@ export const useBookCraftStore = create<BookCraftState & BookCraftActions>()(
                 set({ activeProjectId: id });
             },
             toggleCreateModal: (isOpen) => {
-                set({ isCreateModalOpen: isOpen });
+                set((state) => {
+                    state.isCreateModalOpen = isOpen;
+                    // If closing the modal, ensure any loading states related to project creation are cleared
+                    if (!isOpen) {
+                        state.isLoading = false;
+                    }
+                });
+            },
+            closeAllModals: () => {
+                set((state) => {
+                    // Reset all modal and UI states to their default values
+                    state.isCreateModalOpen = false;
+                    state.isLoading = false;
+                    state.generatingVisualFor = null;
+                    state.isGeneratingImage = false;
+                    state.isSuggestingVisual = false;
+                    state.isAnalyzingChapter = null;
+                    state.isResearching = false;
+                    state.isFactChecking = false;
+                    state.isGeneratingCitation = false;
+                    state.isAnalyzingThemes = false;
+                    state.isDetectingContradictions = false;
+                    state.selectedResearchItems = [];
+                    // Note: We keep researchSidebarOpen, activeResearchQuery, activeResearchFolder
+                    // as these might be part of the workflow state users want to maintain
+                });
+            },
+            initializeApp: () => {
+                // Initialize the app with clean UI state
+                // This is called on app startup to ensure no persisted UI state causes issues
+                set((state) => {
+                    // Reset all modal and UI states to defaults
+                    state.isCreateModalOpen = false;
+                    state.isLoading = false;
+                    state.generatingVisualFor = null;
+                    state.isGeneratingImage = false;
+                    state.isSuggestingVisual = false;
+                    state.isAnalyzingChapter = null;
+                    state.isResearching = false;
+                    state.isFactChecking = false;
+                    state.isGeneratingCitation = false;
+                    state.isAnalyzingThemes = false;
+                    state.isDetectingContradictions = false;
+                    state.selectedResearchItems = [];
+
+                    // Initialize settings if they don't exist
+                    if (!state.settings) {
+                        state.settings = {
+                            // Default settings can be added here
+                        };
+                    }
+                });
             },
 
             // Settings Management
@@ -1145,6 +1200,18 @@ export const useBookCraftStore = create<BookCraftState & BookCraftActions>()(
                 set({ researchView: view });
             }
         })),
-        { name: 'bookcraft-storage' }
+        {
+            name: 'bookcraft-storage',
+            partialize: (state) => ({
+                // Only persist data, not UI state
+                projects: state.projects,
+                activeProjectId: state.activeProjectId,
+                settings: state.settings,
+                // Persist some research preferences but not loading states
+                researchView: state.researchView,
+                researchFilters: state.researchFilters,
+                // Do NOT persist modal states, loading states, or other ephemeral UI state
+            })
+        }
     )
 );

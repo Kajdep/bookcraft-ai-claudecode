@@ -13,6 +13,7 @@ import { ListNode, ListItemNode } from '@lexical/list';
 import { LinkNode, AutoLinkNode } from '@lexical/link';
 import { ToolbarPlugin } from './plugins/ToolbarPlugin';
 import { ResearchLookupPlugin } from './plugins/ResearchLookupPlugin';
+import { DebugPlugin } from './plugins/DebugPlugin';
 import { log } from '../../../services/logger';
 
 // Content sync plugin to handle HTML import/export
@@ -32,8 +33,12 @@ function ContentSyncPlugin({
 
     editor.update(() => {
       try {
+        // Only update if content is different from current editor content
+        const currentHtml = $generateHtmlFromNodes(editor, null);
+        if (currentHtml === content) return;
+
         const parser = new DOMParser();
-        const dom = parser.parseFromString(content, 'text/html');
+        const dom = parser.parseFromString(content || '<p></p>', 'text/html');
         const nodes = $generateNodesFromDOM(editor, dom);
         const root = $getRoot();
         root.clear();
@@ -128,6 +133,7 @@ export const LexicalEditor: React.FC<LexicalEditorProps> = ({
   // Editor configuration
   const initialConfig = {
     namespace: 'BookCraftEditor',
+    editorState: null, // Let the ContentSyncPlugin handle the initial state
     theme: {
       text: {
         bold: 'font-bold',
@@ -185,6 +191,10 @@ export const LexicalEditor: React.FC<LexicalEditorProps> = ({
               <ContentEditable
                 className="w-full h-full bg-transparent text-slate-800 p-6 resize-none focus:outline-none focus:ring-0 leading-relaxed prose prose-lg max-w-none min-h-full"
                 style={{ minHeight: '100%' }}
+                aria-label={placeholder}
+                role="textbox"
+                aria-multiline="true"
+                data-testid="lexical-content-editable"
               />
             }
             placeholder={
@@ -207,6 +217,7 @@ export const LexicalEditor: React.FC<LexicalEditorProps> = ({
           {enableResearchLookup && (
             <ResearchLookupPlugin isEnabled={enableResearchLookup} />
           )}
+          <DebugPlugin />
         </div>
       </LexicalComposer>
     </div>

@@ -7,6 +7,7 @@ import { Settings } from 'lucide-react';
 import { ToastProvider } from './components/Toast';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { SettingsModal } from './components/SettingsModal.tsx';
+import { useBookCraftStore } from './store/useStore';
 
 const Header: React.FC<{ onSettingsClick: () => void }> = ({ onSettingsClick }) => (
     <header className="bg-slate-900/70 backdrop-blur-lg border-b border-slate-700/50 sticky top-0 z-50">
@@ -33,6 +34,12 @@ const Header: React.FC<{ onSettingsClick: () => void }> = ({ onSettingsClick }) 
 
 const App: React.FC = () => {
     const [isSettingsOpen, setIsSettingsOpen] = React.useState(false);
+    const initializeApp = useBookCraftStore(state => state.initializeApp);
+
+    // Initialize the app with clean UI state on startup
+    React.useEffect(() => {
+        initializeApp();
+    }, [initializeApp]);
 
     return (
         <ErrorBoundary>

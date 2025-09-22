@@ -1,18 +1,127 @@
 import { chromium } from 'playwright';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 import fs from 'fs';
 
-async function testLexicalEditor() {
-  const browser = await chromium.launch({ headless: false, slowMo: 1000 });
-  const context = await browser.newContext();
-  const page = await context.newPage();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
-  try {
-    console.log('🚀 Starting Lexical Editor Test...');
+class LexicalEditorTester {
+  constructor() {
+    this.browser = null;
+    this.page = null;
+    this.results = {
+      projectCreation: { success: false, error: null },
+      editorAccess: { success: false, error: null },
+      textInput: { success: false, error: null },
+      formatting: {
+        bold: { success: false, error: null },
+        italic: { success: false, error: null },
+        underline: { success: false, error: null }
+      },
+      headings: {
+        h1: { success: false, error: null },
+        h2: { success: false, error: null },
+        h3: { success: false, error: null }
+      },
+      lists: {
+        unordered: { success: false, error: null },
+        ordered: { success: false, error: null }
+      },
+      links: { success: false, error: null },
+      undoRedo: {
+        undo: { success: false, error: null },
+        redo: { success: false, error: null }
+      },
+      autoSave: { success: false, error: null },
+      persistence: { success: false, error: null },
+      aiIntegration: { success: false, error: null },
+      toolbar: { success: false, error: null },
+      accessibility: { success: false, error: null }
+    };
+    this.screenshots = [];
+  }
 
-    // Navigate to the application
-    console.log('📍 Navigating to http://localhost:5173/');
-    await page.goto('http://localhost:5173/');
-    await page.waitForLoadState('networkidle');
+  async init() {
+    console.log('🚀 Initializing Lexical Editor Test Suite...\n');
+
+    this.browser = await chromium.launch({
+      headless: false,
+      slowMo: 500 // Slow down for better observation
+    });
+    this.page = await this.browser.newPage();
+
+    // Set viewport for consistent screenshots
+    await this.page.setViewportSize({ width: 1920, height: 1080 });
+
+    // Enable console logging
+    this.page.on('console', msg => {
+      if (msg.type() === 'error') {
+        console.log('❌ Browser Error:', msg.text());
+      }
+    });
+
+    // Catch page errors
+    this.page.on('pageerror', error => {
+      console.log('❌ Page Error:', error.message);
+    });
+  }
+
+  async takeScreenshot(name, description) {
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const filename = `screenshot-${timestamp}-${name}.png`;
+    const filepath = join(__dirname, 'test-screenshots', filename);
+
+    // Ensure screenshots directory exists
+    const screenshotsDir = join(__dirname, 'test-screenshots');
+    if (!fs.existsSync(screenshotsDir)) {
+      fs.mkdirSync(screenshotsDir, { recursive: true });
+    }
+
+    await this.page.screenshot({
+      path: filepath,
+      fullPage: true
+    });
+
+    this.screenshots.push({
+      name,
+      description,
+      filename,
+      filepath
+    });
+
+    console.log(`📸 Screenshot saved: ${filename} - ${description}`);
+  }
+
+  async navigateToApp() {
+    console.log('🌐 Navigating to application...');
+    try {
+      await this.page.goto('http://localhost:5173', {
+        waitUntil: 'networkidle',
+        timeout: 30000
+      });
+
+      await this.takeScreenshot('initial-load', 'Application initial load');
+      console.log('✅ Successfully loaded application');
+      return true;
+    } catch (error) {
+      console.log('❌ Failed to load application:', error.message);
+      return false;
+    }
+  }
+
+  async testLexicalEditor() {
+    const browser = await chromium.launch({ headless: false, slowMo: 1000 });
+    const context = await browser.newContext();
+    const page = await context.newPage();
+
+    try {
+      console.log('🚀 Starting Comprehensive Lexical Editor Test...');
+
+      // Navigate to the application
+      console.log('📍 Navigating to http://localhost:5173/');
+      await page.goto('http://localhost:5173/');
+      await page.waitForLoadState('networkidle');
 
     // Take initial screenshot
     await page.screenshot({ path: 'screenshots/01-homepage.png', fullPage: true });

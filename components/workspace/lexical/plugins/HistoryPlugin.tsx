@@ -16,11 +16,11 @@ export function HistoryStatePlugin({ onHistoryStateChange }: HistoryPluginProps)
 
   useEffect(() => {
     const canUndoHandler = (canUndo: boolean) => {
-      onHistoryStateChange(prev => ({ ...prev, canUndo }));
+      onHistoryStateChange({ canUndo });
     };
 
     const canRedoHandler = (canRedo: boolean) => {
-      onHistoryStateChange(prev => ({ ...prev, canRedo }));
+      onHistoryStateChange({ canRedo });
     };
 
     // Register command listeners

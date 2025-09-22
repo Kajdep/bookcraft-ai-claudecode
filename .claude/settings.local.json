@@ -26,7 +26,15 @@
       "Bash(npx tailwindcss init:*)",
       "Bash(start msedge http://localhost:5174/)",
       "Bash(npm uninstall:*)",
-      "Bash(start msedge http://localhost:5175/)"
+      "Bash(start msedge http://localhost:5175/)",
+      "Bash(tasklist)",
+      "Bash(del test-plotab.js)",
+      "Bash(npm ci:*)",
+      "Bash(netstat:*)",
+      "Bash(gh auth:*)",
+      "Bash(gh repo create:*)",
+      "Bash(git remote add:*)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": []

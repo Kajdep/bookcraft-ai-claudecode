@@ -37,17 +37,24 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!title) {
+        if (!title.trim()) {
             toast.warning("Title Required", "A project title is required.");
             return;
         }
 
         if (projectToEdit) {
-            updateProject(projectToEdit.id, { title, genre, visualStyle });
+            updateProject(projectToEdit.id, { title: title.trim(), genre, visualStyle });
+            toast.success("Project Updated", `"${title}" has been updated successfully.`);
         } else {
-            addProject({ title, genre, visualStyle });
+            addProject({ title: title.trim(), genre, visualStyle });
+            toast.success("Project Created", `"${title}" has been created successfully.`);
         }
-        
+
+        // Reset the form
+        setTitle('');
+        setGenre(Genre.Fiction);
+        setVisualStyle(VisualStyle.Professional);
+
         onClose();
     };
 

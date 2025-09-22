@@ -75,25 +75,29 @@ const PlotPointCard: React.FC<PlotPointCardProps> = ({
 };
 
 export const PlotTab: React.FC = () => {
-    // Separate selectors to prevent unnecessary re-renders
+    // Get activeProjectId separately to avoid selector issues
     const activeProjectId = useBookCraftStore(state => state.activeProjectId);
-    const plotPointsRaw = useBookCraftStore(state =>
-        activeProjectId ? state.projects[activeProjectId]?.plotPoints || [] : []
+
+    // Get plot points from the active project
+    const rawPlotPoints = useBookCraftStore(state =>
+        activeProjectId ? state.projects[activeProjectId]?.plotPoints : undefined
     );
 
-    // Get actions separately to prevent re-renders when state changes
+    // Get action functions (these don't change, so they won't cause re-renders)
     const addPlotPoint = useBookCraftStore(state => state.addPlotPoint);
     const deletePlotPoint = useBookCraftStore(state => state.deletePlotPoint);
     const updatePlotPoint = useBookCraftStore(state => state.updatePlotPoint);
     const reorderPlotPoints = useBookCraftStore(state => state.reorderPlotPoints);
 
+    // Sort plot points using useMemo to prevent creating a new array on every render
+    const plotPoints = useMemo(() => {
+        if (!rawPlotPoints) return [];
+        return [...rawPlotPoints].sort((a, b) => a.order - b.order);
+    }, [rawPlotPoints]);
+
     const [isPlannerOpen, setIsPlannerOpen] = useState(false);
     const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
     const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
-
-    const plotPoints = useMemo(() =>
-        [...plotPointsRaw].sort((a,b) => a.order - b.order),
-    [plotPointsRaw]);
 
     const handleDragStart = (e: React.DragEvent, index: number) => {
         setDraggedIndex(index);

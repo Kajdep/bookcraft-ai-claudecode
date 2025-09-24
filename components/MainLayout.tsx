@@ -49,6 +49,7 @@ const TabButton: React.FC<{
 export const MainLayout: React.FC = () => {
     const activeProjectId = useBookCraftStore(state => state.activeProjectId);
     const project = useBookCraftStore(state => activeProjectId ? state.projects[activeProjectId] : null);
+    const closeAllModals = useBookCraftStore(state => state.closeAllModals);
     const [activeTab, setActiveTab] = useState<MainTab>('Dashboard');
 
     // When a project is selected, automatically switch to Writing tab
@@ -78,6 +79,8 @@ export const MainLayout: React.FC = () => {
 
     const handleTabClick = (tab: MainTab) => {
         if (canAccessTab(tab)) {
+            // Close any open modals when navigating between tabs to prevent conflicts
+            closeAllModals();
             setActiveTab(tab);
         }
     };

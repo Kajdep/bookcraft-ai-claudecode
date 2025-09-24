@@ -41,6 +41,13 @@ interface BookCraftState {
         dateRange?: { start: Date; end: Date };
         folderId?: string;
     };
+
+    // Centralized modal state management
+    activeModal: {
+        type: 'none' | 'createProject' | 'settings' | 'aiAssistant' | 'writersBlock' | 'chapterGenerator' | 'plotTool' | 'projectPlanner' | 'mergeContent';
+        data?: any;
+    };
+    modalStack: Array<{ type: string; data?: any }>;
 }
 
 interface BookCraftActions {
@@ -136,6 +143,13 @@ interface BookCraftActions {
     setActiveResearchQuery: (queryId: string | null) => void;
     setActiveResearchFolder: (folderId: string | null) => void;
     setResearchView: (view: 'grid' | 'list' | 'timeline' | 'mindmap') => void;
+
+    // Enhanced modal management
+    openModal: (type: string, data?: any) => void;
+    closeModal: () => void;
+    isModalOpen: (type: string) => boolean;
+    pushModalToStack: (type: string, data?: any) => void;
+    popModalFromStack: () => void;
 }
 
 export const useBookCraftStore = create<BookCraftState & BookCraftActions>()(
@@ -166,6 +180,10 @@ export const useBookCraftStore = create<BookCraftState & BookCraftActions>()(
             selectedResearchItems: [],
             researchView: 'list' as const,
             researchFilters: {},
+
+            // Centralized modal state
+            activeModal: { type: 'none' },
+            modalStack: [],
 
             // ACTIONS
             // Project Management
@@ -233,7 +251,9 @@ export const useBookCraftStore = create<BookCraftState & BookCraftActions>()(
             },
             closeAllModals: () => {
                 set((state) => {
-                    // Reset all modal and UI states to their default values
+                    // Reset ALL modal and UI states to their default values
+                    state.activeModal = { type: 'none' };
+                    state.modalStack = [];
                     state.isCreateModalOpen = false;
                     state.isLoading = false;
                     state.generatingVisualFor = null;
@@ -255,6 +275,8 @@ export const useBookCraftStore = create<BookCraftState & BookCraftActions>()(
                 // This is called on app startup to ensure no persisted UI state causes issues
                 set((state) => {
                     // Reset all modal and UI states to defaults
+                    state.activeModal = { type: 'none' };
+                    state.modalStack = [];
                     state.isCreateModalOpen = false;
                     state.isLoading = false;
                     state.generatingVisualFor = null;
@@ -429,21 +451,31 @@ export const useBookCraftStore = create<BookCraftState & BookCraftActions>()(
 
                 set(state => {
                     const project = state.projects[projectId];
-                    if (project && project.plotPoints) {
-                        // Sort by order first to ensure we're working with the correct indices
-                        const ordered = [...project.plotPoints].sort((a, b) => a.order - b.order);
+                    if (project && project.plotPoints && project.plotPoints.length > 0) {
+                        // Create a stable copy to prevent reference issues
+                        const currentPlotPoints = project.plotPoints.slice();
+
+                        // Sort by order to ensure correct indices
+                        const ordered = currentPlotPoints.sort((a, b) => a.order - b.order);
+
+                        // Validate indices to prevent array errors
+                        if (sourceIndex < 0 || sourceIndex >= ordered.length ||
+                            destinationIndex < 0 || destinationIndex >= ordered.length) {
+                            return; // Exit early for invalid indices
+                        }
 
                         // Perform the reorder
                         const [removed] = ordered.splice(sourceIndex, 1);
                         ordered.splice(destinationIndex, 0, removed);
 
-                        // Update order values in place to avoid creating new objects
-                        ordered.forEach((point, index) => {
-                            point.order = index;
-                        });
+                        // Create new objects with updated order to ensure proper state updates
+                        const reorderedPlotPoints = ordered.map((point, index) => ({
+                            ...point,
+                            order: index
+                        }));
 
-                        // Replace the entire array at once
-                        project.plotPoints = ordered;
+                        // Replace the entire array
+                        project.plotPoints = reorderedPlotPoints;
                     }
                 });
             },
@@ -1198,19 +1230,88 @@ export const useBookCraftStore = create<BookCraftState & BookCraftActions>()(
 
             setResearchView: (view) => {
                 set({ researchView: view });
+            },
+
+            // Enhanced modal management actions
+            openModal: (type, data) => {
+                set(state => {
+                    // Close any existing modal first and clear all loading/UI states
+                    state.activeModal = { type: type as any, data };
+                    state.modalStack = [];
+                    state.isLoading = false;
+                    state.generatingVisualFor = null;
+                    state.isGeneratingImage = false;
+                    state.isSuggestingVisual = false;
+                    state.isAnalyzingChapter = null;
+                    state.isResearching = false;
+                    state.isFactChecking = false;
+                    state.isGeneratingCitation = false;
+                    state.isAnalyzingThemes = false;
+                    state.isDetectingContradictions = false;
+
+                    // Update legacy state for backward compatibility
+                    if (type === 'createProject') {
+                        state.isCreateModalOpen = true;
+                    }
+                });
+            },
+
+            closeModal: () => {
+                set(state => {
+                    // If there's a modal in the stack, show it
+                    if (state.modalStack.length > 0) {
+                        const nextModal = state.modalStack.pop()!;
+                        state.activeModal = { type: nextModal.type as any, data: nextModal.data };
+                    } else {
+                        state.activeModal = { type: 'none' };
+                        // Update legacy state for backward compatibility
+                        state.isCreateModalOpen = false;
+                    }
+                });
+            },
+
+            isModalOpen: (type) => {
+                const state = get();
+                return state.activeModal.type === type;
+            },
+
+            pushModalToStack: (type, data) => {
+                set(state => {
+                    state.modalStack.push({ type, data });
+                });
+            },
+
+            popModalFromStack: () => {
+                set(state => {
+                    state.modalStack.pop();
+                });
             }
         })),
         {
             name: 'bookcraft-storage',
             partialize: (state) => ({
-                // Only persist data, not UI state
+                // ONLY persist data, NEVER persist UI state
                 projects: state.projects,
                 activeProjectId: state.activeProjectId,
                 settings: state.settings,
                 // Persist some research preferences but not loading states
                 researchView: state.researchView,
                 researchFilters: state.researchFilters,
-                // Do NOT persist modal states, loading states, or other ephemeral UI state
+                // EXPLICITLY EXCLUDE all modal and UI states
+                // activeModal: undefined, // Don't persist
+                // modalStack: undefined, // Don't persist
+                // isCreateModalOpen: undefined, // Don't persist
+                // isLoading: undefined, // Don't persist
+                // generatingVisualFor: undefined, // Don't persist
+                // isGeneratingImage: undefined, // Don't persist
+                // isSuggestingVisual: undefined, // Don't persist
+                // isAnalyzingChapter: undefined, // Don't persist
+                // isResearching: undefined, // Don't persist
+                // isFactChecking: undefined, // Don't persist
+                // isGeneratingCitation: undefined, // Don't persist
+                // isAnalyzingThemes: undefined, // Don't persist
+                // isDetectingContradictions: undefined, // Don't persist
+                // selectedResearchItems: undefined, // Don't persist
             })
         }
     )

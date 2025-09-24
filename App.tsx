@@ -34,12 +34,29 @@ const Header: React.FC<{ onSettingsClick: () => void }> = ({ onSettingsClick }) 
 
 const App: React.FC = () => {
     const [isSettingsOpen, setIsSettingsOpen] = React.useState(false);
+    // FIX: Separate selectors to prevent infinite loops
     const initializeApp = useBookCraftStore(state => state.initializeApp);
+    const closeAllModals = useBookCraftStore(state => state.closeAllModals);
 
     // Initialize the app with clean UI state on startup
     React.useEffect(() => {
         initializeApp();
-    }, [initializeApp]);
+        closeAllModals(); // Ensure all modals are closed on app start
+    }, [initializeApp, closeAllModals]);
+
+    // Handle app visibility change to cleanup modals
+    React.useEffect(() => {
+        const handleVisibilityChange = () => {
+            if (document.hidden) {
+                // Clean up modal states when app loses focus
+                closeAllModals();
+                setIsSettingsOpen(false);
+            }
+        };
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+    }, [closeAllModals]);
 
     return (
         <ErrorBoundary>

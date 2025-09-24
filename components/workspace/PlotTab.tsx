@@ -32,6 +32,15 @@ const PlotPointCard: React.FC<PlotPointCardProps> = ({
     const [title, setTitle] = useState(point.title);
     const [description, setDescription] = useState(point.description);
 
+    // Sync local state with prop changes to prevent stale state
+    React.useEffect(() => {
+        setTitle(point.title);
+    }, [point.title]);
+
+    React.useEffect(() => {
+        setDescription(point.description);
+    }, [point.description]);
+
     const handleTitleBlur = () => {
         if (title !== point.title) onUpdate(point.id, { title });
     };
@@ -75,23 +84,37 @@ const PlotPointCard: React.FC<PlotPointCardProps> = ({
 };
 
 export const PlotTab: React.FC = () => {
-    // Get activeProjectId separately to avoid selector issues
+    // Consolidate store selectors to minimize subscriptions and prevent infinite loops
+    // FIX: Separate stable selectors to prevent infinite loops
     const activeProjectId = useBookCraftStore(state => state.activeProjectId);
-
-    // Get plot points from the active project
     const rawPlotPoints = useBookCraftStore(state =>
-        activeProjectId ? state.projects[activeProjectId]?.plotPoints : undefined
+        state.activeProjectId && state.projects[state.activeProjectId]
+            ? state.projects[state.activeProjectId].plotPoints
+            : []
     );
-
-    // Get action functions (these don't change, so they won't cause re-renders)
     const addPlotPoint = useBookCraftStore(state => state.addPlotPoint);
     const deletePlotPoint = useBookCraftStore(state => state.deletePlotPoint);
     const updatePlotPoint = useBookCraftStore(state => state.updatePlotPoint);
     const reorderPlotPoints = useBookCraftStore(state => state.reorderPlotPoints);
 
-    // Sort plot points using useMemo to prevent creating a new array on every render
+    // Early return if no active project to prevent unnecessary rendering
+    if (!activeProjectId) {
+        return (
+            <div className="animate-fade-in">
+                <header className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+                    <h3 className="text-2xl font-bold">Plot & Story Structure</h3>
+                </header>
+                <Card className="p-12 text-center border-2 border-dashed border-slate-700">
+                    <h4 className="mt-4 text-xl font-semibold text-slate-300">No Active Project</h4>
+                    <p className="mt-2 text-slate-400">Please create or select a project to manage plot points.</p>
+                </Card>
+            </div>
+        );
+    }
+
+    // FIX: Use stable dependency for useMemo to prevent infinite loops
     const plotPoints = useMemo(() => {
-        if (!rawPlotPoints) return [];
+        if (!rawPlotPoints || rawPlotPoints.length === 0) return [];
         return [...rawPlotPoints].sort((a, b) => a.order - b.order);
     }, [rawPlotPoints]);
 

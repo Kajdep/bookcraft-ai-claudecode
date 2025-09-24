@@ -8,6 +8,7 @@ import { Button } from '../UI';
 import { Bars3Icon, MapIcon, SparklesIcon, ArrowLeftIcon, MagnifyingGlassIcon } from '../Icons';
 import { ProjectPlannerModal } from './ProjectPlannerModal';
 import { ResearchSidebar } from './ResearchSidebar';
+import { ErrorBoundary } from '../ErrorBoundary';
 
 type ViewMode = 'list' | 'kanban';
 
@@ -125,7 +126,15 @@ export const WritingDesk: React.FC = () => {
                 </aside>
                 <main className="lg:col-span-8 xl:col-span-9 h-full">
                     {activeChapterId ? (
-                        <ChapterEditorView chapterId={activeChapterId} />
+                        <ErrorBoundary fallback={
+                            <div className="h-full flex flex-col items-center justify-center text-center p-6 bg-slate-800/50 rounded-lg border border-slate-700/50">
+                                <h3 className="text-xl font-semibold text-slate-300 mb-2">Editor Error</h3>
+                                <p className="text-slate-400 mb-4">The chapter editor encountered an issue. Try refreshing the page.</p>
+                                <Button onClick={() => window.location.reload()}>Refresh</Button>
+                            </div>
+                        }>
+                            <ChapterEditorView chapterId={activeChapterId} />
+                        </ErrorBoundary>
                     ) : (
                         <div className="h-full flex flex-col items-center justify-center text-center p-6 bg-slate-800/50 rounded-lg border border-slate-700/50">
                             <ArrowLeftIcon className="mx-auto h-12 w-12 text-slate-600" />

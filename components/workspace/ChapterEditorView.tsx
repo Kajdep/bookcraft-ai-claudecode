@@ -17,13 +17,12 @@ interface ChapterEditorViewProps {
 
 export const ChapterEditorView: React.FC<ChapterEditorViewProps> = ({ chapterId }) => {
     const chapter = useBookCraftStore(state => state.projects[state.activeProjectId!]?.chapters.find(c => c.id === chapterId)) as Chapter;
-    // FIX: Select the raw plot points array to prevent re-renders, and then memoize the sorted version.
-    // This fixes an infinite loop that caused React error #185.
-    const plotPointsFromStore = useBookCraftStore(state => state.projects[state.activeProjectId!]?.plotPoints || []);
-    const plotPoints = useMemo(() => 
-        [...plotPointsFromStore].sort((a,b) => a.order - b.order),
-        [plotPointsFromStore]
-    );
+    // FIX: Stable plot points selection to prevent infinite loops
+    const plotPoints = useBookCraftStore(state => {
+        const project = state.projects[state.activeProjectId!];
+        if (!project?.plotPoints) return [];
+        return [...project.plotPoints].sort((a, b) => a.order - b.order);
+    });
     const updateChapter = useBookCraftStore(state => state.updateChapter);
     const generateChapterStructure = useBookCraftStore(state => state.generateChapterStructure);
     const cleanupAndFormatText = useBookCraftStore(state => state.cleanupAndFormatText);

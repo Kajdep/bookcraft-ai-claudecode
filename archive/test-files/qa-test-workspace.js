@@ -22,6 +22,15 @@ class WorkspaceQATest {
 
     async setup() {
         console.log('🚀 Starting BookCraft AI Workspace QA Test Suite');
+
+        // DEBUG: Log Playwright configuration
+        console.log('🔍 [DEBUG] Playwright Setup:', {
+            chromiumVersion: await chromium.version(),
+            userAgent: await this.browser?.version() || 'N/A',
+            viewport: { width: 1920, height: 1080 },
+            timestamp: new Date().toISOString()
+        });
+
         this.browser = await chromium.launch({
             headless: false,
             slowMo: 1000 // Slow down for better observation
@@ -33,6 +42,11 @@ class WorkspaceQATest {
 
         // Listen for console errors
         this.page.on('console', msg => {
+            console.log('📱 [DEBUG] Console Message:', {
+                type: msg.type(),
+                text: msg.text(),
+                timestamp: new Date().toISOString()
+            });
             if (msg.type() === 'error') {
                 this.results.errors.push({
                     type: 'console',
@@ -44,6 +58,11 @@ class WorkspaceQATest {
 
         // Listen for page errors
         this.page.on('pageerror', error => {
+            console.log('❌ [DEBUG] Page Error:', {
+                message: error.message,
+                stack: error.stack,
+                timestamp: new Date().toISOString()
+            });
             this.results.errors.push({
                 type: 'page',
                 message: error.message,
@@ -126,23 +145,52 @@ class WorkspaceQATest {
         try {
             const startTime = Date.now();
 
-            // Click the tab
-            const tabButton = await this.page.locator(tabSelector);
-            await tabButton.click();
-            await this.page.waitForTimeout(2000);
+            // DEBUG: Log selector information
+            console.log(`🔍 [DEBUG] Tab Selector:`, {
+                tabName,
+                selector: tabSelector,
+                timestamp: new Date().toISOString()
+            });
 
-            testResult.accessible = true;
-            testResult.loadTime = Date.now() - startTime;
+            // Check if selector exists before clicking
+            const elements = await this.page.locator(tabSelector);
+            const count = await elements.count();
 
-            // Take screenshot of the tab
-            await this.takeScreenshot(`tab-${tabName.toLowerCase().replace(/\s+/g, '-')}`);
+            console.log(`🔍 [DEBUG] Selector Results:`, {
+                tabName,
+                selector: tabSelector,
+                elementCount: count,
+                isVisible: count > 0 ? await elements.first().isVisible() : false
+            });
 
-            // Test specific functionality based on tab
-            await this.testTabSpecificFeatures(tabName, testResult);
+            if (count === 0) {
+                testResult.issues.push(`No elements found for selector: ${tabSelector}`);
+                console.log(`❌ [DEBUG] No elements found for: ${tabSelector}`);
+            } else {
+                // Click the tab
+                const tabButton = await this.page.locator(tabSelector);
+                await tabButton.click();
+                await this.page.waitForTimeout(2000);
 
-            testResult.functional = testResult.issues.length === 0;
+                testResult.accessible = true;
+                testResult.loadTime = Date.now() - startTime;
+
+                // Take screenshot of the tab
+                await this.takeScreenshot(`tab-${tabName.toLowerCase().replace(/\s+/g, '-')}`);
+
+                // Test specific functionality based on tab
+                await this.testTabSpecificFeatures(tabName, testResult);
+
+                testResult.functional = testResult.issues.length === 0;
+            }
 
         } catch (error) {
+            console.log(`❌ [DEBUG] Tab access error:`, {
+                tabName,
+                selector: tabSelector,
+                error: error.message,
+                stack: error.stack
+            });
             testResult.issues.push(`Failed to access tab: ${error.message}`);
             this.results.errors.push({
                 type: 'tab-access',

@@ -149,17 +149,18 @@ export const LexicalToolbar: React.FC = () => {
       const selection = $getSelection();
       if ($isRangeSelection(selection)) {
         const anchorNode = selection.anchor.getNode();
-        let element =
-          anchorNode.getKey() === 'root'
-            ? anchorNode
-            : $getNearestNodeOfType(anchorNode, 'element');
+        let element;
 
-        if (element === null) {
-          element = anchorNode.getTopLevelElementOrThrow();
+        try {
+          if (anchorNode.getKey() === 'root') {
+            element = anchorNode;
+          } else {
+            element = anchorNode.getTopLevelElementOrThrow();
+          }
+        } catch (error) {
+          console.warn('Error getting element node:', error);
+          element = anchorNode.getParent() || anchorNode;
         }
-
-        const elementKey = element.getKey();
-        const elementDOM = editor.getElementByKey(elementKey);
 
         // Update format state
         setToolbarState(prevState => ({
@@ -188,31 +189,31 @@ export const LexicalToolbar: React.FC = () => {
 
         // Determine block type
         try {
-          if ($isListNode(element)) {
-            const parentList = $getNearestNodeOfType(anchorNode, 'list');
-            const type = parentList ? parentList.getListType() : element.getListType();
+          if (element && $isListNode(element)) {
+            const type = element.getListType();
             setToolbarState(prevState => ({
               ...prevState,
               blockType: type === 'bullet' ? 'bullet' : 'number',
             }));
+          } else if (element && $isHeadingNode(element)) {
+            const type = element.getTag();
+            setToolbarState(prevState => ({
+              ...prevState,
+              blockType: type as BlockType,
+            }));
           } else {
-            const type = $isHeadingNode(element)
-              ? element.getTag()
-              : element.getType();
-            if (['h1', 'h2', 'h3', 'quote'].includes(type)) {
-              setToolbarState(prevState => ({
-                ...prevState,
-                blockType: type as BlockType,
-              }));
-            } else {
-              setToolbarState(prevState => ({
-                ...prevState,
-                blockType: 'paragraph',
-              }));
-            }
+            // Default to paragraph for unknown or null elements
+            setToolbarState(prevState => ({
+              ...prevState,
+              blockType: 'paragraph',
+            }));
           }
         } catch (blockError) {
           console.warn('Error determining block type:', blockError);
+          setToolbarState(prevState => ({
+            ...prevState,
+            blockType: 'paragraph',
+          }));
         }
       }
     } catch (error) {

@@ -10,6 +10,7 @@ import { CoverCreator } from './workspace/CoverCreator';
 import { ResearchTab } from './workspace/ResearchTab';
 import { MaterialTab } from './workspace/MaterialTab';
 import { PlotTab } from './workspace/PlotTab';
+import { ErrorBoundary } from './ErrorBoundary';
 
 type WorkspaceTab = 'Writing' | 'Visuals' | 'Research' | 'Material' | 'Plot' | 'Cover Creator' | 'KDP Calculator' | 'Export';
 
@@ -89,7 +90,17 @@ export const ProjectWorkspace: React.FC = () => {
                     {activeTab === 'Visuals' && <VisualsWorkspace project={project} />}
                     {activeTab === 'Research' && <ResearchTab />}
                     {activeTab === 'Material' && <MaterialTab />}
-                    {activeTab === 'Plot' && <PlotTab />}
+                    {activeTab === 'Plot' && (
+                        <ErrorBoundary fallback={
+                            <div className="p-8 text-center bg-slate-800/50 rounded-lg border border-slate-700/50">
+                                <h3 className="text-xl font-semibold text-slate-300 mb-2">Plot Tab Error</h3>
+                                <p className="text-slate-400 mb-4">There was an issue loading the plot management. Try refreshing.</p>
+                                <Button onClick={() => window.location.reload()}>Refresh</Button>
+                            </div>
+                        }>
+                            <PlotTab />
+                        </ErrorBoundary>
+                    )}
                     {activeTab === 'Cover Creator' && <CoverCreator />}
                     {activeTab === 'KDP Calculator' && <KDPCalculator />}
                     {activeTab === 'Export' && <ExportTab />}

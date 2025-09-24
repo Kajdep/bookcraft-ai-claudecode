@@ -6,16 +6,55 @@ import { log } from "./logger";
 const DEFAULT_OPENROUTER_MODEL = "nvidia/nemotron-nano-9b-v2:free";
 
 // Function to get current settings from store
-const getAISettings = (): Settings => {
+const getAISettings = async (): Promise<Settings> => {
     // Since this is a service layer, we need to get settings from the store
     // We'll import the store hook at runtime to avoid circular dependencies
-    const { useBookCraftStore } = require('../store/useStore');
+
+    // DEBUG: Log environment and module system info
+    console.log('🔍 [DEBUG] Environment Check:', {
+        isBrowser: typeof window !== 'undefined',
+        hasRequire: typeof require !== 'undefined',
+        hasProcess: typeof process !== 'undefined',
+        moduleType: 'ES6 modules (type: module in package.json)',
+        timestamp: new Date().toISOString()
+    });
+
+    // Use dynamic import to avoid circular dependencies and ensure browser compatibility
+    let useBookCraftStore;
+    try {
+        console.log('🔄 [DEBUG] Attempting dynamic import of store...');
+        // Dynamic import to avoid circular dependencies and ensure browser compatibility
+        const storeModule = await import('../store/useStore');
+        useBookCraftStore = storeModule.useBookCraftStore;
+        console.log('✅ [DEBUG] Dynamic import succeeded');
+    } catch (importError) {
+        console.error('❌ [DEBUG] Dynamic import failed:', importError.message);
+        throw new Error(`Store import failed: ${importError.message}. This suggests a module system or circular dependency issue.`);
+    }
+
     const settings = useBookCraftStore.getState().settings;
 
+    // DEBUG: Add logging to validate API configuration
+    console.log('🔍 [DEBUG] AI Settings Check:', {
+        hasSettings: !!settings,
+        openRouterApiKey: settings?.openRouterApiKey ? '[REDACTED]' : 'MISSING',
+        openRouterEndpoint: settings?.openRouterEndpoint || 'DEFAULT',
+        geminiApiKey: settings?.geminiApiKey ? '[REDACTED]' : 'MISSING',
+        geminiEndpoint: settings?.geminiEndpoint || 'DEFAULT',
+        defaultModel: settings?.defaultModel || DEFAULT_OPENROUTER_MODEL,
+        // Check process.env availability in browser
+        hasProcessEnv: typeof process !== 'undefined' && process?.env,
+        envOpenRouterKey: (typeof process !== 'undefined' && process?.env?.OPENROUTER_API_KEY) ? '[REDACTED]' : 'MISSING',
+        envGeminiKey: (typeof process !== 'undefined' && process?.env?.GEMINI_API_KEY) ? '[REDACTED]' : 'MISSING',
+        // Check if we're in browser environment
+        isBrowser: typeof window !== 'undefined',
+        userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'NO_NAVIGATOR'
+    });
+
     return {
-        openRouterApiKey: settings?.openRouterApiKey || process.env.OPENROUTER_API_KEY || '',
+        openRouterApiKey: settings?.openRouterApiKey || (typeof process !== 'undefined' && process?.env?.OPENROUTER_API_KEY) || '',
         openRouterEndpoint: settings?.openRouterEndpoint || 'https://openrouter.ai/api/v1',
-        geminiApiKey: settings?.geminiApiKey || process.env.GEMINI_API_KEY || '',
+        geminiApiKey: settings?.geminiApiKey || (typeof process !== 'undefined' && process?.env?.GEMINI_API_KEY) || '',
         geminiEndpoint: settings?.geminiEndpoint || 'https://generativelanguage.googleapis.com',
         ...settings
     };
@@ -25,10 +64,22 @@ const getAISettings = (): Settings => {
  * Makes a request to OpenRouter API for text generation
  */
 const callOpenRouter = async (prompt: string, jsonMode = false): Promise<string> => {
-    const settings = getAISettings();
+    const settings = await getAISettings();
+
+    // DEBUG: Enhanced logging for API call
+    console.log('🚀 [DEBUG] OpenRouter API Call:', {
+        hasApiKey: !!settings.openRouterApiKey,
+        endpoint: settings.openRouterEndpoint,
+        model: settings.defaultModel || DEFAULT_OPENROUTER_MODEL,
+        jsonMode,
+        promptLength: prompt.length,
+        timestamp: new Date().toISOString()
+    });
 
     if (!settings.openRouterApiKey) {
-        throw new Error("OpenRouter API key not configured. Please check your settings.");
+        const errorMsg = "OpenRouter API key not configured. Please check your settings.";
+        console.error('❌ [DEBUG] API Key Missing:', errorMsg);
+        throw new Error(errorMsg);
     }
 
     const apiUrl = `${settings.openRouterEndpoint}/chat/completions`;
@@ -55,11 +106,33 @@ const callOpenRouter = async (prompt: string, jsonMode = false): Promise<string>
         })
     });
 
+    // DEBUG: Log response status
+    console.log('📡 [DEBUG] OpenRouter Response:', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok,
+        headers: Object.fromEntries(response.headers.entries())
+    });
+
     if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ [DEBUG] OpenRouter API Error:', {
+            status: response.status,
+            statusText: response.statusText,
+            errorBody: errorText,
+            requestUrl: apiUrl,
+            model: settings.defaultModel || DEFAULT_OPENROUTER_MODEL
+        });
         throw new Error(`OpenRouter API error: ${response.status} ${response.statusText}`);
     }
 
     const data = await response.json();
+    console.log('✅ [DEBUG] OpenRouter Success:', {
+        hasChoices: !!data.choices,
+        choicesCount: data.choices?.length || 0,
+        model: data.model,
+        usage: data.usage
+    });
     return data.choices[0].message.content;
 };
 
@@ -182,7 +255,7 @@ export const generateVisual = async (rec: VisualRecommendation): Promise<string>
  * Generates an image based on a text prompt using Gemini Flash 2.5 native image generation.
  */
 export const generateImage = async (prompt: string): Promise<string> => {
-    const settings = getAISettings();
+    const settings = await getAISettings();
 
     if (!settings.geminiApiKey) {
         throw new Error("Gemini API key not configured. Please check your settings.");
@@ -191,8 +264,7 @@ export const generateImage = async (prompt: string): Promise<string> => {
     try {
         // Initialize Gemini AI with user's API key and endpoint
         const geminiAI = new GoogleGenAI({
-            apiKey: settings.geminiApiKey,
-            baseURL: settings.geminiEndpoint
+            apiKey: settings.geminiApiKey
         });
 
         const response = await geminiAI.models.generateContent({
@@ -730,7 +802,7 @@ export const analyzeDocumentFile = async (file: File): Promise<ResearchItem> => 
                 title: result.sourceInfo.title || file.name,
                 credibility: SourceCredibility.Unverified,
                 accessDate: new Date(),
-                sourceType: 'Document',
+                sourceType: 'Other',
                 notes: `File: ${file.name} (${file.type})`
             }],
             tags: result.tags || ['document-analysis'],

@@ -771,7 +771,7 @@ export const WritingTemplatesModal: React.FC<WritingTemplatesModalProps> = ({ is
             setCustomSettings({});
             
         } catch (error) {
-            console.error('Error applying writing template:', error);
+            log.error('WritingTemplatesModal: Error applying writing template', error);
         }
     };
 

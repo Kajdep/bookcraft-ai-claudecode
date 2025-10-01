@@ -378,7 +378,7 @@ export const ResearchTemplatesModal: React.FC<ResearchTemplatesModalProps> = ({ 
             setShowPreview(false);
             
         } catch (error) {
-            console.error('Error applying research template:', error);
+            log.error('ResearchTemplatesModal: Error applying research template', error);
         }
     };
 

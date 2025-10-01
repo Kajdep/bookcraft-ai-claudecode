@@ -333,7 +333,7 @@ Focus on concrete improvements the author can implement.`;
             )}
             {mergeState && (
                 <MergeContentModal isOpen={!!mergeState} onClose={() => setMergeState(null)} originalContent={mergeState.original} generatedContent={mergeState.generated} onApply={(finalContent) => {
-                        console.log('ChapterEditorView: Applying content from MergeContentModal:', finalContent.substring(0, 100));
+                        log.debug('ChapterEditorView: Applying content from MergeContentModal', { preview: finalContent.substring(0, 100) });
                         setContent(finalContent);
                     }}/>
             )}

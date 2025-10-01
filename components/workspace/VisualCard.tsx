@@ -40,8 +40,7 @@ export const VisualCard: React.FC<VisualCardProps> = ({ visual }) => {
                         setError(null);
                     }
                 } catch (e: any) {
-                    log.error('Mermaid diagram render failed', e as Error, 'Visual');
-                    console.error('Mermaid render error:', e);
+                    log.error('Mermaid diagram render failed', e as Error);
                     if (isMounted) {
                         setError("Could not render diagram. Please check syntax.");
                         setShowImageFallback(true);
@@ -90,7 +89,7 @@ export const VisualCard: React.FC<VisualCardProps> = ({ visual }) => {
                     setSvgContent(svg);
                     setError(null);
                 } catch (e: any) {
-                    console.error('Mermaid retry failed:', e);
+                    log.error('VisualCard: Mermaid retry failed', e);
                     setError("Diagram syntax appears to be invalid.");
                     setShowImageFallback(true);
                 }

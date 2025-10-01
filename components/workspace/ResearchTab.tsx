@@ -5,6 +5,7 @@ import { useBookCraftStore } from '../../store/useStore';
 import { ResearchType, ResearchConfidence, SourceCredibility, ResearchItem, ResearchFolder, ResearchFolderType, CitationStyle } from '../../types';
 import { ResearchTemplatesModal } from './ResearchTemplatesModal';
 import { ContradictionDetectionPanel } from './ContradictionDetectionPanel';
+import { log } from '../../services/logger';
 
 const ResearchTypeIcon: React.FC<{ type: ResearchType; className?: string }> = ({ type, className = "w-4 h-4" }) => {
     const icons = {
@@ -458,7 +459,7 @@ export const ResearchTab: React.FC = () => {
                 await summarizeWebContent(urlToSummarize.trim());
                 setUrlToSummarize('');
             } catch (error) {
-                console.error('Failed to summarize URL:', error);
+                log.error('ResearchTab: Failed to summarize URL', error);
             }
         }
     };

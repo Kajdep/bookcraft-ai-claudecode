@@ -45,3 +45,13 @@ browser-test-suite.html
 quick-test*
 nul
 compass_artifact_*
+
+# Test and Debug Files
+tests/*.cjs
+tests/*.js
+tests/debug-*
+tests/manual-*
+tests/*-test.*
+
+# But keep the README
+!tests/README.md

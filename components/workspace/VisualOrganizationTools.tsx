@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Card, Button, Input } from '../UI';
+import { log } from '../../services/logger';
 import {
   ClockIcon,
   ShareIcon,
@@ -385,7 +386,7 @@ export const VisualOrganizationTools: React.FC<VisualOrganizationToolsProps> = (
       setNewTimelineTheme('');
       toast.success('Timeline Created', `Timeline for "${newTimelineTheme}" has been created!`);
     } catch (error) {
-      console.error('Timeline creation failed:', error);
+      log.error('VisualOrganizationTools: Timeline creation failed', error);
     }
   };
 
@@ -401,7 +402,7 @@ export const VisualOrganizationTools: React.FC<VisualOrganizationToolsProps> = (
       setSelectedItems([]);
       toast.success('Mind Map Created', `Mind map for "${newMindMapTopic}" has been created!`);
     } catch (error) {
-      console.error('Mind map creation failed:', error);
+      log.error('VisualOrganizationTools: Mind map creation failed', error);
     }
   };
 

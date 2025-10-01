@@ -210,7 +210,7 @@ Focus on concrete improvements the author can implement.`;
                 <LexicalEditor
                     content={content}
                     onContentChange={(newContent) => {
-                        console.log('ChapterEditorView: Content changed from editor:', newContent.substring(0, 100));
+                        log.debug('ChapterEditorView: Content changed from editor', { preview: newContent.substring(0, 100) });
                         setContent(newContent);
                     }}
                     onContextMenu={handleContextMenu}

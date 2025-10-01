@@ -1,6 +1,7 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { useBookCraftStore } from '../../store/useStore';
 import { Button, Spinner } from '../UI';
+import { log } from '../../services/logger';
 import { 
     PhotoIcon, 
     SparklesIcon, 
@@ -198,7 +199,7 @@ export const CoverCreator: React.FC = () => {
             generateCanvasPreview();
             
         } catch (error) {
-            console.error('Cover generation failed:', error);
+            log.error('CoverCreator: Cover generation failed', error);
             alert('Failed to generate cover. Please try again.');
         } finally {
             setIsGenerating(false);

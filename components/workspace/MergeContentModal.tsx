@@ -49,7 +49,7 @@ export const MergeContentModal: React.FC<MergeContentModalProps> = ({ isOpen, on
 
     const handleReplace = () => {
         const formattedContent = ensureHTMLFormat(currentGeneratedContent);
-        console.log('MergeContentModal: Replace - applying content:', formattedContent.substring(0, 100));
+        log.debug('MergeContentModal: Replace - applying content', { preview: formattedContent.substring(0, 100) });
         onApply(formattedContent);
         onClose();
     };
@@ -58,7 +58,7 @@ export const MergeContentModal: React.FC<MergeContentModalProps> = ({ isOpen, on
         const separator = originalContent.trim().length > 0 ? '\n<p><br></p>\n' : '';
         const formattedGenerated = ensureHTMLFormat(currentGeneratedContent);
         const appendedContent = originalContent + separator + formattedGenerated;
-        console.log('MergeContentModal: Append - applying content:', appendedContent.substring(0, 100));
+        log.debug('MergeContentModal: Append - applying content', { preview: appendedContent.substring(0, 100) });
         onApply(appendedContent);
         onClose();
     };
@@ -68,11 +68,11 @@ export const MergeContentModal: React.FC<MergeContentModalProps> = ({ isOpen, on
         try {
             const combinedContent = await combineChapterContent(originalContent, currentGeneratedContent);
             const formattedContent = ensureHTMLFormat(combinedContent);
-            console.log('MergeContentModal: Combine - applying content:', formattedContent.substring(0, 100));
+            log.debug('MergeContentModal: Combine - applying content', { preview: formattedContent.substring(0, 100) });
             onApply(formattedContent);
             onClose();
         } catch (error) {
-            log.error('Failed to combine content using AI', error as Error, 'MergeContentModal');
+            log.error('Failed to combine content using AI', error);
             alert("Sorry, there was an error combining the content with AI.");
         } finally {
             setIsCombining(false);

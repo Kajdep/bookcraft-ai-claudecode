@@ -3,6 +3,7 @@ import { Card, Button, Badge, Tooltip, Input, TextArea } from '../UI';
 import { ExclamationCircleIcon, ExclamationTriangleIcon, InformationCircleIcon, CheckCircleIcon, ShieldCheckIcon, ClockIcon, DocumentTextIcon, ChartBarIcon, XMarkIcon, PencilIcon, EyeIcon, EyeSlashIcon } from '../Icons';
 import { contradictionService, Contradiction, ContradictionAnalysis } from '../../services/contradictionService';
 import { useBookCraftStore } from '../../store/useStore';
+import { log } from '../../services/logger';
 
 interface ContradictionDetectionPanelProps {
     className?: string;
@@ -275,7 +276,7 @@ export const ContradictionDetectionPanel: React.FC<ContradictionDetectionPanelPr
             const result = await contradictionService.analyzeProjectConsistency(projectData);
             setAnalysis(result);
         } catch (error) {
-            console.error('Contradiction analysis failed:', error);
+            log.error('ContradictionDetectionPanel: Contradiction analysis failed', error);
         } finally {
             setIsAnalyzing(false);
         }
@@ -302,7 +303,7 @@ export const ContradictionDetectionPanel: React.FC<ContradictionDetectionPanelPr
                 });
             }
         } catch (error) {
-            console.error('Failed to resolve contradiction:', error);
+            log.error('ContradictionDetectionPanel: Failed to resolve contradiction', error);
         }
     };
 
@@ -319,7 +320,7 @@ export const ContradictionDetectionPanel: React.FC<ContradictionDetectionPanelPr
                 });
             }
         } catch (error) {
-            console.error('Failed to add note:', error);
+            log.error('ContradictionDetectionPanel: Failed to add note', error);
         }
     };
 

@@ -16,6 +16,7 @@ import {
 import { useBookCraftStore } from '../../store/useStore';
 import { FactCheckResult, ResearchConfidence, Chapter } from '../../types';
 import { toast } from '../../services/toast';
+import { log } from '../../services/logger';
 
 interface FactCheckPanelProps {
   className?: string;
@@ -282,7 +283,7 @@ export const FactCheckPanel: React.FC<FactCheckPanelProps> = ({ className = "" }
       await verifyTextAccuracy(selectedText, selectedChapter);
       setSelectedText('');
     } catch (error) {
-      console.error('Fact checking failed:', error);
+      log.error('FactCheckPanel: Fact checking failed', error);
     }
   };
 
@@ -304,7 +305,7 @@ export const FactCheckPanel: React.FC<FactCheckPanelProps> = ({ className = "" }
     try {
       await batchFactCheck(chapterIds);
     } catch (error) {
-      console.error('Batch fact checking failed:', error);
+      log.error('FactCheckPanel: Batch fact checking failed', error);
     }
   };
 

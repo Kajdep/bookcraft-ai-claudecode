@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useBookCraftStore } from '../../store/useStore';
 import { MaterialType, MaterialCategory, MaterialItem, MaterialFolder } from '../../types';
 import { Button, Card, Input, Select } from '../UI';
+import { log } from '../../services/logger';
 import {
     PaperClipIcon,
     PlusIcon,
@@ -128,10 +129,10 @@ const MaterialCard: React.FC<MaterialCardProps> = ({
                         // Clean up the object URL after some time
                         setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
                     } else {
-                        console.error('File not found in IndexedDB');
+                        log.error('MaterialTab: File not found in IndexedDB', { fileId });
                     }
                 } catch (error) {
-                    console.error('Failed to retrieve file from IndexedDB:', error);
+                    log.error('MaterialTab: Failed to retrieve file from IndexedDB', error);
                 }
             } else {
                 // Handle base64 or regular URLs
@@ -155,10 +156,10 @@ const MaterialCard: React.FC<MaterialCardProps> = ({
                         link.click();
                         URL.revokeObjectURL(objectUrl);
                     } else {
-                        console.error('File not found in IndexedDB');
+                        log.error('MaterialTab: File not found in IndexedDB for download', { fileId });
                     }
                 } catch (error) {
-                    console.error('Failed to retrieve file from IndexedDB:', error);
+                    log.error('MaterialTab: Failed to retrieve file from IndexedDB for download', error);
                 }
             } else {
                 // Handle base64 or regular URLs

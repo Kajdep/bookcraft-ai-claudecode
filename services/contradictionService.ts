@@ -393,8 +393,374 @@ class ContradictionDetectionService {
     }
 
     private async detectAIBasedContradictions(textContent: any, projectData: any): Promise<Contradiction[]> {
-        // This would integrate with an AI service to detect more complex contradictions
-        // For now, return empty array as a placeholder
+        try {
+            // Import AI service dynamically to avoid circular dependencies
+            const { callOpenRouter } = await import('./ai');
+            
+            const contradictions: Contradiction[] = [];
+            
+            // Prepare content for AI analysis
+            const analysisContent = this.prepareContentForAIAnalysis(textContent);
+            
+            const prompt = `
+Analyze the following book content for contradictions and inconsistencies. Look for:
+1. Character inconsistencies (names, descriptions, behaviors)
+2. Plot contradictions (events that don't align)
+3. Setting/location inconsistencies 
+4. Timeline conflicts
+5. Factual contradictions
+6. Research vs. content mismatches
+
+Content to analyze:
+${JSON.stringify(analysisContent, null, 2)}
+
+Return a JSON array of contradictions with this exact format:
+[
+  {
+    "type": "character|plot|setting|timeline|fact|research",
+    "severity": "low|medium|high|critical",
+    "title": "Brief title describing the contradiction",
+    "description": "Detailed description of the inconsistency",
+    "evidence": [
+      {
+        "source": "chapter_id or research_id",
+        "excerpt": "Relevant text excerpt",
+        "location": "Chapter X or Research Notes"
+      }
+    ],
+    "suggestions": ["suggestion1", "suggestion2"],
+    "confidence": 0.8,
+    "category": "Specific category"
+  }
+]
+
+Return ONLY the JSON array, no explanations.`;
+            
+            const response = await callOpenRouter(prompt, true);
+            const aiContradictions = JSON.parse(response);
+            
+            // Convert AI response to internal format
+            aiContradictions.forEach((aiContradiction: any, index: number) => {
+                const sources: ContradictionSource[] = aiContradiction.evidence.map((evidence: any) => {
+                    const sourceData = this.findSourceData(evidence.source, projectData);
+                    return {
+                        type: sourceData.type,
+                        id: evidence.source,
+                        title: sourceData.title,
+                        excerpt: evidence.excerpt,
+                        location: evidence.location
+                    };
+                });
+                
+                contradictions.push({
+                    id: `ai_contradiction_${Date.now()}_${index}`,
+                    type: aiContradiction.type,
+                    severity: aiContradiction.severity,
+                    title: aiContradiction.title,
+                    description: aiContradiction.description,
+                    sources,
+                    suggestions: aiContradiction.suggestions || [
+                        'Review the identified content for accuracy',
+                        'Consider revising for consistency'
+                    ],
+                    confidence: aiContradiction.confidence || 0.7,
+                    category: aiContradiction.category || 'AI Analysis',
+                    detected: new Date(),
+                    resolved: false
+                });
+            });
+            
+            return contradictions;
+            
+        } catch (error) {
+            console.error('AI-based contradiction detection failed:', error);
+            // Fallback to enhanced rule-based detection
+            return this.detectEnhancedRuleBasedContradictions(textContent, projectData);
+        }
+    }
+    
+    private prepareContentForAIAnalysis(textContent: any): any {
+        return {
+            chapters: textContent.chapters.map((chapter: any) => ({
+                id: chapter.id,
+                title: chapter.title,
+                content: chapter.content.substring(0, 2000), // Limit content length for AI analysis
+                order: chapter.order
+            })),
+            research: textContent.research.map((research: any) => ({
+                id: research.id,
+                query: research.query,
+                content: research.content.substring(0, 1000), // Limit content length
+                summary: research.summary
+            })),
+            characters: textContent.characters.slice(0, 10), // Limit to first 10 characters
+            plotPoints: textContent.plotPoints.slice(0, 15) // Limit to first 15 plot points
+        };
+    }
+    
+    private findSourceData(sourceId: string, projectData: any): { type: 'chapter' | 'research' | 'character' | 'plot'; title: string } {
+        // Find source in chapters
+        const chapter = projectData.chapters.find((c: any) => c.id === sourceId);
+        if (chapter) {
+            return { type: 'chapter', title: chapter.title };
+        }
+        
+        // Find source in research
+        const research = projectData.research.find((r: any) => r.id === sourceId);
+        if (research) {
+            return { type: 'research', title: research.query };
+        }
+        
+        // Find source in characters
+        const character = projectData.characters?.find((c: any) => c.id === sourceId);
+        if (character) {
+            return { type: 'character', title: character.name || 'Character' };
+        }
+        
+        // Find source in plot points
+        const plotPoint = projectData.plotPoints?.find((p: any) => p.id === sourceId);
+        if (plotPoint) {
+            return { type: 'plot', title: plotPoint.title || 'Plot Point' };
+        }
+        
+        // Default fallback
+        return { type: 'chapter', title: 'Unknown Source' };
+    }
+    
+    private detectEnhancedRuleBasedContradictions(textContent: any, projectData: any): Contradiction[] {
+        const contradictions: Contradiction[] = [];
+        
+        // Enhanced character analysis
+        const characterContradictions = this.analyzeCharacterConsistency(textContent);
+        contradictions.push(...characterContradictions);
+        
+        // Enhanced plot analysis
+        const plotContradictions = this.analyzePlotConsistency(textContent);
+        contradictions.push(...plotContradictions);
+        
+        // Enhanced setting analysis
+        const settingContradictions = this.analyzeSettingConsistency(textContent);
+        contradictions.push(...settingContradictions);
+        
+        return contradictions;
+    }
+    
+    private analyzeCharacterConsistency(textContent: any): Contradiction[] {
+        const contradictions: Contradiction[] = [];
+        const characterTraits: Record<string, Array<{ trait: string; source: string; chapter: string }>> = {};
+        
+        // Extract character traits from all chapters
+        textContent.chapters.forEach((chapter: any) => {
+            const characterMentions = this.extractCharacterTraits(chapter.content, chapter);
+            characterMentions.forEach(mention => {
+                if (!characterTraits[mention.character]) {
+                    characterTraits[mention.character] = [];
+                }
+                characterTraits[mention.character].push({
+                    trait: mention.trait,
+                    source: mention.excerpt,
+                    chapter: chapter.title
+                });
+            });
+        });
+        
+        // Check for contradictory traits
+        Object.entries(characterTraits).forEach(([character, traits]) => {
+            const conflictingTraits = this.findConflictingTraits(traits);
+            if (conflictingTraits.length > 0) {
+                contradictions.push({
+                    id: `char_trait_${Date.now()}_${Math.random()}`,
+                    type: 'character',
+                    severity: 'medium',
+                    title: `Contradictory character traits: ${character}`,
+                    description: `Found conflicting descriptions of ${character}'s characteristics`,
+                    sources: conflictingTraits.map(trait => ({
+                        type: 'chapter' as const,
+                        id: `chapter_${trait.chapter}`,
+                        title: trait.chapter,
+                        excerpt: trait.source,
+                        location: trait.chapter
+                    })),
+                    suggestions: [
+                        'Review character descriptions for consistency',
+                        'Create a character sheet with definitive traits',
+                        'Consider if character development explains the differences'
+                    ],
+                    confidence: 0.7,
+                    category: 'Character Development',
+                    detected: new Date(),
+                    resolved: false
+                });
+            }
+        });
+        
+        return contradictions;
+    }
+    
+    private extractCharacterTraits(content: string, chapter: any): Array<{ character: string; trait: string; excerpt: string }> {
+        const traits: Array<{ character: string; trait: string; excerpt: string }> = [];
+        
+        // Simple pattern matching for character descriptions
+        const characterNames = this.extractProperNouns(content);
+        const traitPatterns = [
+            /(\w+)\s+(?:is|was|were)\s+(\w+(?:\s+\w+)?)/gi,
+            /(\w+)\s+(?:has|had)\s+([^.]{10,50})/gi,
+            /(\w+)'s\s+(\w+(?:\s+\w+)?)/gi
+        ];
+        
+        characterNames.forEach(name => {
+            traitPatterns.forEach(pattern => {
+                let match;
+                const namePattern = new RegExp(pattern.source.replace('\\w+', name), 'gi');
+                while ((match = namePattern.exec(content)) !== null) {
+                    const trait = match[2]?.trim();
+                    if (trait && trait.length > 2) {
+                        const index = match.index;
+                        const excerpt = content.substring(Math.max(0, index - 30), index + match[0].length + 30);
+                        traits.push({
+                            character: name,
+                            trait,
+                            excerpt: excerpt.trim()
+                        });
+                    }
+                }
+            });
+        });
+        
+        return traits;
+    }
+    
+    private findConflictingTraits(traits: Array<{ trait: string; source: string; chapter: string }>): Array<{ trait: string; source: string; chapter: string }> {
+        const conflicts: Array<{ trait: string; source: string; chapter: string }> = [];
+        
+        // Define contradictory trait pairs
+        const contradictoryPairs = [
+            ['tall', 'short'], ['big', 'small'], ['young', 'old'],
+            ['kind', 'cruel'], ['brave', 'coward'], ['smart', 'stupid'],
+            ['rich', 'poor'], ['happy', 'sad'], ['calm', 'angry']
+        ];
+        
+        for (let i = 0; i < traits.length; i++) {
+            for (let j = i + 1; j < traits.length; j++) {
+                const trait1 = traits[i].trait.toLowerCase();
+                const trait2 = traits[j].trait.toLowerCase();
+                
+                for (const [word1, word2] of contradictoryPairs) {
+                    if ((trait1.includes(word1) && trait2.includes(word2)) ||
+                        (trait1.includes(word2) && trait2.includes(word1))) {
+                        conflicts.push(traits[i], traits[j]);
+                        break;
+                    }
+                }
+            }
+        }
+        
+        return [...new Set(conflicts)];
+    }
+    
+    private analyzePlotConsistency(textContent: any): Contradiction[] {
+        const contradictions: Contradiction[] = [];
+        
+        // Check for plot events that contradict each other
+        const events = this.extractPlotEvents(textContent.chapters);
+        const eventConflicts = this.findPlotConflicts(events);
+        
+        eventConflicts.forEach(conflict => {
+            contradictions.push({
+                id: `plot_${Date.now()}_${Math.random()}`,
+                type: 'plot',
+                severity: 'high',
+                title: `Plot contradiction: ${conflict.event}`,
+                description: conflict.description,
+                sources: conflict.sources,
+                suggestions: [
+                    'Review the plot events for logical consistency',
+                    'Create a plot outline to track story progression',
+                    'Consider if the events can coexist or need revision'
+                ],
+                confidence: 0.6,
+                category: 'Plot Development',
+                detected: new Date(),
+                resolved: false
+            });
+        });
+        
+        return contradictions;
+    }
+    
+    private extractPlotEvents(chapters: any[]): Array<{ event: string; chapter: string; context: string }> {
+        const events: Array<{ event: string; chapter: string; context: string }> = [];
+        
+        chapters.forEach(chapter => {
+            // Look for action verbs and significant events
+            const eventPatterns = [
+                /(\w+)\s+(died|killed|murdered|destroyed|exploded|disappeared)/gi,
+                /(\w+)\s+(arrived|left|returned|escaped|fled)/gi,
+                /(\w+)\s+(married|divorced|born|graduated)/gi
+            ];
+            
+            eventPatterns.forEach(pattern => {
+                let match;
+                while ((match = pattern.exec(chapter.content)) !== null) {
+                    const event = `${match[1]} ${match[2]}`;
+                    const index = match.index;
+                    const context = chapter.content.substring(Math.max(0, index - 50), index + match[0].length + 50);
+                    
+                    events.push({
+                        event,
+                        chapter: chapter.title,
+                        context: context.trim()
+                    });
+                }
+            });
+        });
+        
+        return events;
+    }
+    
+    private findPlotConflicts(events: Array<{ event: string; chapter: string; context: string }>): Array<{ event: string; description: string; sources: ContradictionSource[] }> {
+        const conflicts: Array<{ event: string; description: string; sources: ContradictionSource[] }> = [];
+        
+        // Group events by subject
+        const eventsBySubject: Record<string, Array<{ event: string; chapter: string; context: string }>> = {};
+        
+        events.forEach(event => {
+            const subject = event.event.split(' ')[0];
+            if (!eventsBySubject[subject]) {
+                eventsBySubject[subject] = [];
+            }
+            eventsBySubject[subject].push(event);
+        });
+        
+        // Check for contradictory events
+        Object.entries(eventsBySubject).forEach(([subject, subjectEvents]) => {
+            if (subjectEvents.length > 1) {
+                const deathEvents = subjectEvents.filter(e => /died|killed|murdered/.test(e.event));
+                const aliveEvents = subjectEvents.filter(e => !/died|killed|murdered/.test(e.event));
+                
+                if (deathEvents.length > 0 && aliveEvents.length > 0) {
+                    // Character appears to be both dead and alive
+                    conflicts.push({
+                        event: subject,
+                        description: `${subject} appears to both die and continue acting in the story`,
+                        sources: [...deathEvents, ...aliveEvents].map(e => ({
+                            type: 'chapter' as const,
+                            id: `chapter_${e.chapter}`,
+                            title: e.chapter,
+                            excerpt: e.context,
+                            location: e.chapter
+                        }))
+                    });
+                }
+            }
+        });
+        
+        return conflicts;
+    }
+    
+    private analyzeSettingConsistency(textContent: any): Contradiction[] {
+        // Enhanced setting analysis would go here
+        // For now, return empty array to avoid duplication with existing method
         return [];
     }
 

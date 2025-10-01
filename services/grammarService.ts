@@ -40,9 +40,26 @@ export interface GrammarCheckResult {
 
 class GrammarService {
     private apiKey: string | null = null;
+    private languageToolKey: string | null = null;
+    private grammarlyKey: string | null = null;
+
+    constructor() {
+        // Initialize API keys from environment
+        this.apiKey = process.env.OPENROUTER_API_KEY || null;
+        this.languageToolKey = process.env.LANGUAGETOOL_API_KEY || null;
+        this.grammarlyKey = process.env.GRAMMARLY_API_KEY || null;
+    }
 
     setApiKey(key: string) {
         this.apiKey = key;
+    }
+    
+    setLanguageToolApiKey(key: string) {
+        this.languageToolKey = key;
+    }
+    
+    setGrammarlyApiKey(key: string) {
+        this.grammarlyKey = key;
     }
 
     async checkGrammarAndStyle(text: string): Promise<GrammarCheckResult> {
@@ -222,58 +239,225 @@ class GrammarService {
         if (!this.apiKey) return [];
 
         try {
-            // This would integrate with an AI service like OpenAI, LanguageTool API, or Grammarly API
-            // For now, I'll simulate AI-based checking with more sophisticated analysis
+            // First try LanguageTool API if available
+            const languageToolKey = process.env.LANGUAGETOOL_API_KEY;
+            const languageToolEndpoint = process.env.LANGUAGETOOL_ENDPOINT || 'https://api.languagetool.org';
             
-            const issues: GrammarIssue[] = [];
-            
-            // Simulate AI detection of complex grammar issues
-            const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
-            
-            for (let i = 0; i < sentences.length; i++) {
-                const sentence = sentences[i].trim();
-                if (sentence.length < 3) continue;
-
-                // Simulate AI detecting subject-verb disagreement
-                if (this.detectSubjectVerbDisagreement(sentence)) {
-                    const startOffset = text.indexOf(sentence);
-                    issues.push({
-                        id: `ai_${Date.now()}_${i}`,
-                        type: 'grammar',
-                        severity: 'high',
-                        message: 'Possible subject-verb disagreement',
-                        suggestion: 'Check that the subject and verb agree in number',
-                        startOffset,
-                        endOffset: startOffset + sentence.length,
-                        originalText: sentence,
-                        category: 'Subject-Verb Agreement',
-                        rule: 'ai-subject-verb'
-                    });
-                }
-
-                // Simulate AI detecting awkward phrasing
-                if (this.detectAwkwardPhrasing(sentence)) {
-                    const startOffset = text.indexOf(sentence);
-                    issues.push({
-                        id: `ai_awkward_${Date.now()}_${i}`,
-                        type: 'style',
-                        severity: 'medium',
-                        message: 'Awkward or unclear phrasing',
-                        suggestion: 'Consider rephrasing for clarity',
-                        startOffset,
-                        endOffset: startOffset + sentence.length,
-                        originalText: sentence,
-                        category: 'Clarity',
-                        rule: 'ai-clarity'
-                    });
-                }
+            if (languageToolKey) {
+                return await this.runLanguageToolCheck(text, languageToolKey, languageToolEndpoint);
             }
-
-            return issues;
+            
+            // Fallback to OpenRouter AI for grammar checking
+            return await this.runOpenRouterGrammarCheck(text);
+            
         } catch (error) {
             console.error('AI-based grammar check failed:', error);
-            return [];
+            // Fallback to enhanced rule-based checking
+            return this.runEnhancedRuleBasedChecks(text);
         }
+    }
+
+    private async runLanguageToolCheck(text: string, apiKey: string, endpoint: string): Promise<GrammarIssue[]> {
+        const issues: GrammarIssue[] = [];
+        
+        try {
+            const response = await fetch(`${endpoint}/v2/check`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: new URLSearchParams({
+                    'text': text,
+                    'language': 'en-US',
+                    'enabledRules': '',
+                    'disabledRules': ''
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error(`LanguageTool API error: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            data.matches.forEach((match: any, index: number) => {
+                const severity = this.mapLanguageToolSeverity(match.rule.category.name);
+                const type = this.mapLanguageToolType(match.rule.category.name);
+                
+                issues.push({
+                    id: `lt_${Date.now()}_${index}`,
+                    type,
+                    severity,
+                    message: match.message,
+                    suggestion: match.replacements.length > 0 ? 
+                        `Suggested: ${match.replacements.slice(0, 3).map((r: any) => r.value).join(', ')}` : 
+                        match.shortMessage || match.message,
+                    startOffset: match.offset,
+                    endOffset: match.offset + match.length,
+                    originalText: text.substring(match.offset, match.offset + match.length),
+                    replacementText: match.replacements.length > 0 ? match.replacements[0].value : undefined,
+                    category: match.rule.category.name,
+                    rule: match.rule.id
+                });
+            });
+            
+            return issues;
+        } catch (error) {
+            console.error('LanguageTool API failed:', error);
+            throw error;
+        }
+    }
+    
+    private async runOpenRouterGrammarCheck(text: string): Promise<GrammarIssue[]> {
+        try {
+            // Import AI service dynamically to avoid circular dependencies
+            const { callOpenRouter } = await import('./ai');
+            
+            const prompt = `
+Analyze the following text for grammar, spelling, style, and readability issues. 
+Return a JSON array of issues with this exact format:
+
+[
+  {
+    "type": "grammar|spelling|style|readability",
+    "severity": "low|medium|high",
+    "message": "Clear description of the issue",
+    "suggestion": "Specific suggestion for improvement",
+    "startOffset": number,
+    "endOffset": number,
+    "originalText": "text with the issue",
+    "replacementText": "suggested replacement (optional)",
+    "category": "Grammar|Spelling|Style|Clarity|etc",
+    "rule": "rule-name"
+  }
+]
+
+Text to analyze:
+"${text}"
+
+Return ONLY the JSON array, no explanations.`;
+            
+            const response = await callOpenRouter(prompt, true);
+            const aiIssues = JSON.parse(response);
+            
+            return aiIssues.map((issue: any, index: number) => ({
+                id: `ai_${Date.now()}_${index}`,
+                type: issue.type || 'style',
+                severity: issue.severity || 'medium',
+                message: issue.message,
+                suggestion: issue.suggestion,
+                startOffset: issue.startOffset,
+                endOffset: issue.endOffset,
+                originalText: issue.originalText,
+                replacementText: issue.replacementText,
+                category: issue.category || 'AI Analysis',
+                rule: issue.rule || 'ai-analysis'
+            }));
+            
+        } catch (error) {
+            console.error('OpenRouter grammar check failed:', error);
+            throw error;
+        }
+    }
+    
+    private runEnhancedRuleBasedChecks(text: string): GrammarIssue[] {
+        const issues: GrammarIssue[] = [];
+        const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
+        
+        for (let i = 0; i < sentences.length; i++) {
+            const sentence = sentences[i].trim();
+            if (sentence.length < 3) continue;
+
+            // Enhanced subject-verb disagreement detection
+            if (this.detectSubjectVerbDisagreement(sentence)) {
+                const startOffset = text.indexOf(sentence);
+                issues.push({
+                    id: `enhanced_${Date.now()}_${i}`,
+                    type: 'grammar',
+                    severity: 'high',
+                    message: 'Possible subject-verb disagreement',
+                    suggestion: 'Check that the subject and verb agree in number',
+                    startOffset,
+                    endOffset: startOffset + sentence.length,
+                    originalText: sentence,
+                    category: 'Subject-Verb Agreement',
+                    rule: 'enhanced-subject-verb'
+                });
+            }
+
+            // Enhanced awkward phrasing detection
+            if (this.detectAwkwardPhrasing(sentence)) {
+                const startOffset = text.indexOf(sentence);
+                issues.push({
+                    id: `enhanced_awkward_${Date.now()}_${i}`,
+                    type: 'style',
+                    severity: 'medium',
+                    message: 'Potentially awkward or unclear phrasing',
+                    suggestion: 'Consider rephrasing for better clarity and flow',
+                    startOffset,
+                    endOffset: startOffset + sentence.length,
+                    originalText: sentence,
+                    category: 'Clarity',
+                    rule: 'enhanced-clarity'
+                });
+            }
+            
+            // Check for run-on sentences
+            if (this.isRunOnSentence(sentence)) {
+                const startOffset = text.indexOf(sentence);
+                issues.push({
+                    id: `runon_${Date.now()}_${i}`,
+                    type: 'style',
+                    severity: 'medium',
+                    message: 'Possible run-on sentence',
+                    suggestion: 'Consider breaking this into shorter sentences',
+                    startOffset,
+                    endOffset: startOffset + sentence.length,
+                    originalText: sentence,
+                    category: 'Sentence Length',
+                    rule: 'run-on-sentence'
+                });
+            }
+        }
+
+        return issues;
+    }
+    
+    private mapLanguageToolSeverity(category: string): 'low' | 'medium' | 'high' {
+        const highSeverityCategories = ['GRAMMAR', 'TYPOS', 'CONFUSED_WORDS'];
+        const mediumSeverityCategories = ['STYLE', 'REDUNDANCY', 'WORDINESS'];
+        
+        if (highSeverityCategories.includes(category.toUpperCase())) {
+            return 'high';
+        } else if (mediumSeverityCategories.includes(category.toUpperCase())) {
+            return 'medium';
+        }
+        return 'low';
+    }
+    
+    private mapLanguageToolType(category: string): 'grammar' | 'spelling' | 'style' | 'readability' {
+        const grammarCategories = ['GRAMMAR', 'CONFUSED_WORDS'];
+        const spellingCategories = ['TYPOS', 'MISSPELLING'];
+        const styleCategories = ['STYLE', 'REDUNDANCY', 'WORDINESS'];
+        
+        if (grammarCategories.includes(category.toUpperCase())) {
+            return 'grammar';
+        } else if (spellingCategories.includes(category.toUpperCase())) {
+            return 'spelling';
+        } else if (styleCategories.includes(category.toUpperCase())) {
+            return 'style';
+        }
+        return 'readability';
+    }
+    
+    private isRunOnSentence(sentence: string): boolean {
+        const words = sentence.split(/\s+/);
+        const hasMultipleClauses = (sentence.match(/,/g) || []).length >= 3 || 
+                                  (sentence.match(/\band\b/gi) || []).length >= 2 ||
+                                  (sentence.match(/\bor\b/gi) || []).length >= 2;
+        
+        return words.length > 25 && hasMultipleClauses;
     }
 
     private async analyzeStyle(text: string): Promise<StyleAnalysis> {

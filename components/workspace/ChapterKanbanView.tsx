@@ -48,7 +48,7 @@ const ChapterCard: React.FC<ChapterCardProps> = ({ chapter, onSelect }) => {
                         value={chapter.status}
                         onChange={handleStatusChange}
                         onClick={(e) => e.stopPropagation()}
-                        className="w-full bg-slate-700 border-slate-600 rounded-md text-xs p-1 focus:ring-brand-primary focus:border-brand-primary"
+                        className="w-full bg-slate-700 border-slate-600 rounded-md text-xs p-1 text-white focus:ring-brand-primary focus:border-brand-primary"
                      >
                         {/* FIX: Type errors are resolved now that `ChapterStatus` is a defined enum. */}
                         {Object.values(ChapterStatus).map(s => <option key={s} value={s}>{s}</option>)}

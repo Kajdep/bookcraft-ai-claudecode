@@ -102,7 +102,7 @@ export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({ isOpen, onCl
                         value={prompt}
                         onChange={(e) => setPrompt(e.target.value)}
                         placeholder="Ask the assistant..."
-                        className="flex-grow bg-slate-700 border-slate-600 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary sm:text-sm p-2"
+                        className="flex-grow bg-slate-700 border-slate-600 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary sm:text-sm p-2 text-white placeholder-slate-400"
                         disabled={isLoading}
                     />
                     <Button type="submit" disabled={isLoading || !prompt.trim()}>

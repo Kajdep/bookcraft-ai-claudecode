@@ -97,8 +97,24 @@ export const Modal: React.FC<PropsWithChildren<ModalProps>> = ({ isOpen, onClose
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm" aria-modal="true" role="dialog" onClick={onClose}>
-            <div className="relative bg-slate-800 rounded-lg shadow-xl w-full max-w-lg m-4 border border-slate-700" onClick={(e) => e.stopPropagation()}>
+        <div 
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm" 
+            aria-modal="true" 
+            role="dialog"
+            onClick={(e) => {
+                // Close modal only if clicking the backdrop, not the modal content
+                if (e.target === e.currentTarget) {
+                    onClose();
+                }
+            }}
+        >
+            <div 
+                className="relative bg-slate-800 rounded-lg shadow-xl w-full max-w-lg m-4 border border-slate-700"
+                onClick={(e) => {
+                    // Prevent backdrop click when clicking inside modal
+                    e.stopPropagation();
+                }}
+            >
                 <div className="flex items-center justify-between p-4 border-b border-slate-700">
                     <h3 className="text-lg font-semibold text-slate-100">{title}</h3>
                     <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors rounded-full p-1 hover:bg-slate-700">
@@ -345,6 +361,44 @@ export const Tooltip: React.FC<TooltipProps> = ({
     );
 };
 
+// Badge Component
+interface BadgeProps {
+    children: React.ReactNode;
+    variant?: 'default' | 'success' | 'warning' | 'danger' | 'info' | 'secondary';
+    size?: 'sm' | 'md' | 'lg';
+    className?: string;
+}
+
+export const Badge: React.FC<BadgeProps> = ({
+    children,
+    variant = 'default',
+    size = 'md',
+    className = ''
+}) => {
+    const baseClasses = "inline-flex items-center font-medium rounded-full";
+    
+    const variantClasses = {
+        default: 'bg-slate-700 text-slate-200 border border-slate-600',
+        success: 'bg-green-700/20 text-green-300 border border-green-600/50',
+        warning: 'bg-yellow-700/20 text-yellow-300 border border-yellow-600/50',
+        danger: 'bg-red-700/20 text-red-300 border border-red-600/50',
+        info: 'bg-blue-700/20 text-blue-300 border border-blue-600/50',
+        secondary: 'bg-gray-700/20 text-gray-300 border border-gray-600/50'
+    };
+    
+    const sizeClasses = {
+        sm: 'px-2 py-0.5 text-xs',
+        md: 'px-2.5 py-1 text-sm',
+        lg: 'px-3 py-1.5 text-base'
+    };
+    
+    return (
+        <span className={`${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}>
+            {children}
+        </span>
+    );
+};
+
 // Select Component
 interface SelectOption {
     value: string;
@@ -392,3 +446,27 @@ export const Select: React.FC<SelectProps> = ({
         </select>
     );
 };
+
+// TextArea Component
+interface TextAreaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+    variant?: 'default' | 'error';
+}
+
+export const TextArea = React.forwardRef<HTMLTextAreaElement, TextAreaProps>(
+    ({ className = '', variant = 'default', ...props }, ref) => {
+        const baseClasses = "w-full px-3 py-2 text-sm rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 resize-vertical";
+        const variantClasses = {
+            default: 'bg-slate-700 border-slate-600 text-slate-200 placeholder-slate-400 focus:border-brand-primary focus:ring-brand-primary',
+            error: 'bg-slate-700 border-red-500 text-slate-200 placeholder-slate-400 focus:border-red-400 focus:ring-red-400'
+        };
+
+        return (
+            <textarea
+                ref={ref}
+                className={`${baseClasses} ${variantClasses[variant]} ${className}`}
+                {...props}
+            />
+        );
+    }
+);
+TextArea.displayName = "TextArea";

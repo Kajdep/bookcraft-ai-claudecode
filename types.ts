@@ -289,6 +289,68 @@ export interface ResearchQuery {
     createdAt: Date;
 }
 
+export enum MaterialType {
+    Note = 'Note',
+    Document = 'Document',
+    Image = 'Image',
+    Link = 'Link',
+    Audio = 'Audio',
+    Video = 'Video',
+    Archive = 'Archive'
+}
+
+export enum MaterialCategory {
+    Reference = 'Reference',
+    Inspiration = 'Inspiration',
+    Research = 'Research',
+    Character = 'Character',
+    Setting = 'Setting',
+    Plot = 'Plot',
+    General = 'General'
+}
+
+export interface MaterialItem {
+    id: string;
+    title: string;
+    type: MaterialType;
+    category: MaterialCategory;
+    content?: string; // For notes
+    url?: string; // For links
+    fileName?: string; // For uploaded files
+    fileSize?: number;
+    mimeType?: string;
+    thumbnail?: string; // Base64 thumbnail for images/videos
+    tags: string[];
+    linkedChapterIds: string[];
+    linkedCharacters?: string[];
+    description?: string;
+    createdAt: Date;
+    lastModified: Date;
+    isBookmarked: boolean;
+    isFavorite: boolean;
+    color?: string; // For visual organization
+    metadata?: {
+        author?: string;
+        source?: string;
+        dateCreated?: Date;
+        wordCount?: number;
+        dimensions?: { width: number; height: number };
+        duration?: number; // For audio/video in seconds
+    };
+}
+
+export interface MaterialFolder {
+    id: string;
+    name: string;
+    description?: string;
+    parentFolderId?: string;
+    color: string;
+    icon?: string;
+    materialIds: string[];
+    createdAt: Date;
+    lastModified: Date;
+}
+
 export interface Project {
     id: string;
     title: string;
@@ -310,6 +372,8 @@ export interface Project {
     thematicTags: ThematicTag[];
     researchTimelines: ResearchTimeline[];
     researchMindMaps: ResearchMindMap[];
+    materials: MaterialItem[];
+    materialFolders: MaterialFolder[];
     researchSettings: {
         defaultCitationStyle: CitationStyle;
         autoFactCheck: boolean;

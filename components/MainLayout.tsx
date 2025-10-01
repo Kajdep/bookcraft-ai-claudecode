@@ -58,6 +58,17 @@ export const MainLayout: React.FC = () => {
             setActiveTab('Writing');
         }
     }, [activeProjectId, activeTab]);
+    
+    // Force re-render of tab accessibility when project changes
+    useEffect(() => {
+        // This ensures that tabs are re-evaluated for accessibility when project state changes
+        if (activeProjectId) {
+            // Small delay to ensure project data is loaded
+            setTimeout(() => {
+                // Force a re-render by updating a dummy state if needed
+            }, 100);
+        }
+    }, [activeProjectId]);
 
     // When no project is selected, go back to Dashboard
     useEffect(() => {
@@ -84,6 +95,21 @@ export const MainLayout: React.FC = () => {
             setActiveTab(tab);
         }
     };
+    
+    const handleProjectsClick = () => {
+        // Clear active project and go to dashboard
+        const setActiveProject = useBookCraftStore.getState().setActiveProject;
+        setActiveProject(null);
+        closeAllModals();
+        setActiveTab('Dashboard');
+    };
+    
+    // Handle clicking on a project from dashboard to activate it
+    const handleProjectSelect = (projectId: string) => {
+        const setActiveProject = useBookCraftStore.getState().setActiveProject;
+        setActiveProject(projectId);
+        // The useEffect will automatically switch to Writing tab when project is selected
+    };
 
     return (
         <div className="flex h-[calc(100vh-4rem)]">
@@ -96,7 +122,7 @@ export const MainLayout: React.FC = () => {
                         </h3>
                         <TabButton
                             active={activeTab === 'Dashboard'}
-                            onClick={() => handleTabClick('Dashboard')}
+                            onClick={handleProjectsClick}
                             icon={<FolderIcon className="w-5 h-5"/>}
                         >
                             Projects

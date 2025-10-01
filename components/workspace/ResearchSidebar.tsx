@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Card, Button, Input } from '../UI';
-import { MagnifyingGlassIcon, XMarkIcon, BookOpenIcon, BeakerIcon, DocumentTextIcon, ClockIcon, ChartBarIcon, UserGroupIcon, SparklesIcon, TrashIcon, TagIcon, ChevronRightIcon, ChevronDownIcon } from '../Icons';
+import { MagnifyingGlassIcon, XMarkIcon, BookOpenIcon, BeakerIcon, DocumentTextIcon, ClockIcon, ChartBarIcon, UserGroupIcon, SparklesIcon, TrashIcon, TagIcon, ChevronRightIcon, ChevronDownIcon, BookmarkIcon, PlusIcon } from '../Icons';
 import { useBookCraftStore } from '../../store/useStore';
 import { ResearchType, ResearchConfidence, ResearchItem } from '../../types';
 
@@ -39,7 +39,9 @@ const CompactResearchItem: React.FC<{
     item: ResearchItem;
     onDelete: (id: string) => void;
     onSelect: (item: ResearchItem) => void;
-}> = ({ item, onDelete, onSelect }) => {
+    onBookmarkToggle: (id: string) => void;
+    onAddToBibliography: (item: ResearchItem) => void;
+}> = ({ item, onDelete, onSelect, onBookmarkToggle, onAddToBibliography }) => {
     const [expanded, setExpanded] = useState(false);
 
     return (
@@ -98,7 +100,7 @@ const CompactResearchItem: React.FC<{
                             <p className="line-clamp-4">{item.content}</p>
                         </div>
 
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 flex-wrap">
                             <Button
                                 size="sm"
                                 variant="secondary"
@@ -106,6 +108,26 @@ const CompactResearchItem: React.FC<{
                                 className="text-xs py-1 px-2"
                             >
                                 View Full
+                            </Button>
+                            <Button
+                                size="sm"
+                                variant={item.isBookmarked ? "primary" : "ghost"}
+                                onClick={() => onBookmarkToggle(item.id)}
+                                className={`text-xs py-1 px-2 ${item.isBookmarked ? 'text-yellow-300' : 'text-slate-400 hover:text-yellow-300'}`}
+                                title={item.isBookmarked ? "Remove bookmark" : "Bookmark this research"}
+                            >
+                                <BookmarkIcon className="w-3 h-3 mr-1" />
+                                {item.isBookmarked ? "Bookmarked" : "Bookmark"}
+                            </Button>
+                            <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => onAddToBibliography(item)}
+                                className="text-xs py-1 px-2 text-slate-400 hover:text-blue-300"
+                                title="Add to bibliography"
+                            >
+                                <PlusIcon className="w-3 h-3 mr-1" />
+                                Bibliography
                             </Button>
                         </div>
 
@@ -137,12 +159,16 @@ export const ResearchSidebar: React.FC<ResearchSidebarProps> = ({ isOpen, onClos
     const [selectedType, setSelectedType] = useState<ResearchType>(ResearchType.QuickLookup);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedItem, setSelectedItem] = useState<ResearchItem | null>(null);
+    const [showBookmarksOnly, setShowBookmarksOnly] = useState(false);
+    const [showBibliographyView, setShowBibliographyView] = useState(false);
 
     const project = useBookCraftStore(state => state.projects[state.activeProjectId!]);
     const isResearching = useBookCraftStore(state => state.isResearching);
     const performResearch = useBookCraftStore(state => state.performResearch);
     const deleteResearchItem = useBookCraftStore(state => state.deleteResearchItem);
     const searchResearch = useBookCraftStore(state => state.searchResearch);
+    const updateResearchItem = useBookCraftStore(state => state.updateResearchItem);
+    const addCitation = useBookCraftStore(state => state.addCitation);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -152,10 +178,41 @@ export const ResearchSidebar: React.FC<ResearchSidebarProps> = ({ isOpen, onClos
         setQuery('');
     };
 
+    const handleBookmarkToggle = (itemId: string) => {
+        const item = project?.research.find(r => r.id === itemId);
+        if (item) {
+            updateResearchItem(itemId, { isBookmarked: !item.isBookmarked });
+        }
+    };
+
+    const handleAddToBibliography = (item: ResearchItem) => {
+        // Create citations for all sources in this research item
+        item.sources.forEach(source => {
+            addCitation({
+                id: `citation-${source.id}-${Date.now()}`,
+                sourceId: source.id,
+                researchItemId: item.id,
+                citationType: 'reference',
+                pageNumber: source.pageNumber,
+                quotedText: item.summary,
+                context: `From research: "${item.query}"`,
+                createdAt: new Date(),
+            });
+        });
+
+        // Show success feedback
+        alert(`Added ${item.sources.length} sources to bibliography from "${item.query}"`);
+    };
+
     const filteredResearch = searchTerm ? searchResearch(searchTerm) : project?.research || [];
-    const chapterResearch = chapterId
+    let chapterResearch = chapterId
         ? filteredResearch.filter(item => item.linkedChapterIds.includes(chapterId))
         : filteredResearch;
+
+    // Apply bookmark filter if active
+    if (showBookmarksOnly) {
+        chapterResearch = chapterResearch.filter(item => item.isBookmarked);
+    }
 
     if (!isOpen) return null;
 
@@ -209,6 +266,28 @@ export const ResearchSidebar: React.FC<ResearchSidebarProps> = ({ isOpen, onClos
                         </Button>
                     </div>
                 </form>
+
+                {/* Filter Controls */}
+                <div className="flex gap-2 mt-3">
+                    <Button
+                        size="sm"
+                        variant={showBookmarksOnly ? "primary" : "ghost"}
+                        onClick={() => setShowBookmarksOnly(!showBookmarksOnly)}
+                        className={`text-xs py-1 px-2 ${showBookmarksOnly ? 'text-yellow-300' : 'text-slate-400 hover:text-yellow-300'}`}
+                    >
+                        <BookmarkIcon className="w-3 h-3 mr-1" />
+                        Bookmarks Only
+                    </Button>
+                    <Button
+                        size="sm"
+                        variant={showBibliographyView ? "primary" : "ghost"}
+                        onClick={() => setShowBibliographyView(!showBibliographyView)}
+                        className={`text-xs py-1 px-2 ${showBibliographyView ? 'text-blue-300' : 'text-slate-400 hover:text-blue-300'}`}
+                    >
+                        <DocumentTextIcon className="w-3 h-3 mr-1" />
+                        Bibliography
+                    </Button>
+                </div>
             </div>
 
             {/* Search Bar */}
@@ -309,6 +388,8 @@ export const ResearchSidebar: React.FC<ResearchSidebarProps> = ({ isOpen, onClos
                                             item={item}
                                             onDelete={deleteResearchItem}
                                             onSelect={setSelectedItem}
+                                            onBookmarkToggle={handleBookmarkToggle}
+                                            onAddToBibliography={handleAddToBibliography}
                                         />
                                     ))
                                 }

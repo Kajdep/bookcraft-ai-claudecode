@@ -29,22 +29,71 @@ function ContentSyncPlugin({
 
   // Import HTML content when it changes externally
   useEffect(() => {
-    if (isUpdatingRef.current) return;
+    if (isUpdatingRef.current) {
+      console.log('Lexical: Skipping update - already updating');
+      return;
+    }
 
     editor.update(() => {
       try {
         // Only update if content is different from current editor content
         const currentHtml = $generateHtmlFromNodes(editor, null);
-        if (currentHtml === content) return;
+        const normalizedCurrentHtml = currentHtml.trim();
+        const normalizedNewContent = (content || '').trim();
+        
+        // Additional validation for content integrity
+        if (normalizedCurrentHtml === normalizedNewContent) {
+          console.log('Lexical: Content already matches, skipping update');
+          return;
+        }
+        
+        // Validate that we're not trying to update with invalid content
+        if (normalizedNewContent && normalizedNewContent.length > 0 && normalizedNewContent !== '<p></p>') {
+          console.log('Lexical: Valid content detected, proceeding with update');
+        } else if (normalizedCurrentHtml.length > 0) {
+          console.log('Lexical: New content is empty but current content exists, preserving current content');
+          return;
+        }
 
+        console.log('Lexical: Updating content from', normalizedCurrentHtml.substring(0, 50), 'to', normalizedNewContent.substring(0, 50));
+        
+        // Set updating flag to prevent race conditions
+        isUpdatingRef.current = true;
+        
         const parser = new DOMParser();
-        const dom = parser.parseFromString(content || '<p></p>', 'text/html');
+        const dom = parser.parseFromString(normalizedNewContent || '<p></p>', 'text/html');
         const nodes = $generateNodesFromDOM(editor, dom);
         const root = $getRoot();
         root.clear();
         root.append(...nodes);
+        
+        console.log('Lexical: Content updated successfully');
+        
+        // Force editor to focus after content update to ensure it's visible
+        setTimeout(() => {
+          try {
+            const selection = $getSelection();
+            if ($isRangeSelection(selection)) {
+              const rootNode = $getRoot();
+              if (rootNode.getChildrenSize() > 0) {
+                const lastChild = rootNode.getLastChild();
+                if (lastChild) {
+                  lastChild.selectEnd();
+                }
+              }
+            }
+          } catch (selectionError) {
+            // Selection error is not critical
+            console.warn('Selection update failed:', selectionError);
+          }
+          // Reset updating flag after focus is set
+          isUpdatingRef.current = false;
+        }, 100);
+        
       } catch (error) {
         log.error('Failed to import HTML content', error as Error, 'ContentSyncPlugin');
+        // Reset flag on error
+        isUpdatingRef.current = false;
       }
     });
   }, [content, editor]);

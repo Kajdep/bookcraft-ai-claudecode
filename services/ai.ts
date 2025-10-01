@@ -5,135 +5,258 @@ import { log } from "./logger";
 // Default configuration - will be overridden by user settings
 const DEFAULT_OPENROUTER_MODEL = "nvidia/nemotron-nano-9b-v2:free";
 
-// Function to get current settings from store
-const getAISettings = async (): Promise<Settings> => {
-    // Since this is a service layer, we need to get settings from the store
-    // We'll import the store hook at runtime to avoid circular dependencies
+// Enhanced environment configuration
+interface AIEnvironmentConfig {
+    openRouterApiKey: string;
+    openRouterEndpoint: string;
+    geminiApiKey: string;
+    geminiEndpoint: string;
+    defaultModel: string;
+    temperature: number;
+    maxTokens: number;
+    enableDebugLogging: boolean;
+    validateApiKeys: boolean;
+}
 
-    // DEBUG: Log environment and module system info
-    console.log('🔍 [DEBUG] Environment Check:', {
-        isBrowser: typeof window !== 'undefined',
-        hasRequire: typeof require !== 'undefined',
-        hasProcess: typeof process !== 'undefined',
-        moduleType: 'ES6 modules (type: module in package.json)',
-        timestamp: new Date().toISOString()
-    });
-
-    // Use dynamic import to avoid circular dependencies and ensure browser compatibility
-    let useBookCraftStore;
-    try {
-        console.log('🔄 [DEBUG] Attempting dynamic import of store...');
-        // Dynamic import to avoid circular dependencies and ensure browser compatibility
-        const storeModule = await import('../store/useStore');
-        useBookCraftStore = storeModule.useBookCraftStore;
-        console.log('✅ [DEBUG] Dynamic import succeeded');
-    } catch (importError) {
-        console.error('❌ [DEBUG] Dynamic import failed:', importError.message);
-        throw new Error(`Store import failed: ${importError.message}. This suggests a module system or circular dependency issue.`);
-    }
-
-    const settings = useBookCraftStore.getState().settings;
-
-    // DEBUG: Add logging to validate API configuration
-    console.log('🔍 [DEBUG] AI Settings Check:', {
-        hasSettings: !!settings,
-        openRouterApiKey: settings?.openRouterApiKey ? '[REDACTED]' : 'MISSING',
-        openRouterEndpoint: settings?.openRouterEndpoint || 'DEFAULT',
-        geminiApiKey: settings?.geminiApiKey ? '[REDACTED]' : 'MISSING',
-        geminiEndpoint: settings?.geminiEndpoint || 'DEFAULT',
-        defaultModel: settings?.defaultModel || DEFAULT_OPENROUTER_MODEL,
-        // Check process.env availability in browser
-        hasProcessEnv: typeof process !== 'undefined' && process?.env,
-        envOpenRouterKey: (typeof process !== 'undefined' && process?.env?.OPENROUTER_API_KEY) ? '[REDACTED]' : 'MISSING',
-        envGeminiKey: (typeof process !== 'undefined' && process?.env?.GEMINI_API_KEY) ? '[REDACTED]' : 'MISSING',
-        // Check if we're in browser environment
-        isBrowser: typeof window !== 'undefined',
-        userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'NO_NAVIGATOR'
-    });
-
+// Get environment configuration with fallbacks
+const getEnvironmentConfig = (): AIEnvironmentConfig => {
+    const isProduction = process.env.NODE_ENV === 'production';
+    const debugLogging = process.env.ENABLE_DEBUG_LOGGING === 'true';
+    
     return {
-        openRouterApiKey: settings?.openRouterApiKey || (typeof process !== 'undefined' && process?.env?.OPENROUTER_API_KEY) || '',
-        openRouterEndpoint: settings?.openRouterEndpoint || 'https://openrouter.ai/api/v1',
-        geminiApiKey: settings?.geminiApiKey || (typeof process !== 'undefined' && process?.env?.GEMINI_API_KEY) || '',
-        geminiEndpoint: settings?.geminiEndpoint || 'https://generativelanguage.googleapis.com',
-        ...settings
+        openRouterApiKey: process.env.OPENROUTER_API_KEY || '',
+        openRouterEndpoint: process.env.OPENROUTER_ENDPOINT || 'https://openrouter.ai/api/v1',
+        geminiApiKey: process.env.GEMINI_API_KEY || '',
+        geminiEndpoint: process.env.GEMINI_ENDPOINT || 'https://generativelanguage.googleapis.com',
+        defaultModel: process.env.DEFAULT_AI_MODEL || DEFAULT_OPENROUTER_MODEL,
+        temperature: parseFloat(process.env.DEFAULT_TEMPERATURE || '0.7'),
+        maxTokens: parseInt(process.env.DEFAULT_MAX_TOKENS || '4000'),
+        enableDebugLogging: debugLogging && !isProduction,
+        validateApiKeys: process.env.VALIDATE_API_KEYS !== 'false'
     };
 };
 
+// Function to get current settings from store with environment fallbacks
+const getAISettings = async (): Promise<Settings> => {
+    const envConfig = getEnvironmentConfig();
+    
+    // Use dynamic import to avoid circular dependencies
+    let useBookCraftStore;
+    try {
+        const storeModule = await import('../store/useStore');
+        useBookCraftStore = storeModule.useBookCraftStore;
+    } catch (importError) {
+        if (envConfig.enableDebugLogging) {
+            console.error('Store import failed, using environment config only:', importError.message);
+        }
+        // Return environment config if store import fails
+        return envConfig as Settings;
+    }
+
+    const settings = useBookCraftStore.getState().settings;
+    
+    // Merge store settings with environment config (environment takes precedence)
+    const mergedSettings = {
+        ...settings,
+        openRouterApiKey: envConfig.openRouterApiKey || settings?.openRouterApiKey || '',
+        openRouterEndpoint: envConfig.openRouterEndpoint || settings?.openRouterEndpoint || envConfig.openRouterEndpoint,
+        geminiApiKey: envConfig.geminiApiKey || settings?.geminiApiKey || '',
+        geminiEndpoint: envConfig.geminiEndpoint || settings?.geminiEndpoint || envConfig.geminiEndpoint,
+        defaultModel: envConfig.defaultModel || settings?.defaultModel || envConfig.defaultModel,
+        temperature: settings?.temperature ?? envConfig.temperature,
+        maxTokens: settings?.maxTokens ?? envConfig.maxTokens
+    };
+    
+    // Validate API keys if enabled
+    if (envConfig.validateApiKeys && envConfig.enableDebugLogging) {
+        const validationResults = {
+            openRouterConfigured: !!mergedSettings.openRouterApiKey,
+            geminiConfigured: !!mergedSettings.geminiApiKey,
+            hasValidModel: !!mergedSettings.defaultModel
+        };
+        
+        if (!validationResults.openRouterConfigured) {
+            console.warn('⚠️ OpenRouter API key not configured - AI text features will be limited');
+        }
+        if (!validationResults.geminiConfigured) {
+            console.warn('⚠️ Gemini API key not configured - Image generation will be disabled');
+        }
+    }
+
+    return mergedSettings as Settings;
+};
+
+// Rate limiting for API calls
+interface RateLimitInfo {
+    lastCall: number;
+    callCount: number;
+    windowStart: number;
+}
+
+const rateLimitMap = new Map<string, RateLimitInfo>();
+
+const checkRateLimit = async (apiKey: string): Promise<void> => {
+    const envConfig = getEnvironmentConfig();
+    const limit = parseInt(process.env.API_RATE_LIMIT || '100');
+    const window = parseInt(process.env.API_RATE_WINDOW || '3600000'); // 1 hour
+    
+    const keyHash = apiKey.slice(-8); // Use last 8 chars for identification
+    const now = Date.now();
+    const rateLimitInfo = rateLimitMap.get(keyHash) || { lastCall: 0, callCount: 0, windowStart: now };
+    
+    // Reset window if needed
+    if (now - rateLimitInfo.windowStart > window) {
+        rateLimitInfo.callCount = 0;
+        rateLimitInfo.windowStart = now;
+    }
+    
+    // Check rate limit
+    if (rateLimitInfo.callCount >= limit) {
+        const resetTime = rateLimitInfo.windowStart + window;
+        const waitTime = Math.ceil((resetTime - now) / 1000);
+        throw new Error(`Rate limit exceeded. Try again in ${waitTime} seconds.`);
+    }
+    
+    // Update rate limit info
+    rateLimitInfo.lastCall = now;
+    rateLimitInfo.callCount++;
+    rateLimitMap.set(keyHash, rateLimitInfo);
+    
+    // Add small delay between requests to be respectful
+    if (now - rateLimitInfo.lastCall < 1000) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+    }
+};
+
 /**
- * Makes a request to OpenRouter API for text generation
+ * Makes a request to OpenRouter API for text generation with enhanced error handling
  */
 const callOpenRouter = async (prompt: string, jsonMode = false): Promise<string> => {
     const settings = await getAISettings();
-
-    // DEBUG: Enhanced logging for API call
-    console.log('🚀 [DEBUG] OpenRouter API Call:', {
-        hasApiKey: !!settings.openRouterApiKey,
-        endpoint: settings.openRouterEndpoint,
-        model: settings.defaultModel || DEFAULT_OPENROUTER_MODEL,
-        jsonMode,
-        promptLength: prompt.length,
-        timestamp: new Date().toISOString()
-    });
+    const envConfig = getEnvironmentConfig();
 
     if (!settings.openRouterApiKey) {
-        const errorMsg = "OpenRouter API key not configured. Please check your settings.";
-        console.error('❌ [DEBUG] API Key Missing:', errorMsg);
+        const errorMsg = "OpenRouter API key not configured. Please set OPENROUTER_API_KEY environment variable or configure in settings.";
+        log.aiError('API Key Missing', new Error(errorMsg));
         throw new Error(errorMsg);
     }
 
-    const apiUrl = `${settings.openRouterEndpoint}/chat/completions`;
-
-    const response = await fetch(apiUrl, {
-        method: "POST",
-        headers: {
-            "Authorization": `Bearer ${settings.openRouterApiKey}`,
-            "Content-Type": "application/json",
-            "HTTP-Referer": "https://bookcraft-ai.local",
-            "X-Title": "BookCraft AI"
-        },
-        body: JSON.stringify({
-            model: settings.defaultModel || DEFAULT_OPENROUTER_MODEL,
-            messages: [
-                {
-                    role: "user",
-                    content: prompt
-                }
-            ],
-            response_format: jsonMode ? { type: "json_object" } : undefined,
-            temperature: settings.temperature || 0.7,
-            max_tokens: settings.maxTokens
-        })
-    });
-
-    // DEBUG: Log response status
-    console.log('📡 [DEBUG] OpenRouter Response:', {
-        status: response.status,
-        statusText: response.statusText,
-        ok: response.ok,
-        headers: Object.fromEntries(response.headers.entries())
-    });
-
-    if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ [DEBUG] OpenRouter API Error:', {
-            status: response.status,
-            statusText: response.statusText,
-            errorBody: errorText,
-            requestUrl: apiUrl,
-            model: settings.defaultModel || DEFAULT_OPENROUTER_MODEL
-        });
-        throw new Error(`OpenRouter API error: ${response.status} ${response.statusText}`);
+    // Check rate limiting
+    try {
+        await checkRateLimit(settings.openRouterApiKey);
+    } catch (rateLimitError) {
+        log.aiError('Rate Limit Exceeded', rateLimitError as Error);
+        throw rateLimitError;
     }
 
-    const data = await response.json();
-    console.log('✅ [DEBUG] OpenRouter Success:', {
-        hasChoices: !!data.choices,
-        choicesCount: data.choices?.length || 0,
-        model: data.model,
-        usage: data.usage
-    });
-    return data.choices[0].message.content;
+    const apiUrl = `${settings.openRouterEndpoint}/chat/completions`;
+    const requestBody = {
+        model: settings.defaultModel || DEFAULT_OPENROUTER_MODEL,
+        messages: [
+            {
+                role: "system",
+                content: "You are a helpful AI assistant for BookCraft AI, a professional writing application. Provide accurate, helpful, and well-structured responses."
+            },
+            {
+                role: "user",
+                content: prompt
+            }
+        ],
+        response_format: jsonMode ? { type: "json_object" } : undefined,
+        temperature: settings.temperature || 0.7,
+        max_tokens: settings.maxTokens || 4000,
+        stream: false
+    };
+
+    if (envConfig.enableDebugLogging) {
+        console.log('🚀 OpenRouter API Call:', {
+            endpoint: apiUrl,
+            model: requestBody.model,
+            promptLength: prompt.length,
+            jsonMode,
+            temperature: requestBody.temperature,
+            maxTokens: requestBody.max_tokens
+        });
+    }
+
+    let response: Response;
+    try {
+        response = await fetch(apiUrl, {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${settings.openRouterApiKey}`,
+                "Content-Type": "application/json",
+                "HTTP-Referer": process.env.VITE_APP_NAME || "BookCraft AI",
+                "X-Title": process.env.VITE_APP_NAME || "BookCraft AI",
+                "User-Agent": `${process.env.VITE_APP_NAME || "BookCraft AI"}/${process.env.VITE_APP_VERSION || "1.0.0"}`
+            },
+            body: JSON.stringify(requestBody)
+        });
+    } catch (networkError) {
+        const errorMsg = `Network error connecting to OpenRouter: ${networkError.message}`;
+        log.aiError('Network Error', new Error(errorMsg));
+        throw new Error(errorMsg);
+    }
+
+    if (!response.ok) {
+        let errorData: any = {};
+        try {
+            errorData = await response.json();
+        } catch {
+            errorData = { message: await response.text() };
+        }
+
+        const errorMsg = `OpenRouter API error (${response.status}): ${errorData.error?.message || errorData.message || response.statusText}`;
+        
+        if (envConfig.enableDebugLogging) {
+            console.error('❌ OpenRouter API Error:', {
+                status: response.status,
+                statusText: response.statusText,
+                error: errorData,
+                model: requestBody.model
+            });
+        }
+        
+        // Handle specific error types
+        if (response.status === 401) {
+            throw new Error("Invalid OpenRouter API key. Please check your configuration.");
+        } else if (response.status === 429) {
+            throw new Error("OpenRouter rate limit exceeded. Please try again later.");
+        } else if (response.status >= 500) {
+            throw new Error("OpenRouter service is temporarily unavailable. Please try again later.");
+        }
+        
+        log.aiError('OpenRouter API Error', new Error(errorMsg));
+        throw new Error(errorMsg);
+    }
+
+    let data: any;
+    try {
+        data = await response.json();
+    } catch (parseError) {
+        const errorMsg = "Failed to parse OpenRouter API response";
+        log.aiError('Parse Error', parseError as Error);
+        throw new Error(errorMsg);
+    }
+
+    if (!data.choices || data.choices.length === 0) {
+        throw new Error("No response generated from OpenRouter API");
+    }
+
+    const content = data.choices[0].message?.content;
+    if (!content) {
+        throw new Error("Empty response from OpenRouter API");
+    }
+
+    if (envConfig.enableDebugLogging) {
+        console.log('✅ OpenRouter Success:', {
+            model: data.model,
+            usage: data.usage,
+            responseLength: content.length
+        });
+    }
+
+    return content;
 };
 
 /**
@@ -682,153 +805,801 @@ export const suggestResearchTopics = async (chapterContent: string, genre: strin
 };
 
 /**
- * Summarizes web content from a URL
+ * Extracts content from a web page URL
  */
-export const summarizeWebContent = async (url: string): Promise<ResearchItem> => {
-    const prompt = `
-        Analyze and summarize the content from this URL: ${url}
-
-        Please provide:
-        1. A comprehensive summary of the main points
-        2. Key facts and data points
-        3. Assessment of source credibility
-        4. Relevant tags for categorization
-        5. Main themes covered
-
-        Return ONLY a valid JSON object with this format:
-        {
-            "summary": "Comprehensive summary...",
-            "content": "Detailed content extraction...",
-            "confidence": "High|Medium|Low",
-            "credibility": "Verified|Credible|Questionable|Unverified",
-            "tags": ["tag1", "tag2", "tag3"],
-            "sourceInfo": {
-                "title": "Article title",
-                "author": "Author name",
-                "publishDate": "Date if available",
-                "sourceType": "Website"
-            }
-        }
-    `;
-
+const extractWebContent = async (url: string): Promise<{content: string, metadata: any}> => {
+    // Validate URL
     try {
-        const response = await callOpenRouter(prompt, true);
-        const result = JSON.parse(response);
-
-        const researchItem: ResearchItem = {
-            id: `research_${Date.now()}`,
-            query: `Web content analysis: ${url}`,
-            type: ResearchType.SourceVerification,
-            content: result.content,
-            summary: result.summary,
-            confidence: result.confidence as ResearchConfidence,
-            sources: [{
-                id: `source_${Date.now()}`,
-                title: result.sourceInfo.title,
-                url: url,
-                author: result.sourceInfo.author,
-                publishDate: result.sourceInfo.publishDate,
-                credibility: result.credibility as SourceCredibility,
-                accessDate: new Date(),
-                sourceType: 'Website'
-            }],
-            tags: result.tags || [],
-            linkedChapterIds: [],
-            createdAt: new Date(),
-            lastUpdated: new Date(),
-            verified: false,
-            isBookmarked: false,
-            wordCount: result.content.split(/\s+/).length,
-            qualityScore: result.confidence === 'High' ? 85 : result.confidence === 'Medium' ? 65 : 45,
-            attachments: [],
-            relatedResearchIds: [],
-            contradictions: []
-        };
-
-        return researchItem;
+        new URL(url);
     } catch (error) {
-        log.aiError('Web content summarization failed', error as Error);
-        throw new Error("Failed to summarize web content with AI.");
+        throw new Error('Invalid URL format');
+    }
+    
+    // Security check - block potentially harmful URLs
+    const blockedDomains = ['localhost', '127.0.0.1', '0.0.0.0', '10.', '192.168.', '172.'];
+    const urlObj = new URL(url);
+    
+    if (blockedDomains.some(domain => urlObj.hostname.includes(domain))) {
+        throw new Error('URL not accessible: Private or local network addresses are not allowed');
+    }
+    
+    try {
+        // Use fetch with proper headers to scrape content
+        log.info('Fetching web content', { url });
+        
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.5',
+                'Accept-Encoding': 'gzip, deflate, br',
+                'DNT': '1',
+                'Connection': 'keep-alive',
+                'Upgrade-Insecure-Requests': '1'
+            },
+            // Add timeout to prevent hanging requests
+            signal: AbortSignal.timeout(30000) // 30 seconds timeout
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const contentType = response.headers.get('content-type') || '';
+        if (!contentType.includes('text/html') && !contentType.includes('application/xml')) {
+            throw new Error('Content type not supported. Only HTML and XML content can be analyzed.');
+        }
+        
+        const html = await response.text();
+        
+        // Parse HTML content
+        const parsedContent = parseHTMLContent(html);
+        
+        return {
+            content: parsedContent.text,
+            metadata: {
+                type: 'webpage',
+                url: url,
+                contentType: contentType,
+                title: parsedContent.title,
+                description: parsedContent.description,
+                author: parsedContent.author,
+                publishDate: parsedContent.publishDate,
+                wordCount: parsedContent.text.split(/\s+/).filter(word => word.length > 0).length,
+                characterCount: parsedContent.text.length,
+                lastAccessed: new Date().toISOString(),
+                domain: urlObj.hostname,
+                extractedElements: {
+                    headings: parsedContent.headings,
+                    links: parsedContent.links,
+                    images: parsedContent.images
+                }
+            }
+        };
+        
+    } catch (error) {
+        if (error instanceof TypeError && error.message.includes('fetch')) {
+            throw new Error('Network error: Unable to access the URL. Please check your internet connection and try again.');
+        }
+        
+        if (error instanceof DOMException && error.name === 'TimeoutError') {
+            throw new Error('Request timeout: The webpage took too long to respond. Please try again later.');
+        }
+        
+        log.error('Web content extraction failed', error as Error, 'WebScraping');
+        throw new Error(`Failed to extract web content: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
 };
 
 /**
- * Analyzes document file content (PDF, DOCX, etc.)
+ * Parses HTML content and extracts text, metadata, and structure
  */
-export const analyzeDocumentFile = async (file: File): Promise<ResearchItem> => {
-    // Note: In a real implementation, you would extract text from the file first
-    // For now, we'll simulate this with the filename and mock content
+const parseHTMLContent = (html: string): {
+    text: string;
+    title: string;
+    description: string;
+    author: string;
+    publishDate: string;
+    headings: string[];
+    links: string[];
+    images: string[];
+} => {
+    // Create a DOM parser (in a browser environment)
+    let doc: Document;
+    
+    if (typeof DOMParser !== 'undefined') {
+        const parser = new DOMParser();
+        doc = parser.parseFromString(html, 'text/html');
+    } else {
+        // Fallback for non-browser environments - basic HTML parsing
+        return parseHTMLBasic(html);
+    }
+    
+    // Extract title
+    const title = doc.querySelector('title')?.textContent?.trim() || 
+                  doc.querySelector('h1')?.textContent?.trim() || 
+                  'Untitled';
+    
+    // Extract meta description
+    const description = doc.querySelector('meta[name="description"]')?.getAttribute('content') || 
+                       doc.querySelector('meta[property="og:description"]')?.getAttribute('content') || 
+                       '';
+    
+    // Extract author
+    const author = doc.querySelector('meta[name="author"]')?.getAttribute('content') || 
+                  doc.querySelector('meta[property="article:author"]')?.getAttribute('content') || 
+                  doc.querySelector('[rel="author"]')?.textContent?.trim() || 
+                  '';
+    
+    // Extract publish date
+    const publishDate = doc.querySelector('meta[property="article:published_time"]')?.getAttribute('content') || 
+                       doc.querySelector('meta[name="date"]')?.getAttribute('content') || 
+                       doc.querySelector('time[datetime]')?.getAttribute('datetime') || 
+                       '';
+    
+    // Extract headings
+    const headings = Array.from(doc.querySelectorAll('h1, h2, h3, h4, h5, h6'))
+        .map(h => h.textContent?.trim())
+        .filter(h => h && h.length > 0) as string[];
+    
+    // Extract external links
+    const links = Array.from(doc.querySelectorAll('a[href]'))
+        .map(a => a.getAttribute('href'))
+        .filter(href => href && href.startsWith('http'))
+        .slice(0, 10) as string[]; // Limit to first 10 external links
+    
+    // Extract image sources
+    const images = Array.from(doc.querySelectorAll('img[src]'))
+        .map(img => img.getAttribute('src'))
+        .filter(src => src)
+        .slice(0, 5) as string[]; // Limit to first 5 images
+    
+    // Remove script and style elements
+    const scripts = doc.querySelectorAll('script, style, nav, footer, aside, .sidebar, #sidebar, .navigation, .menu');
+    scripts.forEach(el => el.remove());
+    
+    // Extract main content
+    let contentElement = doc.querySelector('main, article, .content, .post, .entry, #content');
+    if (!contentElement) {
+        contentElement = doc.body;
+    }
+    
+    const text = contentElement?.textContent || '';
+    
+    // Clean up text
+    const cleanText = text
+        .replace(/\s+/g, ' ') // Normalize whitespace
+        .replace(/\n\s*\n/g, '\n') // Remove empty lines
+        .trim();
+    
+    return {
+        text: cleanText,
+        title,
+        description,
+        author,
+        publishDate,
+        headings,
+        links,
+        images
+    };
+};
 
-    const prompt = `
-        Analyze the uploaded document: "${file.name}" (${file.type}, ${(file.size / 1024).toFixed(1)} KB)
+/**
+ * Basic HTML parsing for environments without DOMParser
+ */
+const parseHTMLBasic = (html: string): {
+    text: string;
+    title: string;
+    description: string;
+    author: string;
+    publishDate: string;
+    headings: string[];
+    links: string[];
+    images: string[];
+} => {
+    // Extract title
+    const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
+    const title = titleMatch ? titleMatch[1].trim() : 'Untitled';
+    
+    // Extract meta description
+    const descMatch = html.match(/<meta[^>]*name=["']description["'][^>]*content=["']([^"']+)["']/i);
+    const description = descMatch ? descMatch[1] : '';
+    
+    // Extract author
+    const authorMatch = html.match(/<meta[^>]*name=["']author["'][^>]*content=["']([^"']+)["']/i);
+    const author = authorMatch ? authorMatch[1] : '';
+    
+    // Extract publish date
+    const dateMatch = html.match(/<meta[^>]*property=["']article:published_time["'][^>]*content=["']([^"']+)["']/i);
+    const publishDate = dateMatch ? dateMatch[1] : '';
+    
+    // Extract headings
+    const headingMatches = html.match(/<h[1-6][^>]*>([^<]+)<\/h[1-6]>/gi) || [];
+    const headings = headingMatches.map(h => h.replace(/<[^>]+>/g, '').trim());
+    
+    // Extract links
+    const linkMatches = html.match(/<a[^>]*href=["'](https?:\/\/[^"']+)["']/gi) || [];
+    const links = linkMatches
+        .map(link => {
+            const match = link.match(/href=["'](https?:\/\/[^"']+)["']/i);
+            return match ? match[1] : null;
+        })
+        .filter(link => link)
+        .slice(0, 10) as string[];
+    
+    // Extract images
+    const imgMatches = html.match(/<img[^>]*src=["']([^"']+)["']/gi) || [];
+    const images = imgMatches
+        .map(img => {
+            const match = img.match(/src=["']([^"']+)["']/i);
+            return match ? match[1] : null;
+        })
+        .filter(src => src)
+        .slice(0, 5) as string[];
+    
+    // Remove scripts, styles, and HTML tags
+    let text = html
+        .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+        .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+        .replace(/<nav[^>]*>[\s\S]*?<\/nav>/gi, '')
+        .replace(/<footer[^>]*>[\s\S]*?<\/footer>/gi, '')
+        .replace(/<[^>]+>/g, '') // Remove all HTML tags
+        .replace(/&nbsp;/g, ' ')
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'")
+        .replace(/\s+/g, ' ')
+        .trim();
+    
+    return {
+        text,
+        title,
+        description,
+        author,
+        publishDate,
+        headings,
+        links,
+        images
+    };
+};
 
-        Based on the filename and file type, provide a research analysis structure:
-        1. Likely content type and subject matter
-        2. Research value assessment
-        3. Suggested categorization
-        4. Recommended verification steps
-
-        Return ONLY a valid JSON object with this format:
-        {
-            "summary": "Analysis of document purpose and content...",
-            "content": "Detailed analysis of likely document content...",
-            "confidence": "Medium",
-            "tags": ["document-analysis", "uploaded-file"],
-            "sourceInfo": {
-                "title": "Document title",
-                "sourceType": "Document",
-                "fileInfo": {
-                    "name": "${file.name}",
-                    "type": "${file.type}",
-                    "size": ${file.size}
-                }
-            }
-        }
-    `;
-
+/**
+ * Summarizes web content from a URL with real content extraction
+ */
+export const summarizeWebContent = async (url: string): Promise<ResearchItem> => {
+    log.info('Starting web content analysis', { url });
+    
     try {
-        const response = await callOpenRouter(prompt, true);
-        const result = JSON.parse(response);
-
+        // Extract actual content from the webpage
+        const { content, metadata } = await extractWebContent(url);
+        
+        if (!content || content.trim().length === 0) {
+            throw new Error('No readable content found on the webpage.');
+        }
+        
+        log.info('Web content extracted successfully', { 
+            url, 
+            contentLength: content.length, 
+            title: metadata.title 
+        });
+        
+        // Analyze the extracted content with AI
+        const analysisPrompt = `
+            Analyze the following web content and provide a comprehensive summary:
+            
+            URL: ${url}
+            Title: ${metadata.title}
+            Author: ${metadata.author || 'Not specified'}
+            Publish Date: ${metadata.publishDate || 'Not specified'}
+            Domain: ${metadata.domain}
+            
+            Content: "${content.substring(0, 4000)}${content.length > 4000 ? '...' : ''}"
+            
+            Provide a thorough analysis including:
+            1. Comprehensive summary of the main content
+            2. Key facts, data points, and insights
+            3. Assessment of source credibility and authority
+            4. Main themes and topics covered
+            5. Research value assessment
+            6. Relevant categorization tags
+            
+            Return ONLY a valid JSON object with this format:
+            {
+                "summary": "Comprehensive summary of the webpage content...",
+                "content": "Detailed analysis including key points, facts, and insights...",
+                "confidence": "High|Medium|Low",
+                "credibility": "Verified|Credible|Questionable|Unverified",
+                "mainTopics": ["topic1", "topic2", "topic3"],
+                "keyFacts": ["fact1", "fact2", "fact3"],
+                "tags": ["tag1", "tag2", "tag3"],
+                "researchValue": "High|Medium|Low",
+                "sourceAssessment": "Assessment of the website's authority and reliability",
+                "contentType": "news|blog|academic|commercial|government|nonprofit|other"
+            }
+        `;
+        
+        const response = await callOpenRouter(analysisPrompt, true);
+        const analysisResult = JSON.parse(response);
+        
+        // Create comprehensive research item
         const researchItem: ResearchItem = {
             id: `research_${Date.now()}`,
-            query: `Document analysis: ${file.name}`,
-            type: ResearchType.SourceVerification,
-            content: result.content,
-            summary: result.summary,
-            confidence: ResearchConfidence.Medium,
+            query: `Web content analysis: ${metadata.title || url}`,
+            type: ResearchType.TopicalResearch,
+            content: `${analysisResult.content}\n\n--- Original Web Content ---\n${content}`,
+            summary: analysisResult.summary,
+            confidence: analysisResult.confidence as ResearchConfidence,
             sources: [{
                 id: `source_${Date.now()}`,
-                title: result.sourceInfo.title || file.name,
-                credibility: SourceCredibility.Unverified,
+                title: metadata.title,
+                url: url,
+                author: metadata.author,
+                publishDate: metadata.publishDate,
+                credibility: analysisResult.credibility as SourceCredibility,
                 accessDate: new Date(),
-                sourceType: 'Other',
-                notes: `File: ${file.name} (${file.type})`
+                sourceType: 'Website',
+                notes: `${analysisResult.contentType} content - ${analysisResult.sourceAssessment}`,
+                metadata: {
+                    domain: metadata.domain,
+                    contentType: analysisResult.contentType,
+                    wordCount: metadata.wordCount,
+                    headings: metadata.extractedElements.headings,
+                    externalLinks: metadata.extractedElements.links,
+                    images: metadata.extractedElements.images
+                }
             }],
-            tags: result.tags || ['document-analysis'],
+            tags: [...(analysisResult.tags || []), 'web-content', analysisResult.contentType],
             linkedChapterIds: [],
             createdAt: new Date(),
             lastUpdated: new Date(),
             verified: false,
             isBookmarked: false,
-            wordCount: result.content.split(/\s+/).length,
-            qualityScore: 60,
+            wordCount: content.split(/\s+/).filter(word => word.length > 0).length,
+            qualityScore: analysisResult.researchValue === 'High' ? 85 : 
+                         analysisResult.researchValue === 'Medium' ? 65 : 45,
+            attachments: [],
+            relatedResearchIds: [],
+            contradictions: [],
+            metadata: {
+                originalUrl: url,
+                extraction: metadata,
+                analysis: {
+                    mainTopics: analysisResult.mainTopics,
+                    keyFacts: analysisResult.keyFacts,
+                    contentType: analysisResult.contentType,
+                    researchValue: analysisResult.researchValue,
+                    sourceAssessment: analysisResult.sourceAssessment
+                }
+            }
+        };
+        
+        log.info('Web content analysis completed successfully', { 
+            researchItemId: researchItem.id,
+            confidence: researchItem.confidence,
+            qualityScore: researchItem.qualityScore
+        });
+        
+        return researchItem;
+        
+    } catch (error) {
+        log.error('Web content analysis failed', error as Error, 'WebScraping');
+        throw new Error(`Failed to analyze web content: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+};
+
+/**
+ * Extracts text content from various document formats
+ */
+const extractTextFromFile = async (file: File): Promise<{text: string, metadata: any}> => {
+    const fileType = file.type.toLowerCase();
+    const fileName = file.name.toLowerCase();
+    
+    // Handle text files directly
+    if (fileType.includes('text/') || fileName.endsWith('.txt') || fileName.endsWith('.md')) {
+        const text = await readFileAsText(file);
+        return {
+            text,
+            metadata: {
+                type: 'text',
+                encoding: 'UTF-8',
+                wordCount: text.split(/\s+/).filter(word => word.length > 0).length,
+                characterCount: text.length,
+                lineCount: text.split('\n').length
+            }
+        };
+    }
+    
+    // Handle PDF files
+    if (fileType.includes('pdf') || fileName.endsWith('.pdf')) {
+        return await extractTextFromPDF(file);
+    }
+    
+    // Handle Microsoft Word documents
+    if (fileType.includes('word') || fileType.includes('msword') || 
+        fileName.endsWith('.docx') || fileName.endsWith('.doc')) {
+        return await extractTextFromWord(file);
+    }
+    
+    // Handle RTF files
+    if (fileType.includes('rtf') || fileName.endsWith('.rtf')) {
+        return await extractTextFromRTF(file);
+    }
+    
+    // Handle CSV files
+    if (fileType.includes('csv') || fileName.endsWith('.csv')) {
+        const text = await readFileAsText(file);
+        return {
+            text,
+            metadata: {
+                type: 'csv',
+                rowCount: text.split('\n').length - 1,
+                hasHeader: true
+            }
+        };
+    }
+    
+    // Handle JSON files
+    if (fileType.includes('json') || fileName.endsWith('.json')) {
+        const text = await readFileAsText(file);
+        try {
+            const jsonData = JSON.parse(text);
+            const formattedText = JSON.stringify(jsonData, null, 2);
+            return {
+                text: formattedText,
+                metadata: {
+                    type: 'json',
+                    isValid: true,
+                    objectCount: Array.isArray(jsonData) ? jsonData.length : Object.keys(jsonData).length
+                }
+            };
+        } catch (error) {
+            return {
+                text,
+                metadata: {
+                    type: 'json',
+                    isValid: false,
+                    error: 'Invalid JSON format'
+                }
+            };
+        }
+    }
+    
+    // Default: try to read as text
+    try {
+        const text = await readFileAsText(file);
+        return {
+            text,
+            metadata: {
+                type: 'unknown',
+                fallbackToText: true,
+                warning: 'File format not specifically supported, extracted as text'
+            }
+        };
+    } catch (error) {
+        throw new Error(`Unsupported file format: ${file.type}. Supported formats: PDF, Word (.docx/.doc), Text (.txt/.md), RTF, CSV, JSON`);
+    }
+};
+
+/**
+ * Reads file as text with proper encoding handling
+ */
+const readFileAsText = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = () => reject(new Error('Failed to read file'));
+        reader.readAsText(file, 'UTF-8');
+    });
+};
+
+/**
+ * Extracts text from PDF files using PDF.js-like approach
+ */
+const extractTextFromPDF = async (file: File): Promise<{text: string, metadata: any}> => {
+    // Note: In a full implementation, you would use PDF.js or a similar library
+    // For now, we'll implement a basic PDF text extraction approach
+    
+    try {
+        const arrayBuffer = await file.arrayBuffer();
+        const uint8Array = new Uint8Array(arrayBuffer);
+        const pdfData = new TextDecoder('latin1').decode(uint8Array);
+        
+        // Basic PDF text extraction - looks for text between stream markers
+        const textRegex = /BT\s+.*?ET/gs;
+        const streamMatches = pdfData.match(textRegex) || [];
+        
+        let extractedText = '';
+        for (const match of streamMatches) {
+            // Extract text from PDF text objects (simplified approach)
+            const textMatches = match.match(/\(([^\)]*)\)\s*Tj/g) || [];
+            for (const textMatch of textMatches) {
+                const text = textMatch.match(/\(([^\)]*)\)/)?.[1] || '';
+                if (text) {
+                    extractedText += text + ' ';
+                }
+            }
+        }
+        
+        // If no text found with basic extraction, try alternative method
+        if (!extractedText.trim()) {
+            // Look for plain text content in the PDF
+            const plainTextRegex = /[A-Za-z0-9\s.,;:!?"'-]{10,}/g;
+            const plainTextMatches = pdfData.match(plainTextRegex) || [];
+            extractedText = plainTextMatches.join(' ');
+        }
+        
+        if (!extractedText.trim()) {
+            throw new Error('Could not extract readable text from PDF. The PDF might be image-based or encrypted.');
+        }
+        
+        return {
+            text: extractedText.trim(),
+            metadata: {
+                type: 'pdf',
+                fileSize: file.size,
+                extractionMethod: 'basic',
+                wordCount: extractedText.trim().split(/\s+/).filter(word => word.length > 0).length,
+                note: 'Basic PDF text extraction. For better accuracy, consider using dedicated PDF processing tools.'
+            }
+        };
+    } catch (error) {
+        log.error('PDF text extraction failed', error as Error, 'DocumentAnalysis');
+        throw new Error('Failed to extract text from PDF. The file might be corrupted, encrypted, or image-based.');
+    }
+};
+
+/**
+ * Extracts text from Word documents
+ */
+const extractTextFromWord = async (file: File): Promise<{text: string, metadata: any}> => {
+    // Note: Full Word document parsing requires libraries like mammoth.js
+    // This is a basic implementation that handles simple Word documents
+    
+    try {
+        const arrayBuffer = await file.arrayBuffer();
+        
+        if (file.name.endsWith('.docx')) {
+            return await extractTextFromDocx(arrayBuffer);
+        } else {
+            return await extractTextFromDoc(arrayBuffer);
+        }
+    } catch (error) {
+        log.error('Word document text extraction failed', error as Error, 'DocumentAnalysis');
+        throw new Error('Failed to extract text from Word document. The file might be corrupted or in an unsupported format.');
+    }
+};
+
+/**
+ * Extracts text from DOCX files (ZIP-based format)
+ */
+const extractTextFromDocx = async (arrayBuffer: ArrayBuffer): Promise<{text: string, metadata: any}> => {
+    // DOCX files are ZIP archives containing XML files
+    // This is a simplified extraction that doesn't handle complex formatting
+    
+    try {
+        // For a full implementation, you'd need a ZIP library to extract document.xml
+        // and then parse the XML content. This is a simplified version.
+        
+        const uint8Array = new Uint8Array(arrayBuffer);
+        const docxData = new TextDecoder('utf-8', { ignoreBOM: true }).decode(uint8Array);
+        
+        // Look for text content patterns in DOCX (simplified)
+        const textRegex = /<w:t[^>]*>([^<]+)<\/w:t>/g;
+        let extractedText = '';
+        let match;
+        
+        while ((match = textRegex.exec(docxData)) !== null) {
+            extractedText += match[1] + ' ';
+        }
+        
+        if (!extractedText.trim()) {
+            throw new Error('No readable text content found in the Word document.');
+        }
+        
+        return {
+            text: extractedText.trim(),
+            metadata: {
+                type: 'docx',
+                extractionMethod: 'basic',
+                wordCount: extractedText.trim().split(/\s+/).filter(word => word.length > 0).length,
+                note: 'Basic DOCX text extraction. Complex formatting and embedded objects are not preserved.'
+            }
+        };
+    } catch (error) {
+        throw new Error('Failed to parse DOCX file structure.');
+    }
+};
+
+/**
+ * Extracts text from legacy DOC files
+ */
+const extractTextFromDoc = async (arrayBuffer: ArrayBuffer): Promise<{text: string, metadata: any}> => {
+    // Legacy DOC files use a complex binary format
+    // This is a very basic extraction that looks for readable text
+    
+    const uint8Array = new Uint8Array(arrayBuffer);
+    const docData = new TextDecoder('latin1').decode(uint8Array);
+    
+    // Look for readable text patterns (very simplified)
+    const textRegex = /[A-Za-z0-9\s.,;:!?"'-]{10,}/g;
+    const textMatches = docData.match(textRegex) || [];
+    
+    // Filter out binary data and keep likely text content
+    const extractedText = textMatches
+        .filter(text => {
+            // Filter out strings that are likely binary data
+            const alphaRatio = (text.match(/[A-Za-z]/g) || []).length / text.length;
+            return alphaRatio > 0.6 && text.length > 3;
+        })
+        .join(' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+    
+    if (!extractedText) {
+        throw new Error('No readable text content found in the DOC file.');
+    }
+    
+    return {
+        text: extractedText,
+        metadata: {
+            type: 'doc',
+            extractionMethod: 'basic',
+            wordCount: extractedText.split(/\s+/).filter(word => word.length > 0).length,
+            note: 'Basic DOC text extraction. Formatting and structure are not preserved. Consider converting to DOCX for better results.'
+        }
+    };
+};
+
+/**
+ * Extracts text from RTF files
+ */
+const extractTextFromRTF = async (file: File): Promise<{text: string, metadata: any}> => {
+    const text = await readFileAsText(file);
+    
+    // Remove RTF control codes and extract plain text
+    let extractedText = text
+        .replace(/\{[^{}]*\}/g, '') // Remove RTF groups
+        .replace(/\\[a-z]+\d*/gi, '') // Remove RTF control words
+        .replace(/\\[^a-z]/gi, '') // Remove RTF control symbols
+        .replace(/\s+/g, ' ') // Normalize whitespace
+        .trim();
+    
+    return {
+        text: extractedText,
+        metadata: {
+            type: 'rtf',
+            wordCount: extractedText.split(/\s+/).filter(word => word.length > 0).length,
+            note: 'RTF formatting codes removed, plain text extracted.'
+        }
+    };
+};
+
+/**
+ * Analyzes document file content with real text extraction
+ */
+export const analyzeDocumentFile = async (file: File): Promise<ResearchItem> => {
+    log.info('Starting document analysis', { fileName: file.name, fileType: file.type, fileSize: file.size });
+    
+    try {
+        // Extract actual text content from the file
+        const { text, metadata } = await extractTextFromFile(file);
+        
+        if (!text || text.trim().length === 0) {
+            throw new Error('No readable content found in the document.');
+        }
+        
+        log.info('Text extracted successfully', { textLength: text.length, wordCount: metadata.wordCount });
+        
+        // Analyze the extracted content with AI
+        const analysisPrompt = `
+            Analyze the following document content and provide a comprehensive research analysis:
+            
+            Document: "${file.name}" (${file.type}, ${(file.size / 1024).toFixed(1)} KB)
+            Content Preview: "${text.substring(0, 2000)}${text.length > 2000 ? '...' : ''}"
+            
+            Provide a thorough analysis including:
+            1. Document type and subject matter identification
+            2. Key themes and topics covered
+            3. Research value and reliability assessment
+            4. Important facts, data points, or insights
+            5. Relevant categorization tags
+            6. Summary of the main content
+            
+            Return ONLY a valid JSON object with this format:
+            {
+                "summary": "Comprehensive summary of the document content...",
+                "content": "Detailed analysis including key points, themes, and insights...",
+                "confidence": "High|Medium|Low",
+                "subjectMatter": "Primary subject area of the document",
+                "documentType": "Type of document (research paper, report, article, etc.)",
+                "keyInsights": ["insight1", "insight2", "insight3"],
+                "factualClaims": ["claim1", "claim2"],
+                "tags": ["tag1", "tag2", "tag3"],
+                "credibilityAssessment": "Assessment of document reliability and authority",
+                "researchValue": "High|Medium|Low"
+            }
+        `;
+        
+        const response = await callOpenRouter(analysisPrompt, true);
+        const analysisResult = JSON.parse(response);
+        
+        // Create comprehensive research item
+        const researchItem: ResearchItem = {
+            id: `research_${Date.now()}`,
+            query: `Document analysis: ${file.name}`,
+            type: ResearchType.SourceVerification,
+            content: `${analysisResult.content}\n\n--- Original Document Content ---\n${text}`,
+            summary: analysisResult.summary,
+            confidence: analysisResult.confidence as ResearchConfidence,
+            sources: [{
+                id: `source_${Date.now()}`,
+                title: analysisResult.documentType ? `${analysisResult.documentType}: ${file.name}` : file.name,
+                credibility: analysisResult.researchValue === 'High' ? SourceCredibility.Credible : 
+                           analysisResult.researchValue === 'Medium' ? SourceCredibility.Unverified : 
+                           SourceCredibility.Questionable,
+                accessDate: new Date(),
+                sourceType: 'Document',
+                notes: `${metadata.type.toUpperCase()} file - ${analysisResult.credibilityAssessment}`,
+                metadata: {
+                    fileSize: file.size,
+                    wordCount: metadata.wordCount,
+                    extractionMethod: metadata.extractionMethod,
+                    documentType: analysisResult.documentType,
+                    subjectMatter: analysisResult.subjectMatter
+                }
+            }],
+            tags: [...(analysisResult.tags || []), 'document-analysis', metadata.type],
+            linkedChapterIds: [],
+            createdAt: new Date(),
+            lastUpdated: new Date(),
+            verified: false,
+            isBookmarked: false,
+            wordCount: text.split(/\s+/).filter(word => word.length > 0).length,
+            qualityScore: analysisResult.researchValue === 'High' ? 85 : 
+                         analysisResult.researchValue === 'Medium' ? 65 : 45,
             attachments: [{
                 id: `attachment_${Date.now()}`,
                 name: file.name,
-                type: file.type.includes('pdf') ? 'pdf' : 'document',
+                type: metadata.type === 'pdf' ? 'pdf' : 'document',
                 file: file,
                 size: file.size,
-                uploadedAt: new Date()
+                uploadedAt: new Date(),
+                metadata: metadata
             }],
             relatedResearchIds: [],
-            contradictions: []
+            contradictions: [],
+            metadata: {
+                originalFile: {
+                    name: file.name,
+                    type: file.type,
+                    size: file.size
+                },
+                extraction: metadata,
+                analysis: {
+                    documentType: analysisResult.documentType,
+                    subjectMatter: analysisResult.subjectMatter,
+                    keyInsights: analysisResult.keyInsights,
+                    factualClaims: analysisResult.factualClaims,
+                    researchValue: analysisResult.researchValue,
+                    credibilityAssessment: analysisResult.credibilityAssessment
+                }
+            }
         };
-
+        
+        log.info('Document analysis completed successfully', { 
+            researchItemId: researchItem.id,
+            confidence: researchItem.confidence,
+            qualityScore: researchItem.qualityScore
+        });
+        
         return researchItem;
+        
     } catch (error) {
-        log.aiError('Document analysis failed', error as Error);
-        throw new Error("Failed to analyze document with AI.");
+        log.error('Document analysis failed', error as Error, 'DocumentAnalysis');
+        throw new Error(`Failed to analyze document: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
 };
 

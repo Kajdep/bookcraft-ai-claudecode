@@ -5,10 +5,12 @@ import { ChapterListView } from './ChapterListView';
 // FIX: Corrected import path for ChapterEditorView.
 import { ChapterEditorView } from './ChapterEditorView';
 import { Button } from '../UI';
-import { Bars3Icon, MapIcon, SparklesIcon, ArrowLeftIcon, MagnifyingGlassIcon } from '../Icons';
+import { Bars3Icon, MapIcon, SparklesIcon, ArrowLeftIcon, MagnifyingGlassIcon, DocumentTextIcon } from '../Icons';
 import { ProjectPlannerModal } from './ProjectPlannerModal';
 import { ResearchSidebar } from './ResearchSidebar';
+import { AIToolsPanel } from './AIToolsPanel';
 import { ErrorBoundary } from '../ErrorBoundary';
+import { WritingTemplatesModal } from './WritingTemplatesModal';
 
 type ViewMode = 'list' | 'kanban';
 
@@ -18,6 +20,7 @@ export const WritingDesk: React.FC = () => {
     const [selectedChapterId, setSelectedChapterId] = useState<string | null>(null);
     const [isPlannerOpen, setIsPlannerOpen] = useState(false);
     const [isResearchOpen, setIsResearchOpen] = useState(false);
+    const [isTemplatesOpen, setIsTemplatesOpen] = useState(false);
 
     // FIX: Refactored active chapter logic to be more declarative and robust.
     // This solves the bug where the editor wouldn't appear after generating chapters.
@@ -78,6 +81,10 @@ export const WritingDesk: React.FC = () => {
                             <SparklesIcon className="w-5 h-5 mr-2"/>
                             AI Project Planner
                         </Button>
+                        <Button onClick={() => setIsTemplatesOpen(true)} variant="outline">
+                            <DocumentTextIcon className="w-5 h-5 mr-2"/>
+                            Writing Templates
+                        </Button>
                     </div>
                 </div>
                 <ChapterKanbanView onChapterSelect={(id) => {
@@ -94,6 +101,11 @@ export const WritingDesk: React.FC = () => {
                     isOpen={isPlannerOpen}
                     onClose={() => setIsPlannerOpen(false)}
                 />
+                <WritingTemplatesModal 
+                    isOpen={isTemplatesOpen}
+                    onClose={() => setIsTemplatesOpen(false)}
+                />
+                <AIToolsPanel />
             </div>
         );
     }
@@ -114,6 +126,10 @@ export const WritingDesk: React.FC = () => {
                     <Button onClick={() => setIsPlannerOpen(true)}>
                         <SparklesIcon className="w-5 h-5 mr-2"/>
                         AI Project Planner
+                    </Button>
+                    <Button onClick={() => setIsTemplatesOpen(true)} variant="outline">
+                        <DocumentTextIcon className="w-5 h-5 mr-2"/>
+                        Writing Templates
                     </Button>
                 </div>
             </div>
@@ -154,6 +170,11 @@ export const WritingDesk: React.FC = () => {
                 isOpen={isPlannerOpen}
                 onClose={() => setIsPlannerOpen(false)}
             />
+            <WritingTemplatesModal 
+                isOpen={isTemplatesOpen}
+                onClose={() => setIsTemplatesOpen(false)}
+            />
+            <AIToolsPanel />
         </div>
     );
 };

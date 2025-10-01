@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useBookCraftStore } from '../store/useStore';
-import { ArrowLeftIcon, ClipboardDocumentListIcon, PhotoIcon, ArrowDownOnSquareIcon, CalculatorIcon, BookCoverIcon, MagnifyingGlassIcon, PaperClipIcon, BrainCircuitIcon } from './Icons';
+import { ArrowLeftIcon, ClipboardDocumentListIcon, PhotoIcon, ArrowDownOnSquareIcon, CalculatorIcon, BookCoverIcon, MagnifyingGlassIcon, PaperClipIcon, BrainCircuitIcon, ChartBarIcon } from './Icons';
 import { Button } from './UI';
 import { WritingStudio } from './workspace/WritingStudio';
 import { VisualsWorkspace } from './workspace/VisualsWorkspace';
@@ -10,9 +10,10 @@ import { CoverCreator } from './workspace/CoverCreator';
 import { ResearchTab } from './workspace/ResearchTab';
 import { MaterialTab } from './workspace/MaterialTab';
 import { PlotTab } from './workspace/PlotTab';
+import { AnalyticsTab } from './workspace/AnalyticsTab';
 import { ErrorBoundary } from './ErrorBoundary';
 
-type WorkspaceTab = 'Writing' | 'Visuals' | 'Research' | 'Material' | 'Plot' | 'Cover Creator' | 'KDP Calculator' | 'Export';
+type WorkspaceTab = 'Writing' | 'Visuals' | 'Research' | 'Material' | 'Plot' | 'Analytics' | 'Cover Creator' | 'KDP Calculator' | 'Export';
 
 const TabButton: React.FC<{ active: boolean; onClick: () => void; children: React.ReactNode; icon: React.ReactNode }> = ({ active, onClick, children, icon }) => (
     <button
@@ -73,6 +74,9 @@ export const ProjectWorkspace: React.FC = () => {
                         <TabButton active={activeTab === 'Plot'} onClick={() => setActiveTab('Plot')} icon={<BrainCircuitIcon className="w-5 h-5"/>}>
                             Plot
                         </TabButton>
+                        <TabButton active={activeTab === 'Analytics'} onClick={() => setActiveTab('Analytics')} icon={<ChartBarIcon className="w-5 h-5"/>}>
+                            Analytics
+                        </TabButton>
                         <TabButton active={activeTab === 'Cover Creator'} onClick={() => setActiveTab('Cover Creator')} icon={<BookCoverIcon className="w-5 h-5"/>}>
                             Cover Creator
                         </TabButton>
@@ -99,6 +103,17 @@ export const ProjectWorkspace: React.FC = () => {
                             </div>
                         }>
                             <PlotTab />
+                        </ErrorBoundary>
+                    )}
+                    {activeTab === 'Analytics' && (
+                        <ErrorBoundary fallback={
+                            <div className="p-8 text-center bg-slate-800/50 rounded-lg border border-slate-700/50">
+                                <h3 className="text-xl font-semibold text-slate-300 mb-2">Analytics Tab Error</h3>
+                                <p className="text-slate-400 mb-4">There was an issue loading the analytics dashboard. Try refreshing.</p>
+                                <Button onClick={() => window.location.reload()}>Refresh</Button>
+                            </div>
+                        }>
+                            <AnalyticsTab />
                         </ErrorBoundary>
                     )}
                     {activeTab === 'Cover Creator' && <CoverCreator />}

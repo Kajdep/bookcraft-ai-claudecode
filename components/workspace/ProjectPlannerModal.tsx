@@ -106,7 +106,7 @@ export const ProjectPlannerModal: React.FC<ProjectPlannerModalProps> = ({ isOpen
                         onChange={(e) => setPrompt(e.target.value)}
                         placeholder="Your planning request..."
                         rows={3}
-                        className="w-full bg-slate-700 border-slate-600 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary sm:text-sm p-2"
+                        className="w-full bg-slate-700 border-slate-600 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary sm:text-sm p-2 text-white placeholder-slate-400"
                     />
                     {fileName && <p className="text-xs text-slate-400">Loaded from: {fileName}</p>}
                     <div className="flex justify-end items-center gap-2">

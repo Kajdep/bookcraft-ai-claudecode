@@ -1,7 +1,56 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
-import type { Project, Chapter, VisualRecommendation, Visual, GeneratedImage, PlotPoint, ResearchItem, ResearchType, FactCheckResult, ResearchQuery, ResearchFolder, Citation, CitationStyle, ThematicTag, ResearchTimeline, ResearchMindMap, ResearchAttachment, ResearchContradiction, Settings } from '../types';
+import type { Project, Chapter, VisualRecommendation, Visual, GeneratedImage, PlotPoint, ResearchItem, ResearchType, FactCheckResult, ResearchQuery, ResearchFolder, Citation, CitationStyle, ThematicTag, ResearchTimeline, ResearchMindMap, ResearchAttachment, ResearchContradiction, Settings, MaterialItem, MaterialFolder, MaterialType, MaterialCategory } from '../types';
+
+// Analytics types
+export interface WritingSession {
+    id: string;
+    projectId: string;
+    chapterId?: string;
+    startTime: Date;
+    endTime: Date;
+    wordsWritten: number;
+    wordsDeleted: number;
+    netWords: number;
+    keystrokes: number;
+    backspaces: number;
+    timeActive: number; // milliseconds actually typing
+    timeIdle: number; // milliseconds idle
+    notes?: string;
+}
+
+export interface WritingGoal {
+    id: string;
+    projectId: string;
+    type: 'words' | 'chapters' | 'hours' | 'pages' | 'sessions';
+    target: number;
+    current: number;
+    deadline: Date;
+    title: string;
+    description?: string;
+    completed: boolean;
+    createdAt: Date;
+    completedAt?: Date;
+}
+
+export interface ProductivityMetrics {
+    date: string;
+    words: number;
+    minutes: number;
+    sessions: number;
+    wordsDeleted: number;
+    efficiency: number; // words per minute when active
+    focus: number; // percentage of time actually typing vs idle
+}
+
+export interface WritingStreak {
+    current: number;
+    longest: number;
+    lastActive: Date;
+    streakDates: string[];
+    totalDays: number;
+}
 import { ProjectStatus, ChapterStatus, ResearchConfidence, SourceCredibility, CitationStyle as CS, ResearchFolderType } from '../types';
 import * as ai from '../services/ai';
 import { toast } from '../services/toast';
@@ -18,6 +67,26 @@ interface BookCraftState {
     isGeneratingImage: boolean;
     isSuggestingVisual: boolean; // For the new context menu visual suggestion feature
     isAnalyzingChapter: string | null; // Chapter ID being analyzed for visuals
+    
+    // Analytics state
+    writingSessions: WritingSession[];
+    writingGoals: WritingGoal[];
+    currentSession: WritingSession | null;
+    dailyMetrics: Record<string, ProductivityMetrics>; // date string as key
+    weeklyMetrics: Record<string, ProductivityMetrics>; // week string as key
+    monthlyMetrics: Record<string, ProductivityMetrics>; // month string as key
+    writingStreak: WritingStreak;
+    sessionStartTime: Date | null;
+    lastWordCount: number;
+    keystrokeCount: number;
+    backspaceCount: number;
+    idleTime: number;
+    activeTime: number;
+    
+    // Autosave state
+    lastSaved: Date | null;
+    isAutoSaving: boolean;
+    pendingChanges: boolean;
 
     // Settings state
     settings: Settings | null;
@@ -41,6 +110,14 @@ interface BookCraftState {
         dateRange?: { start: Date; end: Date };
         folderId?: string;
     };
+    
+    // Modal-based AI process tracking
+    activeAIProcesses: Record<string, {
+        name: string;
+        type: 'content' | 'visual' | 'research' | 'analysis' | 'planning';
+        description: string;
+        startTime: Date;
+    }>;
 
     // Centralized modal state management
     activeModal: {
@@ -52,7 +129,7 @@ interface BookCraftState {
 
 interface BookCraftActions {
     // Project Management
-    addProject: (newProjectData: Pick<Project, 'title' | 'genre' | 'visualStyle'>) => void;
+    addProject: (newProjectData: Pick<Project, 'title' | 'genre' | 'visualStyle'> & { description?: string }) => void;
     updateProject: (id: string, updates: Partial<Pick<Project, 'title' | 'genre' | 'visualStyle' | 'status'>>) => void;
     deleteProject: (id: string) => void;
     setActiveProject: (id: string | null) => void;
@@ -100,8 +177,10 @@ interface BookCraftActions {
     performResearch: (query: string, type: ResearchType, chapterId?: string) => Promise<void>;
     saveResearchItem: (item: ResearchItem) => void;
     deleteResearchItem: (itemId: string) => void;
+    updateResearchItem: (itemId: string, updates: Partial<ResearchItem>) => void;
     linkResearchToChapter: (researchId: string, chapterId: string) => void;
     bookmarkResearchItem: (itemId: string) => void;
+    addCitation: (citation: Omit<Citation, 'id'>) => void;
     summarizeWebContent: (url: string) => Promise<ResearchItem>;
     analyzeDocumentFile: (file: File) => Promise<ResearchItem>;
 
@@ -150,6 +229,72 @@ interface BookCraftActions {
     isModalOpen: (type: string) => boolean;
     pushModalToStack: (type: string, data?: any) => void;
     popModalFromStack: () => void;
+    
+    // Autosave functionality
+    triggerAutosave: () => void;
+    manualSave: () => Promise<void>;
+    setPendingChanges: (pending: boolean) => void;
+    
+    // Material Management
+    addMaterial: (material: Omit<MaterialItem, 'id' | 'createdAt' | 'lastModified'>) => void;
+    updateMaterial: (materialId: string, updates: Partial<MaterialItem>) => void;
+    deleteMaterial: (materialId: string) => void;
+    createMaterialFolder: (name: string, parentId?: string) => void;
+    updateMaterialFolder: (folderId: string, updates: Partial<MaterialFolder>) => void;
+    deleteMaterialFolder: (folderId: string) => void;
+    moveMaterialToFolder: (materialId: string, folderId: string) => void;
+    linkMaterialToChapter: (materialId: string, chapterId: string) => void;
+    bookmarkMaterial: (materialId: string) => void;
+    favoriteMaterial: (materialId: string) => void;
+    searchMaterials: (searchTerm: string) => MaterialItem[];
+    filterMaterialsByType: (type: MaterialType) => MaterialItem[];
+    filterMaterialsByCategory: (category: MaterialCategory) => MaterialItem[];
+    uploadMaterialFile: (file: File, category: MaterialCategory) => Promise<void>;
+    addMaterialNote: (title: string, content: string, category: MaterialCategory) => void;
+    addMaterialLink: (title: string, url: string, category: MaterialCategory) => void;
+    generateThumbnail: (file: File) => Promise<string>;
+    extractFileMetadata: (file: File) => Promise<Partial<MaterialItem['metadata']>>;
+    storeFileInIndexedDB: (file: File, fileId: string) => Promise<string>;
+    retrieveFileFromIndexedDB: (fileId: string) => Promise<File | null>;
+    deleteFileFromIndexedDB: (fileId: string) => Promise<boolean>;
+
+    // AI Process tracking
+    startAIProcess: (id: string, name: string, type: 'content' | 'visual' | 'research' | 'analysis' | 'planning', description: string) => void;
+    endAIProcess: (id: string) => void;
+    
+    // Analytics Actions
+    startWritingSession: (chapterId?: string) => void;
+    endWritingSession: () => void;
+    pauseWritingSession: () => void;
+    resumeWritingSession: () => void;
+    trackWordChange: (oldCount: number, newCount: number) => void;
+    trackKeystroke: () => void;
+    trackBackspace: () => void;
+    updateSessionActivity: () => void;
+    calculateProductivityMetrics: (date: string) => ProductivityMetrics;
+    updateWritingStreak: () => void;
+    
+    // Goals Management
+    createWritingGoal: (goal: Omit<WritingGoal, 'id' | 'current' | 'completed' | 'createdAt'>) => void;
+    updateWritingGoal: (goalId: string, updates: Partial<WritingGoal>) => void;
+    deleteWritingGoal: (goalId: string) => void;
+    completeWritingGoal: (goalId: string) => void;
+    updateGoalProgress: (goalId: string) => void;
+    
+    // Analytics Queries
+    getSessionsInRange: (startDate: Date, endDate: Date) => WritingSession[];
+    getProductivityTrend: (days: number) => ProductivityMetrics[];
+    getWritingVelocity: (days: number) => number; // words per day average
+    getBestWritingTime: () => { hour: number; productivity: number };
+    getWritingInsights: () => {
+        totalWords: number;
+        totalSessions: number;
+        averageSessionLength: number;
+        mostProductiveDay: string;
+        currentStreak: number;
+        goalsCompleted: number;
+        goalsActive: number;
+    };
 }
 
 export const useBookCraftStore = create<BookCraftState & BookCraftActions>()(
@@ -184,16 +329,47 @@ export const useBookCraftStore = create<BookCraftState & BookCraftActions>()(
             // Centralized modal state
             activeModal: { type: 'none' },
             modalStack: [],
+            
+            // AI process tracking
+            activeAIProcesses: {},
+            
+            // Analytics state
+            writingSessions: [],
+            writingGoals: [],
+            currentSession: null,
+            dailyMetrics: {},
+            weeklyMetrics: {},
+            monthlyMetrics: {},
+            writingStreak: {
+                current: 0,
+                longest: 0,
+                lastActive: new Date(),
+                streakDates: [],
+                totalDays: 0
+            },
+            sessionStartTime: null,
+            lastWordCount: 0,
+            keystrokeCount: 0,
+            backspaceCount: 0,
+            idleTime: 0,
+            activeTime: 0,
+            
+            // Autosave state
+            lastSaved: null,
+            isAutoSaving: false,
+            pendingChanges: false,
 
             // ACTIONS
             // Project Management
             addProject: (newProjectData) => {
                 const id = `proj_${Date.now()}`;
+                const { description, ...projectData } = newProjectData;
                 const newProject: Project = {
-                    ...newProjectData,
+                    ...projectData,
                     id,
                     status: ProjectStatus.Draft,
                     createdAt: new Date(),
+                    metadata: description ? { description } : undefined,
                     chapters: [],
                     plotPoints: [],
                     recommendations: [],
@@ -208,6 +384,8 @@ export const useBookCraftStore = create<BookCraftState & BookCraftActions>()(
                     thematicTags: [],
                     researchTimelines: [],
                     researchMindMaps: [],
+                    materials: [],
+                    materialFolders: [],
                     researchSettings: {
                         defaultCitationStyle: CS.APA,
                         autoFactCheck: false,
@@ -219,6 +397,18 @@ export const useBookCraftStore = create<BookCraftState & BookCraftActions>()(
                     state.projects[id] = newProject;
                     // Automatically set the new project as active
                     state.activeProjectId = id;
+                    
+                    // Create a default chapter to get users started
+                    const defaultChapter: Chapter = {
+                        id: `chap_${Date.now()}`,
+                        title: 'Chapter 1',
+                        content: '',
+                        status: ChapterStatus.Idea,
+                        order: 0,
+                        notes: '',
+                        structure: [],
+                    };
+                    newProject.chapters.push(defaultChapter);
                 });
             },
             updateProject: (id, updates) => {
@@ -340,6 +530,9 @@ export const useBookCraftStore = create<BookCraftState & BookCraftActions>()(
                         }
                     }
                 });
+                
+                // Trigger autosave after chapter update
+                get().triggerAutosave();
             },
             deleteChapter: (chapterId) => {
                 const projectId = get().activeProjectId;
@@ -741,6 +934,9 @@ export const useBookCraftStore = create<BookCraftState & BookCraftActions>()(
                     set(state => {
                         state.projects[projectId]?.research.push(newResearchItem);
                     });
+                    
+                    // Trigger autosave after adding research
+                    get().triggerAutosave();
 
                     toast.success('Research Complete', 'Research has been added to your library!');
                 } catch (error) {
@@ -773,6 +969,9 @@ export const useBookCraftStore = create<BookCraftState & BookCraftActions>()(
                         state.projects[projectId]?.research.push(enhancedItem);
                     }
                 });
+                
+                // Trigger autosave after saving research
+                get().triggerAutosave();
             },
 
             deleteResearchItem: (itemId) => {
@@ -809,6 +1008,38 @@ export const useBookCraftStore = create<BookCraftState & BookCraftActions>()(
                     if (research) {
                         research.isBookmarked = !research.isBookmarked;
                         research.lastUpdated = new Date();
+                    }
+                });
+            },
+
+            updateResearchItem: (itemId, updates) => {
+                const projectId = get().activeProjectId;
+                if (!projectId) return;
+
+                set(state => {
+                    const research = state.projects[projectId]?.research.find(r => r.id === itemId);
+                    if (research) {
+                        Object.assign(research, updates, { lastUpdated: new Date() });
+                    }
+                });
+                
+                // Trigger autosave after updating research
+                get().triggerAutosave();
+            },
+
+            addCitation: (citation) => {
+                const projectId = get().activeProjectId;
+                if (!projectId) return;
+
+                const newCitation: Citation = {
+                    ...citation,
+                    id: `citation_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                };
+
+                set(state => {
+                    const project = state.projects[projectId];
+                    if (project) {
+                        project.citations.push(newCitation);
                     }
                 });
             },
@@ -1285,6 +1516,1042 @@ export const useBookCraftStore = create<BookCraftState & BookCraftActions>()(
                 set(state => {
                     state.modalStack.pop();
                 });
+            },
+            
+            // Autosave functionality
+            triggerAutosave: () => {
+                set(state => {
+                    state.pendingChanges = true;
+                });
+                
+                // Debounced autosave - will save after 2 seconds of inactivity
+                const currentTime = Date.now();
+                setTimeout(() => {
+                    const state = get();
+                    if (state.pendingChanges && !state.isAutoSaving) {
+                        get().manualSave();
+                    }
+                }, 2000);
+            },
+            
+            manualSave: async () => {
+                set(state => {
+                    state.isAutoSaving = true;
+                    state.pendingChanges = false;
+                });
+                
+                try {
+                    // The persist middleware handles the actual saving
+                    // We just need to update the last saved timestamp
+                    set(state => {
+                        state.lastSaved = new Date();
+                    });
+                    
+                    // Optional: Show a subtle save indicator
+                    console.log('Data autosaved at', new Date().toLocaleTimeString());
+                } catch (error) {
+                    log.error('Autosave failed', error as Error, 'useStore');
+                } finally {
+                    set(state => {
+                        state.isAutoSaving = false;
+                    });
+                }
+            },
+            
+            setPendingChanges: (pending) => {
+                set(state => {
+                    state.pendingChanges = pending;
+                });
+            },
+            
+            // Material Management
+            addMaterial: (material) => {
+                const projectId = get().activeProjectId;
+                if (!projectId) return;
+
+                const newMaterial: MaterialItem = {
+                    ...material,
+                    id: `material_${Date.now()}`,
+                    createdAt: new Date(),
+                    lastModified: new Date(),
+                    isBookmarked: material.isBookmarked || false,
+                    isFavorite: material.isFavorite || false,
+                    tags: material.tags || [],
+                    linkedChapterIds: material.linkedChapterIds || []
+                };
+
+                set(state => {
+                    state.projects[projectId]?.materials.push(newMaterial);
+                });
+
+                get().triggerAutosave();
+            },
+
+            updateMaterial: (materialId, updates) => {
+                const projectId = get().activeProjectId;
+                if (!projectId) return;
+
+                set(state => {
+                    const material = state.projects[projectId]?.materials.find(m => m.id === materialId);
+                    if (material) {
+                        Object.assign(material, updates, { lastModified: new Date() });
+                    }
+                });
+
+                get().triggerAutosave();
+            },
+
+            deleteMaterial: async (materialId) => {
+                const projectId = get().activeProjectId;
+                if (!projectId) return;
+
+                // Find the material to get file info before deleting
+                const material = get().projects[projectId]?.materials.find(m => m.id === materialId);
+                
+                set(state => {
+                    const project = state.projects[projectId];
+                    if (project) {
+                        project.materials = project.materials.filter(m => m.id !== materialId);
+                        
+                        // Remove from folders
+                        project.materialFolders.forEach(folder => {
+                            folder.materialIds = folder.materialIds.filter(id => id !== materialId);
+                        });
+                    }
+                });
+
+                // Clean up stored file if it exists
+                if (material?.metadata?.fileId && material.metadata.storageType === 'indexeddb') {
+                    try {
+                        await get().deleteFileFromIndexedDB(material.metadata.fileId);
+                    } catch (error) {
+                        log.warn('Failed to delete file from IndexedDB', error as Error, 'MaterialManagement');
+                    }
+                }
+
+                get().triggerAutosave();
+                toast.success('Material Deleted', `${material?.title || 'Material'} has been removed.`);
+            },
+
+            createMaterialFolder: (name, parentId) => {
+                const projectId = get().activeProjectId;
+                if (!projectId) return;
+
+                const newFolder: MaterialFolder = {
+                    id: `materialFolder_${Date.now()}`,
+                    name,
+                    parentFolderId: parentId,
+                    color: '#6B7280', // Default gray color
+                    materialIds: [],
+                    createdAt: new Date(),
+                    lastModified: new Date()
+                };
+
+                set(state => {
+                    state.projects[projectId]?.materialFolders.push(newFolder);
+                });
+
+                get().triggerAutosave();
+            },
+
+            updateMaterialFolder: (folderId, updates) => {
+                const projectId = get().activeProjectId;
+                if (!projectId) return;
+
+                set(state => {
+                    const folder = state.projects[projectId]?.materialFolders.find(f => f.id === folderId);
+                    if (folder) {
+                        Object.assign(folder, updates, { lastModified: new Date() });
+                    }
+                });
+
+                get().triggerAutosave();
+            },
+
+            deleteMaterialFolder: (folderId) => {
+                const projectId = get().activeProjectId;
+                if (!projectId) return;
+
+                set(state => {
+                    const project = state.projects[projectId];
+                    if (project) {
+                        // Move materials to root (no folder)
+                        const folderToDelete = project.materialFolders.find(f => f.id === folderId);
+                        if (folderToDelete) {
+                            folderToDelete.materialIds.forEach(materialId => {
+                                const material = project.materials.find(m => m.id === materialId);
+                                // Materials don't have a folderId property in our current schema
+                                // If we need folder assignment, we can add it later
+                            });
+                        }
+                        
+                        // Remove folder
+                        project.materialFolders = project.materialFolders.filter(f => f.id !== folderId);
+                    }
+                });
+
+                get().triggerAutosave();
+            },
+
+            moveMaterialToFolder: (materialId, folderId) => {
+                const projectId = get().activeProjectId;
+                if (!projectId) return;
+
+                set(state => {
+                    const project = state.projects[projectId];
+                    if (project) {
+                        // Remove from all folders first
+                        project.materialFolders.forEach(folder => {
+                            folder.materialIds = folder.materialIds.filter(id => id !== materialId);
+                        });
+
+                        // Add to target folder
+                        const targetFolder = project.materialFolders.find(f => f.id === folderId);
+                        if (targetFolder && !targetFolder.materialIds.includes(materialId)) {
+                            targetFolder.materialIds.push(materialId);
+                            targetFolder.lastModified = new Date();
+                        }
+                    }
+                });
+
+                get().triggerAutosave();
+            },
+
+            linkMaterialToChapter: (materialId, chapterId) => {
+                const projectId = get().activeProjectId;
+                if (!projectId) return;
+
+                set(state => {
+                    const material = state.projects[projectId]?.materials.find(m => m.id === materialId);
+                    if (material && !material.linkedChapterIds.includes(chapterId)) {
+                        material.linkedChapterIds.push(chapterId);
+                        material.lastModified = new Date();
+                    }
+                });
+
+                get().triggerAutosave();
+            },
+
+            bookmarkMaterial: (materialId) => {
+                const projectId = get().activeProjectId;
+                if (!projectId) return;
+
+                set(state => {
+                    const material = state.projects[projectId]?.materials.find(m => m.id === materialId);
+                    if (material) {
+                        material.isBookmarked = !material.isBookmarked;
+                        material.lastModified = new Date();
+                    }
+                });
+
+                get().triggerAutosave();
+            },
+
+            favoriteMaterial: (materialId) => {
+                const projectId = get().activeProjectId;
+                if (!projectId) return;
+
+                set(state => {
+                    const material = state.projects[projectId]?.materials.find(m => m.id === materialId);
+                    if (material) {
+                        material.isFavorite = !material.isFavorite;
+                        material.lastModified = new Date();
+                    }
+                });
+
+                get().triggerAutosave();
+            },
+
+            searchMaterials: (searchTerm) => {
+                const projectId = get().activeProjectId;
+                if (!projectId) return [];
+
+                const project = get().projects[projectId];
+                const term = searchTerm.toLowerCase();
+                return project?.materials.filter(material =>
+                    material.title.toLowerCase().includes(term) ||
+                    (material.description && material.description.toLowerCase().includes(term)) ||
+                    (material.content && material.content.toLowerCase().includes(term)) ||
+                    material.tags.some(tag => tag.toLowerCase().includes(term))
+                ) || [];
+            },
+
+            filterMaterialsByType: (type) => {
+                const projectId = get().activeProjectId;
+                if (!projectId) return [];
+
+                const project = get().projects[projectId];
+                return project?.materials.filter(material => material.type === type) || [];
+            },
+
+            filterMaterialsByCategory: (category) => {
+                const projectId = get().activeProjectId;
+                if (!projectId) return [];
+
+                const project = get().projects[projectId];
+                return project?.materials.filter(material => material.category === category) || [];
+            },
+
+            uploadMaterialFile: async (file, category) => {
+                const projectId = get().activeProjectId;
+                if (!projectId) return;
+
+                try {
+                    // Generate thumbnail for supported file types
+                    const thumbnail = await get().generateThumbnail(file);
+                    
+                    // Extract metadata
+                    const metadata = await get().extractFileMetadata(file);
+                    
+                    // Determine material type based on file type
+                    let materialType: MaterialType;
+                    if (file.type.startsWith('image/')) {
+                        materialType = MaterialType.Image;
+                    } else if (file.type.startsWith('audio/')) {
+                        materialType = MaterialType.Audio;
+                    } else if (file.type.startsWith('video/')) {
+                        materialType = MaterialType.Video;
+                    } else if (file.type === 'application/pdf' || file.type.includes('document') || file.type.includes('text')) {
+                        materialType = MaterialType.Document;
+                    } else {
+                        materialType = MaterialType.Archive;
+                    }
+
+                    // Store file with proper handling for different storage strategies
+                    let fileUrl: string;
+                    let fileId: string;
+                    
+                    if (typeof window !== 'undefined' && 'indexedDB' in window) {
+                        // Use IndexedDB for better file storage
+                        fileId = `file_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                        fileUrl = await get().storeFileInIndexedDB(file, fileId);
+                    } else {
+                        // Fallback to base64 for smaller files (limit to 50MB to prevent memory issues)
+                        if (file.size > 50 * 1024 * 1024) {
+                            throw new Error('File too large. Please use files smaller than 50MB.');
+                        }
+                        
+                        const base64 = await new Promise<string>((resolve, reject) => {
+                            const reader = new FileReader();
+                            reader.onload = () => resolve(reader.result as string);
+                            reader.onerror = reject;
+                            reader.readAsDataURL(file);
+                        });
+                        fileUrl = base64;
+                        fileId = `base64_${Date.now()}`;
+                    }
+
+                    const newMaterial: Omit<MaterialItem, 'id' | 'createdAt' | 'lastModified'> = {
+                        title: file.name,
+                        type: materialType,
+                        category,
+                        fileName: file.name,
+                        fileSize: file.size,
+                        mimeType: file.type,
+                        thumbnail,
+                        url: fileUrl,
+                        tags: [],
+                        linkedChapterIds: [],
+                        isBookmarked: false,
+                        isFavorite: false,
+                        metadata: {
+                            ...metadata,
+                            fileId,
+                            uploadDate: new Date().toISOString(),
+                            storageType: fileId.startsWith('base64_') ? 'base64' : 'indexeddb'
+                        }
+                    };
+
+                    get().addMaterial(newMaterial);
+                    toast.success('File Uploaded', `${file.name} has been added to your materials.`);
+                } catch (error) {
+                    log.error('File upload failed', error as Error, 'MaterialManagement');
+                    toast.error('Upload Failed', 'Sorry, there was an error uploading the file.');
+                }
+            },
+
+            addMaterialNote: (title, content, category) => {
+                const newNote: Omit<MaterialItem, 'id' | 'createdAt' | 'lastModified'> = {
+                    title,
+                    type: MaterialType.Note,
+                    category,
+                    content,
+                    tags: [],
+                    linkedChapterIds: [],
+                    isBookmarked: false,
+                    isFavorite: false,
+                    metadata: {
+                        wordCount: content.split(/\s+/).length
+                    }
+                };
+
+                get().addMaterial(newNote);
+            },
+
+            addMaterialLink: (title, url, category) => {
+                const newLink: Omit<MaterialItem, 'id' | 'createdAt' | 'lastModified'> = {
+                    title,
+                    type: MaterialType.Link,
+                    category,
+                    url,
+                    tags: [],
+                    linkedChapterIds: [],
+                    isBookmarked: false,
+                    isFavorite: false
+                };
+
+                get().addMaterial(newLink);
+            },
+
+            storeFileInIndexedDB: async (file, fileId) => {
+                return new Promise<string>((resolve, reject) => {
+                    const request = indexedDB.open('BookCraftMaterials', 1);
+                    
+                    request.onerror = () => reject(new Error('Failed to open IndexedDB'));
+                    
+                    request.onupgradeneeded = (event) => {
+                        const db = (event.target as IDBOpenDBRequest).result;
+                        if (!db.objectStoreNames.contains('files')) {
+                            db.createObjectStore('files', { keyPath: 'id' });
+                        }
+                    };
+                    
+                    request.onsuccess = (event) => {
+                        const db = (event.target as IDBOpenDBRequest).result;
+                        const transaction = db.transaction(['files'], 'readwrite');
+                        const store = transaction.objectStore('files');
+                        
+                        const fileRecord = {
+                            id: fileId,
+                            file: file,
+                            filename: file.name,
+                            type: file.type,
+                            size: file.size,
+                            uploadDate: new Date().toISOString()
+                        };
+                        
+                        const addRequest = store.add(fileRecord);
+                        
+                        addRequest.onsuccess = () => {
+                            resolve(`indexeddb://${fileId}`);
+                        };
+                        
+                        addRequest.onerror = () => {
+                            reject(new Error('Failed to store file in IndexedDB'));
+                        };
+                        
+                        transaction.oncomplete = () => {
+                            db.close();
+                        };
+                    };
+                });
+            },
+
+            retrieveFileFromIndexedDB: async (fileId) => {
+                return new Promise<File | null>((resolve, reject) => {
+                    const request = indexedDB.open('BookCraftMaterials', 1);
+                    
+                    request.onerror = () => reject(new Error('Failed to open IndexedDB'));
+                    
+                    request.onsuccess = (event) => {
+                        const db = (event.target as IDBOpenDBRequest).result;
+                        const transaction = db.transaction(['files'], 'readonly');
+                        const store = transaction.objectStore('files');
+                        
+                        const getRequest = store.get(fileId);
+                        
+                        getRequest.onsuccess = () => {
+                            const result = getRequest.result;
+                            resolve(result ? result.file : null);
+                        };
+                        
+                        getRequest.onerror = () => {
+                            resolve(null);
+                        };
+                        
+                        transaction.oncomplete = () => {
+                            db.close();
+                        };
+                    };
+                });
+            },
+
+            deleteFileFromIndexedDB: async (fileId) => {
+                return new Promise<boolean>((resolve, reject) => {
+                    const request = indexedDB.open('BookCraftMaterials', 1);
+                    
+                    request.onerror = () => reject(new Error('Failed to open IndexedDB'));
+                    
+                    request.onsuccess = (event) => {
+                        const db = (event.target as IDBOpenDBRequest).result;
+                        const transaction = db.transaction(['files'], 'readwrite');
+                        const store = transaction.objectStore('files');
+                        
+                        const deleteRequest = store.delete(fileId);
+                        
+                        deleteRequest.onsuccess = () => {
+                            resolve(true);
+                        };
+                        
+                        deleteRequest.onerror = () => {
+                            resolve(false);
+                        };
+                        
+                        transaction.oncomplete = () => {
+                            db.close();
+                        };
+                    };
+                });
+            },
+
+            generateThumbnail: async (file) => {
+                if (file.type.startsWith('image/')) {
+                    // For images, create a smaller thumbnail
+                    return new Promise<string>((resolve, reject) => {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        const img = new Image();
+                        
+                        img.onload = () => {
+                            // Set thumbnail size
+                            const maxWidth = 200;
+                            const maxHeight = 200;
+                            let { width, height } = img;
+                            
+                            if (width > height) {
+                                if (width > maxWidth) {
+                                    height *= maxWidth / width;
+                                    width = maxWidth;
+                                }
+                            } else {
+                                if (height > maxHeight) {
+                                    width *= maxHeight / height;
+                                    height = maxHeight;
+                                }
+                            }
+                            
+                            canvas.width = width;
+                            canvas.height = height;
+                            ctx?.drawImage(img, 0, 0, width, height);
+                            resolve(canvas.toDataURL('image/jpeg', 0.7));
+                        };
+                        
+                        img.onerror = reject;
+                        img.src = URL.createObjectURL(file);
+                    });
+                }
+                return ''; // No thumbnail for non-image files
+            },
+
+            extractFileMetadata: async (file) => {
+                const metadata: Partial<MaterialItem['metadata']> = {};
+                
+                if (file.type.startsWith('image/')) {
+                    // For images, extract dimensions
+                    try {
+                        const dimensions = await new Promise<{width: number, height: number}>((resolve, reject) => {
+                            const img = new Image();
+                            img.onload = () => resolve({ width: img.width, height: img.height });
+                            img.onerror = reject;
+                            img.src = URL.createObjectURL(file);
+                        });
+                        metadata.dimensions = dimensions;
+                    } catch (error) {
+                        // Ignore errors
+                    }
+                } else if (file.type.startsWith('audio/') || file.type.startsWith('video/')) {
+                    // For media files, extract duration using HTML5 media elements
+                    try {
+                        const duration = await new Promise<number>((resolve, reject) => {
+                            const url = URL.createObjectURL(file);
+                            const element = file.type.startsWith('audio/') ? new Audio(url) : document.createElement('video');
+                            
+                            element.addEventListener('loadedmetadata', () => {
+                                URL.revokeObjectURL(url);
+                                resolve(element.duration || 0);
+                            });
+                            
+                            element.addEventListener('error', () => {
+                                URL.revokeObjectURL(url);
+                                resolve(0);
+                            });
+                            
+                            if (file.type.startsWith('video/')) {
+                                (element as HTMLVideoElement).src = url;
+                            }
+                            
+                            // Timeout after 10 seconds
+                            setTimeout(() => {
+                                URL.revokeObjectURL(url);
+                                resolve(0);
+                            }, 10000);
+                        });
+                        
+                        metadata.duration = duration;
+                        
+                        if (file.type.startsWith('video/')) {
+                            // Extract additional video metadata if possible
+                            metadata.format = file.type;
+                        }
+                    } catch (error) {
+                        metadata.duration = 0;
+                    }
+                } else if (file.type === 'application/pdf') {
+                    // For PDF files, try to extract basic information
+                    try {
+                        metadata.format = 'PDF';
+                        metadata.fileType = 'document';
+                    } catch (error) {
+                        // Ignore errors
+                    }
+                } else if (file.type.includes('text') || file.name.match(/\.(txt|md|rtf)$/i)) {
+                    // For text files, calculate word count
+                    try {
+                        const text = await new Promise<string>((resolve, reject) => {
+                            const reader = new FileReader();
+                            reader.onload = () => resolve(reader.result as string);
+                            reader.onerror = reject;
+                            reader.readAsText(file);
+                        });
+                        
+                        metadata.wordCount = text.split(/\s+/).filter(word => word.length > 0).length;
+                        metadata.characterCount = text.length;
+                        metadata.lineCount = text.split('\n').length;
+                    } catch (error) {
+                        // Ignore errors
+                    }
+                }
+                
+                return metadata;
+            },
+
+            // AI Process tracking
+            startAIProcess: (id, name, type, description) => {
+                set(state => {
+                    state.activeAIProcesses[id] = {
+                        name,
+                        type,
+                        description,
+                        startTime: new Date()
+                    };
+                });
+            },
+            
+            endAIProcess: (id) => {
+                set(state => {
+                    delete state.activeAIProcesses[id];
+                });
+            },
+
+            // Analytics Actions Implementation
+            startWritingSession: (chapterId) => {
+                const projectId = get().activeProjectId;
+                if (!projectId) return;
+
+                const now = new Date();
+                const sessionId = `session_${Date.now()}`;
+                
+                set(state => {
+                    // End any existing session first
+                    if (state.currentSession) {
+                        get().endWritingSession();
+                    }
+                    
+                    state.currentSession = {
+                        id: sessionId,
+                        projectId,
+                        chapterId,
+                        startTime: now,
+                        endTime: now,
+                        wordsWritten: 0,
+                        wordsDeleted: 0,
+                        netWords: 0,
+                        keystrokes: 0,
+                        backspaces: 0,
+                        timeActive: 0,
+                        timeIdle: 0
+                    };
+                    
+                    state.sessionStartTime = now;
+                    state.lastWordCount = 0;
+                    state.keystrokeCount = 0;
+                    state.backspaceCount = 0;
+                    state.activeTime = 0;
+                    state.idleTime = 0;
+                });
+                
+                log.info('Writing session started', { sessionId, projectId, chapterId });
+            },
+
+            endWritingSession: () => {
+                const state = get();
+                if (!state.currentSession) return;
+
+                const now = new Date();
+                const session = {
+                    ...state.currentSession,
+                    endTime: now,
+                    timeActive: state.activeTime,
+                    timeIdle: state.idleTime,
+                    keystrokes: state.keystrokeCount,
+                    backspaces: state.backspaceCount
+                };
+
+                set(draft => {
+                    draft.writingSessions.push(session);
+                    draft.currentSession = null;
+                    draft.sessionStartTime = null;
+                    
+                    // Update daily metrics
+                    const dateStr = now.toDateString();
+                    if (!draft.dailyMetrics[dateStr]) {
+                        draft.dailyMetrics[dateStr] = {
+                            date: dateStr,
+                            words: 0,
+                            minutes: 0,
+                            sessions: 0,
+                            wordsDeleted: 0,
+                            efficiency: 0,
+                            focus: 0
+                        };
+                    }
+                    
+                    const dayMetrics = draft.dailyMetrics[dateStr];
+                    dayMetrics.words += session.netWords;
+                    dayMetrics.wordsDeleted += session.wordsDeleted;
+                    dayMetrics.minutes += Math.round((session.endTime.getTime() - session.startTime.getTime()) / 60000);
+                    dayMetrics.sessions += 1;
+                    dayMetrics.efficiency = session.timeActive > 0 ? Math.round((session.netWords / (session.timeActive / 60000)) * 10) / 10 : 0;
+                    dayMetrics.focus = session.timeActive + session.timeIdle > 0 ? Math.round((session.timeActive / (session.timeActive + session.timeIdle)) * 100) : 0;
+                });
+                
+                // Update writing streak
+                get().updateWritingStreak();
+                
+                // Update goal progress
+                get().writingGoals.forEach(goal => {
+                    if (goal.projectId === session.projectId && !goal.completed) {
+                        get().updateGoalProgress(goal.id);
+                    }
+                });
+                
+                log.info('Writing session ended', { sessionId: session.id, duration: Math.round((session.endTime.getTime() - session.startTime.getTime()) / 60000), netWords: session.netWords });
+            },
+
+            pauseWritingSession: () => {
+                set(state => {
+                    if (state.currentSession) {
+                        state.currentSession.timeIdle += Date.now() - (state.sessionStartTime?.getTime() || Date.now());
+                    }
+                });
+            },
+
+            resumeWritingSession: () => {
+                set(state => {
+                    state.sessionStartTime = new Date();
+                });
+            },
+
+            trackWordChange: (oldCount, newCount) => {
+                set(state => {
+                    if (state.currentSession) {
+                        const diff = newCount - oldCount;
+                        if (diff > 0) {
+                            state.currentSession.wordsWritten += diff;
+                        } else {
+                            state.currentSession.wordsDeleted += Math.abs(diff);
+                        }
+                        state.currentSession.netWords = state.currentSession.wordsWritten - state.currentSession.wordsDeleted;
+                        state.lastWordCount = newCount;
+                    }
+                });
+            },
+
+            trackKeystroke: () => {
+                set(state => {
+                    state.keystrokeCount += 1;
+                    // Reset idle time and add to active time
+                    const now = Date.now();
+                    if (state.sessionStartTime) {
+                        state.activeTime += now - state.sessionStartTime.getTime();
+                        state.sessionStartTime = new Date();
+                    }
+                });
+            },
+
+            trackBackspace: () => {
+                set(state => {
+                    state.backspaceCount += 1;
+                    get().trackKeystroke(); // Backspace counts as activity
+                });
+            },
+
+            updateSessionActivity: () => {
+                // Called periodically to track idle time
+                set(state => {
+                    if (state.sessionStartTime && state.currentSession) {
+                        const now = Date.now();
+                        const timeSinceLastActivity = now - state.sessionStartTime.getTime();
+                        if (timeSinceLastActivity > 30000) { // 30 seconds of inactivity
+                            state.idleTime += timeSinceLastActivity;
+                            state.sessionStartTime = new Date();
+                        }
+                    }
+                });
+            },
+
+            calculateProductivityMetrics: (date) => {
+                const state = get();
+                const sessionsOnDate = state.writingSessions.filter(session => 
+                    session.startTime.toDateString() === new Date(date).toDateString()
+                );
+                
+                const totalWords = sessionsOnDate.reduce((sum, session) => sum + session.netWords, 0);
+                const totalMinutes = sessionsOnDate.reduce((sum, session) => 
+                    sum + Math.round((session.endTime.getTime() - session.startTime.getTime()) / 60000), 0
+                );
+                const totalWordsDeleted = sessionsOnDate.reduce((sum, session) => sum + session.wordsDeleted, 0);
+                const totalActiveTime = sessionsOnDate.reduce((sum, session) => sum + session.timeActive, 0);
+                const totalTime = sessionsOnDate.reduce((sum, session) => sum + session.timeActive + session.timeIdle, 0);
+                
+                return {
+                    date,
+                    words: totalWords,
+                    minutes: totalMinutes,
+                    sessions: sessionsOnDate.length,
+                    wordsDeleted: totalWordsDeleted,
+                    efficiency: totalActiveTime > 0 ? Math.round((totalWords / (totalActiveTime / 60000)) * 10) / 10 : 0,
+                    focus: totalTime > 0 ? Math.round((totalActiveTime / totalTime) * 100) : 0
+                };
+            },
+
+            updateWritingStreak: () => {
+                const state = get();
+                const today = new Date().toDateString();
+                const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toDateString();
+                
+                const todayHasWriting = state.dailyMetrics[today]?.words > 0;
+                const yesterdayHasWriting = state.dailyMetrics[yesterday]?.words > 0;
+                
+                set(draft => {
+                    if (todayHasWriting) {
+                        if (!draft.writingStreak.streakDates.includes(today)) {
+                            draft.writingStreak.streakDates.push(today);
+                        }
+                        
+                        if (yesterdayHasWriting || draft.writingStreak.current === 0) {
+                            draft.writingStreak.current = draft.writingStreak.streakDates.length;
+                        } else {
+                            // Gap in streak, start new streak
+                            draft.writingStreak.streakDates = [today];
+                            draft.writingStreak.current = 1;
+                        }
+                        
+                        draft.writingStreak.longest = Math.max(draft.writingStreak.longest, draft.writingStreak.current);
+                        draft.writingStreak.lastActive = new Date();
+                        draft.writingStreak.totalDays = Object.keys(draft.dailyMetrics).filter(date => draft.dailyMetrics[date].words > 0).length;
+                    }
+                });
+            },
+
+            // Goals Management
+            createWritingGoal: (goalData) => {
+                const projectId = get().activeProjectId;
+                if (!projectId) return;
+
+                const goalId = `goal_${Date.now()}`;
+                const newGoal: WritingGoal = {
+                    ...goalData,
+                    id: goalId,
+                    projectId,
+                    current: 0,
+                    completed: false,
+                    createdAt: new Date()
+                };
+
+                set(state => {
+                    state.writingGoals.push(newGoal);
+                });
+
+                toast.success('Goal Created', `"${goalData.title}" goal has been created.`);
+                log.info('Writing goal created', { goalId, projectId, type: goalData.type, target: goalData.target });
+            },
+
+            updateWritingGoal: (goalId, updates) => {
+                set(state => {
+                    const goal = state.writingGoals.find(g => g.id === goalId);
+                    if (goal) {
+                        Object.assign(goal, updates);
+                    }
+                });
+            },
+
+            deleteWritingGoal: (goalId) => {
+                set(state => {
+                    state.writingGoals = state.writingGoals.filter(g => g.id !== goalId);
+                });
+                toast.success('Goal Deleted', 'Writing goal has been removed.');
+            },
+
+            completeWritingGoal: (goalId) => {
+                set(state => {
+                    const goal = state.writingGoals.find(g => g.id === goalId);
+                    if (goal) {
+                        goal.completed = true;
+                        goal.completedAt = new Date();
+                        goal.current = goal.target;
+                    }
+                });
+                toast.success('Goal Completed', '🎉 Congratulations on reaching your goal!');
+            },
+
+            updateGoalProgress: (goalId) => {
+                const state = get();
+                const goal = state.writingGoals.find(g => g.id === goalId);
+                if (!goal || goal.completed) return;
+
+                let current = 0;
+                
+                switch (goal.type) {
+                    case 'words':
+                        current = Object.values(state.dailyMetrics)
+                            .filter(metrics => new Date(metrics.date) >= goal.createdAt)
+                            .reduce((sum, metrics) => sum + metrics.words, 0);
+                        break;
+                    case 'chapters':
+                        const project = state.projects[goal.projectId];
+                        current = project?.chapters.filter(ch => ch.status === 'completed').length || 0;
+                        break;
+                    case 'hours':
+                        current = Object.values(state.dailyMetrics)
+                            .filter(metrics => new Date(metrics.date) >= goal.createdAt)
+                            .reduce((sum, metrics) => sum + (metrics.minutes / 60), 0);
+                        break;
+                    case 'sessions':
+                        current = state.writingSessions
+                            .filter(session => session.startTime >= goal.createdAt && session.projectId === goal.projectId)
+                            .length;
+                        break;
+                }
+
+                set(draft => {
+                    const draftGoal = draft.writingGoals.find(g => g.id === goalId);
+                    if (draftGoal) {
+                        draftGoal.current = current;
+                        if (current >= draftGoal.target && !draftGoal.completed) {
+                            draftGoal.completed = true;
+                            draftGoal.completedAt = new Date();
+                            toast.success('Goal Achieved!', `🎉 You've completed "${draftGoal.title}"!`);
+                        }
+                    }
+                });
+            },
+
+            // Analytics Queries
+            getSessionsInRange: (startDate, endDate) => {
+                return get().writingSessions.filter(session =>
+                    session.startTime >= startDate && session.startTime <= endDate
+                );
+            },
+
+            getProductivityTrend: (days) => {
+                const state = get();
+                const trends: ProductivityMetrics[] = [];
+                
+                for (let i = days - 1; i >= 0; i--) {
+                    const date = new Date(Date.now() - i * 24 * 60 * 60 * 1000);
+                    const dateStr = date.toDateString();
+                    trends.push(state.dailyMetrics[dateStr] || {
+                        date: dateStr,
+                        words: 0,
+                        minutes: 0,
+                        sessions: 0,
+                        wordsDeleted: 0,
+                        efficiency: 0,
+                        focus: 0
+                    });
+                }
+                
+                return trends;
+            },
+
+            getWritingVelocity: (days) => {
+                const trend = get().getProductivityTrend(days);
+                const totalWords = trend.reduce((sum, day) => sum + day.words, 0);
+                return days > 0 ? Math.round(totalWords / days) : 0;
+            },
+
+            getBestWritingTime: () => {
+                const sessions = get().writingSessions;
+                const hourlyProductivity: Record<number, { words: number; count: number }> = {};
+                
+                sessions.forEach(session => {
+                    const hour = session.startTime.getHours();
+                    if (!hourlyProductivity[hour]) {
+                        hourlyProductivity[hour] = { words: 0, count: 0 };
+                    }
+                    hourlyProductivity[hour].words += session.netWords;
+                    hourlyProductivity[hour].count += 1;
+                });
+                
+                let bestHour = 9; // Default to 9 AM
+                let bestProductivity = 0;
+                
+                Object.entries(hourlyProductivity).forEach(([hour, data]) => {
+                    const avgProductivity = data.count > 0 ? data.words / data.count : 0;
+                    if (avgProductivity > bestProductivity) {
+                        bestHour = parseInt(hour);
+                        bestProductivity = avgProductivity;
+                    }
+                });
+                
+                return { hour: bestHour, productivity: bestProductivity };
+            },
+
+            getWritingInsights: () => {
+                const state = get();
+                const projectId = state.activeProjectId;
+                
+                if (!projectId) {
+                    return {
+                        totalWords: 0,
+                        totalSessions: 0,
+                        averageSessionLength: 0,
+                        mostProductiveDay: '',
+                        currentStreak: 0,
+                        goalsCompleted: 0,
+                        goalsActive: 0
+                    };
+                }
+                
+                const projectSessions = state.writingSessions.filter(s => s.projectId === projectId);
+                const projectGoals = state.writingGoals.filter(g => g.projectId === projectId);
+                
+                const totalWords = projectSessions.reduce((sum, s) => sum + s.netWords, 0);
+                const totalMinutes = projectSessions.reduce((sum, s) => 
+                    sum + Math.round((s.endTime.getTime() - s.startTime.getTime()) / 60000), 0
+                );
+                
+                // Find most productive day
+                const dailyTotals: Record<string, number> = {};
+                projectSessions.forEach(session => {
+                    const date = session.startTime.toDateString();
+                    dailyTotals[date] = (dailyTotals[date] || 0) + session.netWords;
+                });
+                
+                const mostProductiveDay = Object.entries(dailyTotals)
+                    .sort(([, a], [, b]) => b - a)[0]?.[0] || '';
+                
+                return {
+                    totalWords,
+                    totalSessions: projectSessions.length,
+                    averageSessionLength: projectSessions.length > 0 ? Math.round(totalMinutes / projectSessions.length) : 0,
+                    mostProductiveDay,
+                    currentStreak: state.writingStreak.current,
+                    goalsCompleted: projectGoals.filter(g => g.completed).length,
+                    goalsActive: projectGoals.filter(g => !g.completed).length
+                };
+            }
             }
         })),
         {
@@ -1294,9 +2561,18 @@ export const useBookCraftStore = create<BookCraftState & BookCraftActions>()(
                 projects: state.projects,
                 activeProjectId: state.activeProjectId,
                 settings: state.settings,
+                // Persist analytics data
+                writingSessions: state.writingSessions,
+                writingGoals: state.writingGoals,
+                dailyMetrics: state.dailyMetrics,
+                weeklyMetrics: state.weeklyMetrics,
+                monthlyMetrics: state.monthlyMetrics,
+                writingStreak: state.writingStreak,
                 // Persist some research preferences but not loading states
                 researchView: state.researchView,
                 researchFilters: state.researchFilters,
+                // Persist autosave metadata
+                lastSaved: state.lastSaved,
                 // EXPLICITLY EXCLUDE all modal and UI states
                 // activeModal: undefined, // Don't persist
                 // modalStack: undefined, // Don't persist

@@ -1,8 +1,10 @@
 import React, { useState, useMemo } from 'react';
 import { Card, Button, Input } from '../UI';
-import { MagnifyingGlassIcon, BookOpenIcon, BeakerIcon, DocumentTextIcon, ClockIcon, ChartBarIcon, UserGroupIcon, SparklesIcon, TrashIcon, TagIcon, FolderIcon, PlusIcon, StarIcon, LinkIcon, GlobeAltIcon, DocumentDuplicateIcon, ExclamationTriangleIcon, CheckCircleIcon, EyeIcon, GridIcon, ListIcon, TimelineIcon, ShareIcon } from '../Icons';
+import { MagnifyingGlassIcon, BookOpenIcon, BeakerIcon, DocumentTextIcon, ClockIcon, ChartBarIcon, UserGroupIcon, SparklesIcon, TrashIcon, TagIcon, FolderIcon, PlusIcon, StarIcon, LinkIcon, GlobeAltIcon, DocumentDuplicateIcon, ExclamationTriangleIcon, CheckCircleIcon, EyeIcon, GridIcon, ListIcon, TimelineIcon, ShareIcon, RocketLaunchIcon } from '../Icons';
 import { useBookCraftStore } from '../../store/useStore';
 import { ResearchType, ResearchConfidence, SourceCredibility, ResearchItem, ResearchFolder, ResearchFolderType, CitationStyle } from '../../types';
+import { ResearchTemplatesModal } from './ResearchTemplatesModal';
+import { ContradictionDetectionPanel } from './ContradictionDetectionPanel';
 
 const ResearchTypeIcon: React.FC<{ type: ResearchType; className?: string }> = ({ type, className = "w-4 h-4" }) => {
     const icons = {
@@ -305,14 +307,32 @@ export const ResearchTab: React.FC = () => {
     const [selectedType, setSelectedType] = useState<ResearchType>(ResearchType.TopicalResearch);
     const [searchTerm, setSearchTerm] = useState('');
     const [showNewFolderModal, setShowNewFolderModal] = useState(false);
+    const [showEditFolderModal, setShowEditFolderModal] = useState(false);
+    const [showTemplatesModal, setShowTemplatesModal] = useState(false);
+    const [showContradictionPanel, setShowContradictionPanel] = useState(false);
+    const [editingFolder, setEditingFolder] = useState<ResearchFolder | null>(null);
     const [newFolderName, setNewFolderName] = useState('');
     const [newFolderType, setNewFolderType] = useState<ResearchFolderType>(ResearchFolderType.Default);
+    const [newFolderColor, setNewFolderColor] = useState('#6B7280');
+    const [newFolderTags, setNewFolderTags] = useState<string[]>([]);
+    const [tagInput, setTagInput] = useState('');
     const [showBulkActions, setShowBulkActions] = useState(false);
     const [urlToSummarize, setUrlToSummarize] = useState('');
 
     // Store hooks
-    const project = useBookCraftStore(state => state.projects[state.activeProjectId!]);
+    const activeProjectId = useBookCraftStore(state => state.activeProjectId);
+    const project = useBookCraftStore(state => activeProjectId ? state.projects[activeProjectId] : null);
     const isResearching = useBookCraftStore(state => state.isResearching);
+    
+    // Early return if no project is active
+    if (!activeProjectId || !project) {
+        return (
+            <div className="animate-fade-in max-w-7xl mx-auto p-8 text-center">
+                <h2 className="text-2xl font-bold text-slate-100 mb-2">Research Intelligence Hub</h2>
+                <p className="text-slate-400 mb-4">Please select a project to access research tools.</p>
+            </div>
+        );
+    }
     const isAnalyzingThemes = useBookCraftStore(state => state.isAnalyzingThemes);
     const isDetectingContradictions = useBookCraftStore(state => state.isDetectingContradictions);
     const selectedResearchItems = useBookCraftStore(state => state.selectedResearchItems);
@@ -327,6 +347,7 @@ export const ResearchTab: React.FC = () => {
     const bookmarkResearchItem = useBookCraftStore(state => state.bookmarkResearchItem);
     const moveResearchToFolder = useBookCraftStore(state => state.moveResearchToFolder);
     const createResearchFolder = useBookCraftStore(state => state.createResearchFolder);
+    const updateResearchFolder = useBookCraftStore(state => state.updateResearchFolder);
     const deleteResearchFolder = useBookCraftStore(state => state.deleteResearchFolder);
     const setActiveResearchFolder = useBookCraftStore(state => state.setActiveResearchFolder);
     const setResearchView = useBookCraftStore(state => state.setResearchView);
@@ -388,8 +409,47 @@ export const ResearchTab: React.FC = () => {
             createResearchFolder(newFolderName.trim(), newFolderType);
             setNewFolderName('');
             setNewFolderType(ResearchFolderType.Default);
+            setNewFolderColor('#6B7280');
+            setNewFolderTags([]);
             setShowNewFolderModal(false);
         }
+    };
+
+    const handleEditFolder = (folder: ResearchFolder) => {
+        setEditingFolder(folder);
+        setNewFolderName(folder.name);
+        setNewFolderType(folder.type);
+        setNewFolderColor(folder.color || '#6B7280');
+        setNewFolderTags(folder.tags || []);
+        setShowEditFolderModal(true);
+    };
+
+    const handleUpdateFolder = () => {
+        if (editingFolder && newFolderName.trim()) {
+            updateResearchFolder(editingFolder.id, {
+                name: newFolderName.trim(),
+                type: newFolderType,
+                color: newFolderColor,
+                tags: newFolderTags
+            });
+            setEditingFolder(null);
+            setNewFolderName('');
+            setNewFolderType(ResearchFolderType.Default);
+            setNewFolderColor('#6B7280');
+            setNewFolderTags([]);
+            setShowEditFolderModal(false);
+        }
+    };
+
+    const handleAddTag = () => {
+        if (tagInput.trim() && !newFolderTags.includes(tagInput.trim())) {
+            setNewFolderTags([...newFolderTags, tagInput.trim()]);
+            setTagInput('');
+        }
+    };
+
+    const handleRemoveTag = (tag: string) => {
+        setNewFolderTags(newFolderTags.filter(t => t !== tag));
     };
 
     const handleSummarizeUrl = async () => {
@@ -431,6 +491,15 @@ export const ResearchTab: React.FC = () => {
                     </div>
 
                     <div className="flex items-center gap-2">
+                        {/* Research Templates */}
+                        <Button
+                            onClick={() => setShowTemplatesModal(true)}
+                            className="bg-purple-600 hover:bg-purple-700"
+                        >
+                            <RocketLaunchIcon className="w-4 h-4 mr-2" />
+                            Templates
+                        </Button>
+                        
                         {/* View Toggle */}
                         <div className="flex items-center gap-1 bg-slate-800 rounded-lg p-1">
                             <Button
@@ -479,27 +548,24 @@ export const ResearchTab: React.FC = () => {
                         </Button>
 
                         <Button
-                            onClick={detectContradictions}
-                            disabled={isDetectingContradictions || !project?.research.length}
-                            className="bg-orange-600 hover:bg-orange-700"
+                            onClick={() => setShowContradictionPanel(!showContradictionPanel)}
+                            className={`${showContradictionPanel ? 'bg-orange-700' : 'bg-orange-600 hover:bg-orange-700'}`}
                         >
-                            {isDetectingContradictions ? (
-                                <div className="flex items-center gap-2">
-                                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                    Detecting
-                                </div>
-                            ) : (
-                                <div className="flex items-center gap-2">
-                                    <ExclamationTriangleIcon className="w-4 h-4" />
-                                    Find Contradictions
-                                </div>
-                            )}
+                            <ExclamationTriangleIcon className="w-4 h-4 mr-2" />
+                            Contradiction Analysis
                         </Button>
                     </div>
                 </div>
             </div>
 
             {/* Research Input Section */}
+            {/* Contradiction Detection Panel */}
+            {showContradictionPanel && (
+                <div className="mb-6">
+                    <ContradictionDetectionPanel className="" />
+                </div>
+            )}
+            
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                 {/* Traditional Research */}
                 <Card className="p-6">
@@ -638,7 +704,7 @@ export const ResearchTab: React.FC = () => {
                                 folder={folder}
                                 itemCount={folderCounts[folder.id] || 0}
                                 onSelect={() => setActiveResearchFolder(folder.id)}
-                                onEdit={() => {}} // TODO: Implement edit
+                                onEdit={() => handleEditFolder(folder)}
                                 onDelete={deleteResearchFolder}
                                 isActive={activeResearchFolder === folder.id}
                             />
@@ -773,7 +839,7 @@ export const ResearchTab: React.FC = () => {
             {/* New Folder Modal */}
             {showNewFolderModal && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <Card className="p-6 max-w-md w-full mx-4">
+                    <Card className="p-6 max-w-lg w-full mx-4 max-h-[80vh] overflow-y-auto">
                         <h3 className="text-lg font-semibold text-slate-200 mb-4">Create New Folder</h3>
 
                         <div className="space-y-4">
@@ -803,6 +869,75 @@ export const ResearchTab: React.FC = () => {
                                     ))}
                                 </select>
                             </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-slate-300 mb-2">
+                                    Folder Color
+                                </label>
+                                <div className="flex items-center gap-3">
+                                    <input
+                                        type="color"
+                                        value={newFolderColor}
+                                        onChange={(e) => setNewFolderColor(e.target.value)}
+                                        className="w-10 h-10 rounded border border-slate-600 bg-slate-700 cursor-pointer"
+                                    />
+                                    <div className="flex gap-2">
+                                        {['#6B7280', '#EF4444', '#F59E0B', '#10B981', '#3B82F6', '#8B5CF6', '#EC4899'].map(color => (
+                                            <button
+                                                key={color}
+                                                type="button"
+                                                onClick={() => setNewFolderColor(color)}
+                                                className={`w-6 h-6 rounded border-2 ${
+                                                    newFolderColor === color ? 'border-white' : 'border-slate-600'
+                                                }`}
+                                                style={{ backgroundColor: color }}
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-slate-300 mb-2">
+                                    Tags
+                                </label>
+                                <div className="flex gap-2 mb-2">
+                                    <Input
+                                        value={tagInput}
+                                        onChange={(e) => setTagInput(e.target.value)}
+                                        placeholder="Add a tag"
+                                        className="flex-1"
+                                        onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
+                                    />
+                                    <Button
+                                        type="button"
+                                        onClick={handleAddTag}
+                                        size="sm"
+                                        disabled={!tagInput.trim()}
+                                    >
+                                        Add
+                                    </Button>
+                                </div>
+                                {newFolderTags.length > 0 && (
+                                    <div className="flex flex-wrap gap-2">
+                                        {newFolderTags.map(tag => (
+                                            <span
+                                                key={tag}
+                                                className="inline-flex items-center px-2 py-1 text-xs bg-slate-700 text-slate-300 rounded"
+                                            >
+                                                {tag}
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleRemoveTag(tag)}
+                                                    className="ml-1 text-slate-400 hover:text-slate-200"
+                                                >
+                                                    ×
+                                                </button>
+                                            </span>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
                         </div>
 
                         <div className="flex items-center gap-2 mt-6">
@@ -815,7 +950,14 @@ export const ResearchTab: React.FC = () => {
                             </Button>
                             <Button
                                 variant="outline"
-                                onClick={() => setShowNewFolderModal(false)}
+                                onClick={() => {
+                                    setShowNewFolderModal(false);
+                                    setNewFolderName('');
+                                    setNewFolderType(ResearchFolderType.Default);
+                                    setNewFolderColor('#6B7280');
+                                    setNewFolderTags([]);
+                                    setTagInput('');
+                                }}
                                 className="flex-1"
                             >
                                 Cancel
@@ -824,6 +966,158 @@ export const ResearchTab: React.FC = () => {
                     </Card>
                 </div>
             )}
+
+            {/* Edit Folder Modal */}
+            {showEditFolderModal && editingFolder && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                    <Card className="p-6 max-w-lg w-full mx-4 max-h-[80vh] overflow-y-auto">
+                        <h3 className="text-lg font-semibold text-slate-200 mb-4">Edit Folder</h3>
+
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-slate-300 mb-2">
+                                    Folder Name
+                                </label>
+                                <Input
+                                    value={newFolderName}
+                                    onChange={(e) => setNewFolderName(e.target.value)}
+                                    placeholder="Enter folder name"
+                                    className="w-full"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-slate-300 mb-2">
+                                    Folder Type
+                                </label>
+                                <select
+                                    value={newFolderType}
+                                    onChange={(e) => setNewFolderType(e.target.value as ResearchFolderType)}
+                                    className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-primary"
+                                >
+                                    {Object.values(ResearchFolderType).map(type => (
+                                        <option key={type} value={type}>{type}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-slate-300 mb-2">
+                                    Folder Color
+                                </label>
+                                <div className="flex items-center gap-3">
+                                    <input
+                                        type="color"
+                                        value={newFolderColor}
+                                        onChange={(e) => setNewFolderColor(e.target.value)}
+                                        className="w-10 h-10 rounded border border-slate-600 bg-slate-700 cursor-pointer"
+                                    />
+                                    <div className="flex gap-2">
+                                        {['#6B7280', '#EF4444', '#F59E0B', '#10B981', '#3B82F6', '#8B5CF6', '#EC4899'].map(color => (
+                                            <button
+                                                key={color}
+                                                type="button"
+                                                onClick={() => setNewFolderColor(color)}
+                                                className={`w-6 h-6 rounded border-2 ${
+                                                    newFolderColor === color ? 'border-white' : 'border-slate-600'
+                                                }`}
+                                                style={{ backgroundColor: color }}
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-slate-300 mb-2">
+                                    Tags
+                                </label>
+                                <div className="flex gap-2 mb-2">
+                                    <Input
+                                        value={tagInput}
+                                        onChange={(e) => setTagInput(e.target.value)}
+                                        placeholder="Add a tag"
+                                        className="flex-1"
+                                        onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
+                                    />
+                                    <Button
+                                        type="button"
+                                        onClick={handleAddTag}
+                                        size="sm"
+                                        disabled={!tagInput.trim()}
+                                    >
+                                        Add
+                                    </Button>
+                                </div>
+                                {newFolderTags.length > 0 && (
+                                    <div className="flex flex-wrap gap-2">
+                                        {newFolderTags.map(tag => (
+                                            <span
+                                                key={tag}
+                                                className="inline-flex items-center px-2 py-1 text-xs bg-slate-700 text-slate-300 rounded"
+                                            >
+                                                {tag}
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleRemoveTag(tag)}
+                                                    className="ml-1 text-slate-400 hover:text-slate-200"
+                                                >
+                                                    ×
+                                                </button>
+                                            </span>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="bg-slate-800/50 p-3 rounded-lg">
+                                <h5 className="text-sm font-medium text-slate-300 mb-2">Folder Statistics</h5>
+                                <div className="text-xs text-slate-400 space-y-1">
+                                    <div className="flex justify-between">
+                                        <span>Created:</span>
+                                        <span>{new Date(editingFolder.createdAt).toLocaleDateString()}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span>Items:</span>
+                                        <span>{folderCounts[editingFolder.id] || 0}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 mt-6">
+                            <Button
+                                onClick={handleUpdateFolder}
+                                disabled={!newFolderName.trim()}
+                                className="flex-1 bg-blue-600 hover:bg-blue-700"
+                            >
+                                Update Folder
+                            </Button>
+                            <Button
+                                variant="outline"
+                                onClick={() => {
+                                    setShowEditFolderModal(false);
+                                    setEditingFolder(null);
+                                    setNewFolderName('');
+                                    setNewFolderType(ResearchFolderType.Default);
+                                    setNewFolderColor('#6B7280');
+                                    setNewFolderTags([]);
+                                    setTagInput('');
+                                }}
+                                className="flex-1"
+                            >
+                                Cancel
+                            </Button>
+                        </div>
+                    </Card>
+                </div>
+            )}
+            
+            {/* Research Templates Modal */}
+            <ResearchTemplatesModal
+                isOpen={showTemplatesModal}
+                onClose={() => setShowTemplatesModal(false)}
+            />
         </div>
     );
 };

@@ -17,6 +17,25 @@ export const MergeContentModal: React.FC<MergeContentModalProps> = ({ isOpen, on
     const refineGeneratedText = useBookCraftStore(state => state.refineGeneratedText);
 
     const [currentGeneratedContent, setCurrentGeneratedContent] = useState(generatedContent);
+    
+    // Helper function to ensure content is properly formatted HTML
+    const ensureHTMLFormat = (content: string): string => {
+        if (!content) return '<p></p>';
+        
+        // If content doesn't contain any HTML tags, wrap it in paragraphs
+        if (!content.includes('<') && !content.includes('>')) {
+            return content.split('\n\n').map(paragraph => 
+                paragraph.trim() ? `<p>${paragraph.trim()}</p>` : ''
+            ).filter(Boolean).join('\n');
+        }
+        
+        // If content has some HTML but no paragraph tags, ensure it's wrapped
+        if (!content.includes('<p') && !content.includes('<div')) {
+            return `<p>${content}</p>`;
+        }
+        
+        return content;
+    };
     const [refinementPrompt, setRefinementPrompt] = useState('');
     const [isCombining, setIsCombining] = useState(false);
     const [isRegenerating, setIsRegenerating] = useState(false);
@@ -29,13 +48,18 @@ export const MergeContentModal: React.FC<MergeContentModalProps> = ({ isOpen, on
     }, [isOpen, generatedContent]);
 
     const handleReplace = () => {
-        onApply(currentGeneratedContent);
+        const formattedContent = ensureHTMLFormat(currentGeneratedContent);
+        console.log('MergeContentModal: Replace - applying content:', formattedContent.substring(0, 100));
+        onApply(formattedContent);
         onClose();
     };
 
     const handleAppend = () => {
         const separator = originalContent.trim().length > 0 ? '\n<p><br></p>\n' : '';
-        onApply(originalContent + separator + currentGeneratedContent);
+        const formattedGenerated = ensureHTMLFormat(currentGeneratedContent);
+        const appendedContent = originalContent + separator + formattedGenerated;
+        console.log('MergeContentModal: Append - applying content:', appendedContent.substring(0, 100));
+        onApply(appendedContent);
         onClose();
     };
 
@@ -43,7 +67,9 @@ export const MergeContentModal: React.FC<MergeContentModalProps> = ({ isOpen, on
         setIsCombining(true);
         try {
             const combinedContent = await combineChapterContent(originalContent, currentGeneratedContent);
-            onApply(combinedContent);
+            const formattedContent = ensureHTMLFormat(combinedContent);
+            console.log('MergeContentModal: Combine - applying content:', formattedContent.substring(0, 100));
+            onApply(formattedContent);
             onClose();
         } catch (error) {
             log.error('Failed to combine content using AI', error as Error, 'MergeContentModal');
@@ -75,7 +101,7 @@ export const MergeContentModal: React.FC<MergeContentModalProps> = ({ isOpen, on
                     <h4 className="font-semibold text-slate-200 mb-2">AI Generated Content:</h4>
                     <div className="relative">
                         <div
-                            className="prose prose-invert prose-sm max-w-none max-h-60 overflow-y-auto p-3 bg-slate-700/50 rounded-md border border-slate-600"
+                            className="prose prose-invert prose-sm max-w-none max-h-60 overflow-y-auto p-3 bg-slate-700/50 rounded-md border border-slate-600 text-white"
                             dangerouslySetInnerHTML={{ __html: currentGeneratedContent }}
                         />
                         {isRegenerating && (
@@ -98,7 +124,7 @@ export const MergeContentModal: React.FC<MergeContentModalProps> = ({ isOpen, on
                             onChange={(e) => setRefinementPrompt(e.target.value)}
                             onKeyDown={(e) => { if(e.key === 'Enter') handleRegenerate()}}
                             placeholder="e.g., Make it more formal, add a joke..."
-                            className="flex-grow bg-slate-700 border-slate-600 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary sm:text-sm p-2"
+                            className="flex-grow bg-slate-700 border-slate-600 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary sm:text-sm p-2 text-white placeholder-slate-400"
                             disabled={isRegenerating || isCombining}
                         />
                         <Button onClick={handleRegenerate} isLoading={isRegenerating} disabled={isRegenerating || isCombining || !refinementPrompt.trim()}>

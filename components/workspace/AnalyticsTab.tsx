@@ -288,6 +288,58 @@ export const AnalyticsTab: React.FC = () => {
         // Get productivity trends
         const dailyTrend = getProductivityTrend(14);
         
+        // Aggregate daily data into weekly buckets (last 12 weeks)
+        const weeklyTrend = [];
+        for (let i = 11; i >= 0; i--) {
+            const weekEnd = new Date(Date.now() - i * 7 * 24 * 60 * 60 * 1000);
+            const weekStart = new Date(weekEnd.getTime() - 6 * 24 * 60 * 60 * 1000);
+            
+            // Get all daily metrics for this week
+            const weekData = getProductivityTrend(84) // Get enough days to cover all weeks
+                .filter(day => {
+                    const dayDate = new Date(day.date);
+                    return dayDate >= weekStart && dayDate <= weekEnd;
+                });
+            
+            const weekLabel = `${weekStart.getMonth() + 1}/${weekStart.getDate()}`;
+            const totalWords = weekData.reduce((sum, day) => sum + day.words, 0);
+            const totalMinutes = weekData.reduce((sum, day) => sum + day.minutes, 0);
+            const totalSessions = weekData.reduce((sum, day) => sum + day.sessions, 0);
+            
+            weeklyTrend.push({
+                label: weekLabel,
+                value: totalWords
+            });
+        }
+        
+        // Aggregate daily data into monthly buckets (last 12 months)
+        const monthlyTrend = [];
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        
+        for (let i = 11; i >= 0; i--) {
+            const monthDate = new Date();
+            monthDate.setMonth(monthDate.getMonth() - i);
+            monthDate.setDate(1);
+            
+            const monthStart = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1);
+            const monthEnd = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0);
+            
+            // Get all daily metrics for this month
+            const monthData = getProductivityTrend(365) // Get enough days to cover all months
+                .filter(day => {
+                    const dayDate = new Date(day.date);
+                    return dayDate >= monthStart && dayDate <= monthEnd;
+                });
+            
+            const monthLabel = `${monthNames[monthDate.getMonth()]} ${monthDate.getFullYear().toString().slice(2)}`;
+            const totalWords = monthData.reduce((sum, day) => sum + day.words, 0);
+            
+            monthlyTrend.push({
+                label: monthLabel,
+                value: totalWords
+            });
+        }
+        
         return {
             totalWords: insights.totalWords,
             totalChapters: project.chapters.length,
@@ -296,8 +348,8 @@ export const AnalyticsTab: React.FC = () => {
             goals: projectGoals,
             productivity: {
                 daily: dailyTrend,
-                weekly: [], // TODO: Implement weekly aggregation
-                monthly: [] // TODO: Implement monthly aggregation
+                weekly: weeklyTrend,
+                monthly: monthlyTrend
             },
             streaks: {
                 current: writingStreak.current,

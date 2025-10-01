@@ -41,7 +41,8 @@
       "Bash(gh repo edit:*)",
       "Bash(git clone:*)",
       "Bash(tasklist:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(ren:*)"
     ],
     "deny": [],
     "ask": []

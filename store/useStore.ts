@@ -2552,7 +2552,6 @@ export const useBookCraftStore = create<BookCraftState & BookCraftActions>()(
                     goalsActive: projectGoals.filter(g => !g.completed).length
                 };
             }
-            }
         })),
         {
             name: 'bookcraft-storage',

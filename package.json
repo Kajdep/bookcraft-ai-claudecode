@@ -20,6 +20,8 @@
     "@lexical/selection": "^0.35.0",
     "@lexical/utils": "^0.35.0",
     "@playwright/test": "^1.55.0",
+    "@supabase/supabase-js": "^2.58.0",
+    "dexie": "^4.2.0",
     "docx": "^9.5.1",
     "epub-gen-memory": "^1.1.2",
     "file-saver": "^2.0.5",

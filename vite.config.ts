@@ -23,6 +23,10 @@ export default defineConfig(({ mode }) => {
         'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
         'process.env.GEMINI_ENDPOINT': JSON.stringify(env.GEMINI_ENDPOINT || 'https://generativelanguage.googleapis.com'),
         
+        // === IMAGE GENERATION APIS ===
+        'process.env.DALLE_API_KEY': JSON.stringify(env.DALLE_API_KEY),
+        'process.env.STABILITY_API_KEY': JSON.stringify(env.STABILITY_API_KEY),
+        
         // === OPTIONAL INTEGRATIONS ===
         'process.env.LANGUAGETOOL_API_KEY': JSON.stringify(env.LANGUAGETOOL_API_KEY),
         'process.env.LANGUAGETOOL_ENDPOINT': JSON.stringify(env.LANGUAGETOOL_ENDPOINT || 'https://api.languagetool.org'),

@@ -44,6 +44,7 @@ import {
   Type,
 } from 'lucide-react';
 import { Tooltip } from '../../UI';
+import { log } from '../../../services/logger';
 
 type FormatType = 'bold' | 'italic' | 'underline' | 'strikethrough';
 type BlockType = 'paragraph' | 'h1' | 'h2' | 'h3' | 'quote' | 'bullet' | 'number';
@@ -158,7 +159,7 @@ export const LexicalToolbar: React.FC = () => {
             element = anchorNode.getTopLevelElementOrThrow();
           }
         } catch (error) {
-          console.warn('Error getting element node:', error);
+          log.warn('LexicalToolbar: Error getting element node', error);
           element = anchorNode.getParent() || anchorNode;
         }
 
@@ -184,7 +185,7 @@ export const LexicalToolbar: React.FC = () => {
             }));
           }
         } catch (linkError) {
-          console.warn('Error checking link state:', linkError);
+          log.warn('LexicalToolbar: Error checking link state', linkError);
         }
 
         // Determine block type
@@ -209,7 +210,7 @@ export const LexicalToolbar: React.FC = () => {
             }));
           }
         } catch (blockError) {
-          console.warn('Error determining block type:', blockError);
+          log.warn('LexicalToolbar: Error determining block type', blockError);
           setToolbarState(prevState => ({
             ...prevState,
             blockType: 'paragraph',
@@ -217,7 +218,7 @@ export const LexicalToolbar: React.FC = () => {
         }
       }
     } catch (error) {
-      console.error('Error updating toolbar state:', error);
+      log.error('LexicalToolbar: Error updating toolbar state', error);
     }
   }, [editor]);
 
@@ -239,7 +240,7 @@ export const LexicalToolbar: React.FC = () => {
         )
       );
     } catch (error) {
-      console.error('Error registering toolbar listeners:', error);
+      log.error('LexicalToolbar: Error registering toolbar listeners', error);
       return () => {}; // Return empty cleanup function
     }
   }, [editor, updateToolbar]);
@@ -258,7 +259,7 @@ export const LexicalToolbar: React.FC = () => {
           editor.dispatchCommand(FORMAT_TEXT_COMMAND, format);
         });
       } catch (error) {
-        console.error('Format text command failed:', error);
+        log.error('LexicalToolbar: Format text command failed', error);
       }
     },
     [editor]
@@ -274,7 +275,7 @@ export const LexicalToolbar: React.FC = () => {
           }
         });
       } catch (error) {
-        console.error('Format heading command failed:', error);
+        log.error('LexicalToolbar: Format heading command failed', error);
       }
     },
     [editor]
@@ -289,7 +290,7 @@ export const LexicalToolbar: React.FC = () => {
         }
       });
     } catch (error) {
-      console.error('Format paragraph command failed:', error);
+      log.error('LexicalToolbar: Format paragraph command failed', error);
     }
   }, [editor]);
 
@@ -302,7 +303,7 @@ export const LexicalToolbar: React.FC = () => {
         }
       });
     } catch (error) {
-      console.error('Format quote command failed:', error);
+      log.error('LexicalToolbar: Format quote command failed', error);
     }
   }, [editor]);
 
@@ -314,7 +315,7 @@ export const LexicalToolbar: React.FC = () => {
         editor.dispatchCommand(REMOVE_LIST_COMMAND, undefined);
       }
     } catch (error) {
-      console.error('Format bullet list command failed:', error);
+      log.error('LexicalToolbar: Format bullet list command failed', error);
     }
   }, [editor, toolbarState.blockType]);
 
@@ -326,7 +327,7 @@ export const LexicalToolbar: React.FC = () => {
         editor.dispatchCommand(REMOVE_LIST_COMMAND, undefined);
       }
     } catch (error) {
-      console.error('Format numbered list command failed:', error);
+      log.error('LexicalToolbar: Format numbered list command failed', error);
     }
   }, [editor, toolbarState.blockType]);
 
@@ -341,7 +342,7 @@ export const LexicalToolbar: React.FC = () => {
         editor.dispatchCommand(TOGGLE_LINK_COMMAND, null);
       }
     } catch (error) {
-      console.error('Insert link command failed:', error);
+      log.error('LexicalToolbar: Insert link command failed', error);
     }
   }, [editor, toolbarState.isLink]);
 
@@ -349,7 +350,7 @@ export const LexicalToolbar: React.FC = () => {
     try {
       editor.dispatchCommand(UNDO_COMMAND, undefined);
     } catch (error) {
-      console.error('Undo command failed:', error);
+      log.error('LexicalToolbar: Undo command failed', error);
     }
   }, [editor]);
 
@@ -357,7 +358,7 @@ export const LexicalToolbar: React.FC = () => {
     try {
       editor.dispatchCommand(REDO_COMMAND, undefined);
     } catch (error) {
-      console.error('Redo command failed:', error);
+      log.error('LexicalToolbar: Redo command failed', error);
     }
   }, [editor]);
 

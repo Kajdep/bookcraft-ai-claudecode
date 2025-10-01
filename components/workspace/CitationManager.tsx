@@ -4,6 +4,7 @@ import { DocumentTextIcon, ClipboardDocumentIcon, PlusIcon, TrashIcon, CheckIcon
 import { useBookCraftStore } from '../../store/useStore';
 import { CitationStyle, Citation, ResearchSource } from '../../types';
 import { toast } from '../../services/toast';
+import { log } from '../../services/logger';
 
 interface CitationManagerProps {
   className?: string;
@@ -163,7 +164,7 @@ export const CitationManager: React.FC<CitationManagerProps> = ({ className = ""
       await generateCitation(researchItem.id, source.id, selectedStyle);
       toast.success('Citation Generated', `${selectedStyle} citation created successfully!`);
     } catch (error) {
-      console.error('Failed to generate citation:', error);
+      log.error('Failed to generate citation', error);
       toast.error('Citation Failed', 'Failed to generate citation. Please try again.');
     } finally {
       setGeneratingFor(null);

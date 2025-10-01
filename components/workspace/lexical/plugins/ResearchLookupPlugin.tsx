@@ -5,6 +5,7 @@ import { Card, Button, Input } from '../../../UI';
 import { MagnifyingGlassIcon, BookOpenIcon, XMarkIcon, SparklesIcon, ClockIcon, DocumentTextIcon } from '../../../Icons';
 import { useBookCraftStore } from '../../../../store/useStore';
 import { ResearchType, ResearchConfidence, ResearchItem } from '../../../../types';
+import { log } from '../../../../services/logger';
 
 interface ResearchLookupPluginProps {
   isEnabled?: boolean;
@@ -185,7 +186,7 @@ export const ResearchLookupPlugin: React.FC<ResearchLookupPluginProps> = ({
         isLoading: false
       }));
     } catch (error) {
-      console.error('Research failed:', error);
+      log.error('Research failed', error);
       setModalState(prev => ({ ...prev, isLoading: false }));
     }
   };

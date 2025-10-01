@@ -45,7 +45,7 @@ const createGeminiInstance = (): GoogleGenAI | null => {
     
     if (!config.apiKey) {
         if (config.enableDebugLogging) {
-            console.warn('⚠️ Gemini API key not configured - AI features will use fallback responses');
+            log.warn('Gemini API key not configured - AI features will use fallback responses');
         }
         return null;
     }
@@ -54,7 +54,7 @@ const createGeminiInstance = (): GoogleGenAI | null => {
         return new GoogleGenAI(config.apiKey);
     } catch (error) {
         if (config.enableDebugLogging) {
-            console.error('❌ Failed to initialize Gemini AI:', error);
+            log.error('Failed to initialize Gemini AI', error);
         }
         return null;
     }
@@ -101,7 +101,7 @@ const callGemini = async <T>(operation: string, apiCall: () => Promise<T>, fallb
     if (!gemini) {
         if (fallback) {
             if (config.enableDebugLogging) {
-                console.log(`🔄 Using fallback for ${operation} (Gemini API unavailable)`);
+                log.debug(`Using fallback for ${operation} (Gemini API unavailable)`);
             }
             return fallback();
         }
@@ -113,14 +113,14 @@ const callGemini = async <T>(operation: string, apiCall: () => Promise<T>, fallb
         await checkRateLimit(config.apiKey);
         
         if (config.enableDebugLogging) {
-            console.log(`🚀 Gemini API Call: ${operation}`);
+            log.aiRequest(operation, config.model);
         }
         
         const startTime = Date.now();
         const result = await apiCall();
         
         if (config.enableDebugLogging) {
-            console.log(`✅ Gemini API Success: ${operation} (${Date.now() - startTime}ms)`);
+            log.aiResponse(operation, true, Date.now() - startTime);
         }
         
         return result;
@@ -129,13 +129,13 @@ const callGemini = async <T>(operation: string, apiCall: () => Promise<T>, fallb
         log.aiError(`Gemini ${operation} failed`, error);
         
         if (config.enableDebugLogging) {
-            console.error(`❌ Gemini API Error (${operation}):`, errorMsg);
+            log.error(`Gemini API Error (${operation})`, { message: errorMsg });
         }
         
         // Try fallback if available
         if (fallback && (errorMsg.includes('API_KEY') || errorMsg.includes('quota') || errorMsg.includes('network'))) {
             if (config.enableDebugLogging) {
-                console.log(`🔄 Using fallback for ${operation} due to API error`);
+                log.debug(`Using fallback for ${operation} due to API error`);
             }
             return fallback();
         }

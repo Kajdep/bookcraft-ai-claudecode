@@ -30,7 +30,7 @@ function ContentSyncPlugin({
   // Import HTML content when it changes externally
   useEffect(() => {
     if (isUpdatingRef.current) {
-      console.log('Lexical: Skipping update - already updating');
+      log.debug('Lexical: Skipping update - already updating');
       return;
     }
 
@@ -43,19 +43,22 @@ function ContentSyncPlugin({
         
         // Additional validation for content integrity
         if (normalizedCurrentHtml === normalizedNewContent) {
-          console.log('Lexical: Content already matches, skipping update');
+          log.debug('Lexical: Content already matches, skipping update');
           return;
         }
         
         // Validate that we're not trying to update with invalid content
         if (normalizedNewContent && normalizedNewContent.length > 0 && normalizedNewContent !== '<p></p>') {
-          console.log('Lexical: Valid content detected, proceeding with update');
+          log.debug('Lexical: Valid content detected, proceeding with update');
         } else if (normalizedCurrentHtml.length > 0) {
-          console.log('Lexical: New content is empty but current content exists, preserving current content');
+          log.debug('Lexical: New content is empty but current content exists, preserving current content');
           return;
         }
 
-        console.log('Lexical: Updating content from', normalizedCurrentHtml.substring(0, 50), 'to', normalizedNewContent.substring(0, 50));
+        log.debug('Lexical: Updating content', {
+          from: normalizedCurrentHtml.substring(0, 50),
+          to: normalizedNewContent.substring(0, 50)
+        });
         
         // Set updating flag to prevent race conditions
         isUpdatingRef.current = true;
@@ -67,7 +70,7 @@ function ContentSyncPlugin({
         root.clear();
         root.append(...nodes);
         
-        console.log('Lexical: Content updated successfully');
+        log.debug('Lexical: Content updated successfully');
         
         // Force editor to focus after content update to ensure it's visible
         setTimeout(() => {
@@ -84,7 +87,7 @@ function ContentSyncPlugin({
             }
           } catch (selectionError) {
             // Selection error is not critical
-            console.warn('Selection update failed:', selectionError);
+            log.warn('Lexical: Selection update failed', selectionError);
           }
           // Reset updating flag after focus is set
           isUpdatingRef.current = false;
@@ -213,8 +216,7 @@ export const LexicalEditor: React.FC<LexicalEditorProps> = ({
       AutoLinkNode,
     ],
     onError: (error: Error) => {
-      log.error('Lexical editor error', error, 'LexicalEditor');
-      console.error('Lexical editor error:', error);
+      log.error('Lexical editor error', error);
     },
   };
 

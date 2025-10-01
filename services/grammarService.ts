@@ -1,3 +1,5 @@
+import { log } from './logger';
+
 export interface GrammarIssue {
     id: string;
     type: 'grammar' | 'spelling' | 'style' | 'readability' | 'tone';
@@ -251,7 +253,7 @@ class GrammarService {
             return await this.runOpenRouterGrammarCheck(text);
             
         } catch (error) {
-            console.error('AI-based grammar check failed:', error);
+            log.error('AI-based grammar check failed', error);
             // Fallback to enhanced rule-based checking
             return this.runEnhancedRuleBasedChecks(text);
         }
@@ -304,7 +306,7 @@ class GrammarService {
             
             return issues;
         } catch (error) {
-            console.error('LanguageTool API failed:', error);
+            log.error('LanguageTool API failed', error);
             throw error;
         }
     }
@@ -356,7 +358,7 @@ Return ONLY the JSON array, no explanations.`;
             }));
             
         } catch (error) {
-            console.error('OpenRouter grammar check failed:', error);
+            log.error('OpenRouter grammar check failed', error);
             throw error;
         }
     }

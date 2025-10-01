@@ -1548,7 +1548,7 @@ export const useBookCraftStore = create<BookCraftState & BookCraftActions>()(
                     });
                     
                     // Optional: Show a subtle save indicator
-                    console.log('Data autosaved at', new Date().toLocaleTimeString());
+                    log.debug('Data autosaved', { time: new Date().toLocaleTimeString() });
                 } catch (error) {
                     log.error('Autosave failed', error as Error, 'useStore');
                 } finally {

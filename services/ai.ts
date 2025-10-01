@@ -47,7 +47,7 @@ const getAISettings = async (): Promise<Settings> => {
         useBookCraftStore = storeModule.useBookCraftStore;
     } catch (importError) {
         if (envConfig.enableDebugLogging) {
-            console.error('Store import failed, using environment config only:', importError.message);
+            log.error('Store import failed, using environment config only', importError);
         }
         // Return environment config if store import fails
         return envConfig as Settings;
@@ -76,10 +76,10 @@ const getAISettings = async (): Promise<Settings> => {
         };
         
         if (!validationResults.openRouterConfigured) {
-            console.warn('⚠️ OpenRouter API key not configured - AI text features will be limited');
+            log.warn('OpenRouter API key not configured - AI text features will be limited');
         }
         if (!validationResults.geminiConfigured) {
-            console.warn('⚠️ Gemini API key not configured - Image generation will be disabled');
+            log.warn('Gemini API key not configured - Image generation will be disabled');
         }
     }
 
@@ -169,7 +169,8 @@ const callOpenRouter = async (prompt: string, jsonMode = false): Promise<string>
     };
 
     if (envConfig.enableDebugLogging) {
-        console.log('🚀 OpenRouter API Call:', {
+        log.aiRequest('OpenRouter API Call', requestBody.model);
+        log.debug('OpenRouter request details', {
             endpoint: apiUrl,
             model: requestBody.model,
             promptLength: prompt.length,
@@ -209,7 +210,7 @@ const callOpenRouter = async (prompt: string, jsonMode = false): Promise<string>
         const errorMsg = `OpenRouter API error (${response.status}): ${errorData.error?.message || errorData.message || response.statusText}`;
         
         if (envConfig.enableDebugLogging) {
-            console.error('❌ OpenRouter API Error:', {
+            log.error('OpenRouter API Error', {
                 status: response.status,
                 statusText: response.statusText,
                 error: errorData,
@@ -249,7 +250,8 @@ const callOpenRouter = async (prompt: string, jsonMode = false): Promise<string>
     }
 
     if (envConfig.enableDebugLogging) {
-        console.log('✅ OpenRouter Success:', {
+        log.aiResponse('OpenRouter Success', true);
+        log.debug('OpenRouter response details', {
             model: data.model,
             usage: data.usage,
             responseLength: content.length

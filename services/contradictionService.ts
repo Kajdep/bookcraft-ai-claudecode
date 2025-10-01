@@ -1,4 +1,5 @@
 import { ResearchItem, Chapter, Character, PlotPoint } from '../types';
+import { log } from './logger';
 
 export interface Contradiction {
     id: string;
@@ -103,7 +104,7 @@ class ContradictionDetectionService {
                 processingTime: Date.now() - startTime
             };
         } catch (error) {
-            console.error('Contradiction analysis failed:', error);
+            log.error('Contradiction analysis failed', error);
             return {
                 contradictions: [],
                 summary: {
@@ -473,7 +474,7 @@ Return ONLY the JSON array, no explanations.`;
             return contradictions;
             
         } catch (error) {
-            console.error('AI-based contradiction detection failed:', error);
+            log.error('AI-based contradiction detection failed', error);
             // Fallback to enhanced rule-based detection
             return this.detectEnhancedRuleBasedContradictions(textContent, projectData);
         }
@@ -1194,12 +1195,12 @@ Return ONLY the JSON array, no explanations.`;
 
     async resolveContradiction(contradictionId: string, resolution: string): Promise<void> {
         // In a real implementation, this would update the contradiction status
-        console.log(`Resolving contradiction ${contradictionId}: ${resolution}`);
+        log.debug(`Resolving contradiction ${contradictionId}`, { resolution });
     }
 
     async addUserNote(contradictionId: string, note: string): Promise<void> {
         // In a real implementation, this would add a user note to the contradiction
-        console.log(`Adding note to contradiction ${contradictionId}: ${note}`);
+        log.debug(`Adding note to contradiction ${contradictionId}`, { note });
     }
 }
 

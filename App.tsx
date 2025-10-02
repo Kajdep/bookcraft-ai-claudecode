@@ -8,6 +8,8 @@ import { ToastProvider } from './components/Toast';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { SettingsModal } from './components/SettingsModal.tsx';
 import { useBookCraftStore } from './store/useStore';
+import { initializeStorage } from './store/storageAdapter';
+import { logger } from './services/logger';
 
 const Header: React.FC<{ onSettingsClick: () => void }> = ({ onSettingsClick }) => (
     <header className="bg-slate-900/70 backdrop-blur-lg border-b border-slate-700/50 sticky top-0 z-50">
@@ -40,8 +42,19 @@ const App: React.FC = () => {
 
     // Initialize the app with clean UI state on startup
     React.useEffect(() => {
-        initializeApp();
-        closeAllModals(); // Ensure all modals are closed on app start
+        // Initialize storage system first
+        initializeStorage()
+            .then(() => {
+                logger.info('Storage initialized successfully');
+                initializeApp();
+                closeAllModals(); // Ensure all modals are closed on app start
+            })
+            .catch((error) => {
+                logger.error('Failed to initialize storage', error);
+                // Still initialize the app even if storage init fails
+                initializeApp();
+                closeAllModals();
+            });
     }, [initializeApp, closeAllModals]);
 
     // Handle app visibility change to cleanup modals

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
+import { storageAdapter } from './storageAdapter';
 import type { Project, Chapter, VisualRecommendation, Visual, GeneratedImage, PlotPoint, ResearchItem, ResearchType, FactCheckResult, ResearchQuery, ResearchFolder, Citation, CitationStyle, ThematicTag, ResearchTimeline, ResearchMindMap, ResearchAttachment, ResearchContradiction, Settings, MaterialItem, MaterialFolder, MaterialType, MaterialCategory } from '../types';
 
 // Analytics types
@@ -87,6 +88,11 @@ interface BookCraftState {
     lastSaved: Date | null;
     isAutoSaving: boolean;
     pendingChanges: boolean;
+    
+    // Storage sync state
+    syncStatus: 'idle' | 'syncing' | 'error' | 'offline';
+    lastSyncTime: Date | null;
+    storageMode: 'offline' | 'online' | 'hybrid';
 
     // Settings state
     settings: Settings | null;
@@ -235,6 +241,11 @@ interface BookCraftActions {
     manualSave: () => Promise<void>;
     setPendingChanges: (pending: boolean) => void;
     
+    // Storage management
+    manualSync: () => Promise<void>;
+    getStorageStats: () => Promise<any>;
+    configureStorage: (config: Partial<any>) => void;
+    
     // Material Management
     addMaterial: (material: Omit<MaterialItem, 'id' | 'createdAt' | 'lastModified'>) => void;
     updateMaterial: (materialId: string, updates: Partial<MaterialItem>) => void;
@@ -358,6 +369,11 @@ export const useBookCraftStore = create<BookCraftState & BookCraftActions>()(
             lastSaved: null,
             isAutoSaving: false,
             pendingChanges: false,
+            
+            // Storage sync state
+            syncStatus: 'idle',
+            lastSyncTime: null,
+            storageMode: 'hybrid',
 
             // ACTIONS
             // Project Management
@@ -1564,6 +1580,43 @@ export const useBookCraftStore = create<BookCraftState & BookCraftActions>()(
                 });
             },
             
+            // Storage management actions
+            manualSync: async () => {
+                const { storageService } = await import('@/services/storage/storageService');
+                
+                set({ syncStatus: 'syncing' });
+                try {
+                    await storageService.sync();
+                    set({ 
+                        syncStatus: 'idle',
+                        lastSyncTime: new Date()
+                    });
+                    log.info('Manual sync completed successfully');
+                } catch (error) {
+                    set({ syncStatus: 'error' });
+                    log.error('Manual sync failed', error as Error, 'Storage');
+                    toast.error('Sync Failed', 'Failed to sync data with cloud storage');
+                    throw error;
+                }
+            },
+            
+            getStorageStats: async () => {
+                const { storageService } = await import('@/services/storage/storageService');
+                try {
+                    return await storageService.getStats();
+                } catch (error) {
+                    log.error('Failed to get storage stats', error as Error, 'Storage');
+                    throw error;
+                }
+            },
+            
+            configureStorage: (config) => {
+                import('@/services/storage/storageService').then(({ storageService }) => {
+                    storageService.configure(config);
+                    log.info('Storage configuration updated', config);
+                });
+            },
+            
             // Material Management
             addMaterial: (material) => {
                 const projectId = get().activeProjectId;
@@ -2555,6 +2608,7 @@ export const useBookCraftStore = create<BookCraftState & BookCraftActions>()(
         })),
         {
             name: 'bookcraft-storage',
+            storage: storageAdapter,
             partialize: (state) => ({
                 // ONLY persist data, NEVER persist UI state
                 projects: state.projects,

@@ -6,8 +6,8 @@
  */
 
 import { db, type DBProject, type DBChapter, type DBResearchItem, type DBMaterial, type DBCitation, type DBAnalytics, type DBFileBlob } from './indexedDB';
-import { supabase } from './supabase';
-import { syncEngine } from './syncEngine';
+import { getSupabaseClient } from './supabase';
+import * as syncEngine from './syncEngine';
 import { logger } from '@/services/logger';
 import type { Project, Chapter } from '@/types/project';
 import type { ResearchItem, Material, Citation } from '@/types/research';
@@ -158,7 +158,8 @@ class StorageService {
 
             // Trigger sync if online
             if (this.config.mode !== 'offline') {
-                await syncEngine.syncProject(project.id);
+                // Queue for next sync cycle - individual item sync not yet implemented
+                // Full sync will happen on next interval or can be triggered manually
             }
 
             this.emit('project:saved', project);
@@ -182,6 +183,9 @@ class StorageService {
 
             // If not found locally and online, try to fetch from cloud
             if (this.config.mode !== 'offline') {
+                const supabase = getSupabaseClient();
+                if (!supabase) return null;
+
                 const { data, error } = await supabase
                     .from('projects')
                     .select('*')
@@ -244,13 +248,16 @@ class StorageService {
 
             // Delete from cloud if online
             if (this.config.mode !== 'offline') {
-                const { error } = await supabase
-                    .from('projects')
-                    .delete()
-                    .eq('id', id);
+                const supabase = getSupabaseClient();
+                if (supabase) {
+                    const { error } = await supabase
+                        .from('projects')
+                        .delete()
+                        .eq('id', id);
 
-                if (error) {
-                    logger.warn('Failed to delete project from cloud', error, { projectId: id });
+                    if (error) {
+                        logger.warn('Failed to delete project from cloud', error, { projectId: id });
+                    }
                 }
             }
 
@@ -281,7 +288,7 @@ class StorageService {
             await db.chapters.put(dbChapter);
 
             if (this.config.mode !== 'offline') {
-                await syncEngine.syncChapter(chapter.id);
+                // Queue for next sync cycle - individual item sync not yet implemented
             }
 
             this.emit('chapter:saved', chapter);
@@ -319,13 +326,16 @@ class StorageService {
             await db.chapters.delete(id);
 
             if (this.config.mode !== 'offline') {
-                const { error } = await supabase
-                    .from('chapters')
-                    .delete()
-                    .eq('id', id);
+                const supabase = getSupabaseClient();
+                if (supabase) {
+                    const { error } = await supabase
+                        .from('chapters')
+                        .delete()
+                        .eq('id', id);
 
-                if (error) {
-                    logger.warn('Failed to delete chapter from cloud', error, { chapterId: id });
+                    if (error) {
+                        logger.warn('Failed to delete chapter from cloud', error, { chapterId: id });
+                    }
                 }
             }
 
@@ -354,7 +364,7 @@ class StorageService {
             await db.research.put(dbItem);
 
             if (this.config.mode !== 'offline') {
-                await syncEngine.syncResearchItem(item.id);
+                // Queue for next sync cycle - individual item sync not yet implemented
             }
 
             this.emit('research:saved', item);
@@ -398,7 +408,7 @@ class StorageService {
             await db.materials.put(dbMaterial);
 
             if (this.config.mode !== 'offline') {
-                await syncEngine.syncMaterial(material.id);
+                // Queue for next sync cycle - individual item sync not yet implemented
             }
 
             this.emit('material:saved', material);
@@ -443,7 +453,7 @@ class StorageService {
             this.emit('sync:started');
 
             logger.info('Starting manual sync');
-            await syncEngine.syncAll();
+            await syncEngine.performSync();
 
             this.syncStatus = 'idle';
             this.emit('sync:completed');
@@ -492,7 +502,7 @@ class StorageService {
      */
     private async syncAllProjects(): Promise<void> {
         try {
-            await syncEngine.syncAll();
+            await syncEngine.performSync();
         } catch (error) {
             logger.error('Failed to sync all projects', error);
         }

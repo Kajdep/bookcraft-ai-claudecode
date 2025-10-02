@@ -18,8 +18,13 @@ export default defineConfig(({ mode }) => {
       plugins: [
         react({
           jsxRuntime: 'automatic',
+          jsxImportSource: 'react'
         }),
       ],
+      esbuild: {
+        jsx: 'automatic',
+        jsxImportSource: 'react'
+      },
       define: {
         // === REQUIRED API KEYS ===
         'process.env.OPENROUTER_API_KEY': JSON.stringify(env.OPENROUTER_API_KEY),

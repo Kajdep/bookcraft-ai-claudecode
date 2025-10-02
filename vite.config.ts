@@ -15,7 +15,11 @@ export default defineConfig(({ mode }) => {
     }
     
     return {
-      plugins: [react()],
+      plugins: [
+        react({
+          jsxRuntime: 'automatic',
+        }),
+      ],
       define: {
         // === REQUIRED API KEYS ===
         'process.env.OPENROUTER_API_KEY': JSON.stringify(env.OPENROUTER_API_KEY),

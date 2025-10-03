@@ -93,7 +93,17 @@ export const ProjectWorkspace: React.FC = () => {
                     {activeTab === 'Writing' && <WritingStudio />}
                     {activeTab === 'Visuals' && <VisualsWorkspace project={project} />}
                     {activeTab === 'Research' && <ResearchTab />}
-                    {activeTab === 'Material' && <MaterialTab />}
+                    {activeTab === 'Material' && (
+                        <ErrorBoundary fallback={
+                            <div className="p-8 text-center bg-slate-800/50 rounded-lg border border-slate-700/50">
+                                <h3 className="text-xl font-semibold text-slate-300 mb-2">Material Tab Error</h3>
+                                <p className="text-slate-400 mb-4">There was an issue loading the materials library. Try refreshing.</p>
+                                <Button onClick={() => window.location.reload()}>Refresh</Button>
+                            </div>
+                        }>
+                            <MaterialTab />
+                        </ErrorBoundary>
+                    )}
                     {activeTab === 'Plot' && (
                         <ErrorBoundary fallback={
                             <div className="p-8 text-center bg-slate-800/50 rounded-lg border border-slate-700/50">
@@ -116,8 +126,28 @@ export const ProjectWorkspace: React.FC = () => {
                             <AnalyticsTab />
                         </ErrorBoundary>
                     )}
-                    {activeTab === 'Cover Creator' && <CoverCreator />}
-                    {activeTab === 'KDP Calculator' && <KDPCalculator />}
+                    {activeTab === 'Cover Creator' && (
+                        <ErrorBoundary fallback={
+                            <div className="p-8 text-center bg-slate-800/50 rounded-lg border border-slate-700/50">
+                                <h3 className="text-xl font-semibold text-slate-300 mb-2">Cover Creator Error</h3>
+                                <p className="text-slate-400 mb-4">There was an issue loading the cover creator. Try refreshing.</p>
+                                <Button onClick={() => window.location.reload()}>Refresh</Button>
+                            </div>
+                        }>
+                            <CoverCreator />
+                        </ErrorBoundary>
+                    )}
+                    {activeTab === 'KDP Calculator' && (
+                        <ErrorBoundary fallback={
+                            <div className="p-8 text-center bg-slate-800/50 rounded-lg border border-slate-700/50">
+                                <h3 className="text-xl font-semibold text-slate-300 mb-2">KDP Calculator Error</h3>
+                                <p className="text-slate-400 mb-4">There was an issue loading the KDP calculator. Try refreshing.</p>
+                                <Button onClick={() => window.location.reload()}>Refresh</Button>
+                            </div>
+                        }>
+                            <KDPCalculator />
+                        </ErrorBoundary>
+                    )}
                     {activeTab === 'Export' && <ExportTab />}
                 </main>
             </div>

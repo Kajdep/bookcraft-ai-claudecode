@@ -58,11 +58,14 @@ export const storageAdapter: StateStorage = {
      */
     setItem: async (name: string, value: string): Promise<void> => {
         try {
-            logger.debug('Storage adapter: setting item', { name, size: value.length });
-            
+            logger.debug('Storage adapter: setting item', { name });
+
+            // Ensure value is a string
+            const stringValue = typeof value === 'string' ? value : JSON.stringify(value);
+
             // For the bookcraft-storage key, parse and save projects individually
             if (name === 'bookcraft-storage') {
-                const data = JSON.parse(value);
+                const data = JSON.parse(stringValue);
                 const state = data.state || data;
                 
                 // Save each project individually
@@ -94,13 +97,14 @@ export const storageAdapter: StateStorage = {
                 });
                 return;
             }
-            
+
             // Fallback to localStorage for other keys
-            localStorage.setItem(name, value);
+            localStorage.setItem(name, stringValue);
         } catch (error) {
             logger.error('Storage adapter: failed to set item', error, { name });
-            // Fallback to localStorage on error
-            localStorage.setItem(name, value);
+            // Fallback to localStorage on error - ensure value is a string
+            const fallbackValue = typeof value === 'string' ? value : JSON.stringify(value);
+            localStorage.setItem(name, fallbackValue);
         }
     },
 

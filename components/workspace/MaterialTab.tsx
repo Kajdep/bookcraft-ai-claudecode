@@ -415,10 +415,13 @@ export const MaterialTab: React.FC = () => {
     const [showNoteForm, setShowNoteForm] = useState(false);
     const [showLinkForm, setShowLinkForm] = useState(false);
 
-    // Store functions
-    const materials = useBookCraftStore(state => 
-        state.activeProjectId ? state.projects[state.activeProjectId]?.materials || [] : []
-    );
+    // Store functions - ensure materials is always an array
+    const materials = useBookCraftStore(state => {
+        if (!state.activeProjectId) return [];
+        const project = state.projects[state.activeProjectId];
+        if (!project) return [];
+        return Array.isArray(project.materials) ? project.materials : [];
+    });
     const updateMaterial = useBookCraftStore(state => state.updateMaterial);
     const deleteMaterial = useBookCraftStore(state => state.deleteMaterial);
     const bookmarkMaterial = useBookCraftStore(state => state.bookmarkMaterial);

@@ -276,7 +276,7 @@ export const KDPCalculator: React.FC = () => {
             .map(([key, size]) => ({ key: key as PaperSize, ...size }));
     };
 
-    const recommendedSizes = getRecommendedSizes(selectedGenre);
+    const recommendedSizes = useMemo(() => getRecommendedSizes(selectedGenre), [selectedGenre]);
 
     const renderGuidelinesTab = () => (
         <div className="space-y-6">

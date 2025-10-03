@@ -17,11 +17,13 @@ export default defineConfig(({ mode }) => {
     return {
       plugins: [
         react({
-          jsxRuntime: 'automatic'
+          jsxRuntime: 'automatic',
+          jsxImportSource: 'react'
         }),
       ],
       esbuild: {
-        jsx: 'automatic'
+        jsx: 'automatic',
+        jsxDev: mode === 'development'
       },
       define: {
         // === REQUIRED API KEYS ===

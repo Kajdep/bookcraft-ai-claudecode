@@ -875,27 +875,50 @@ export const performResearch = async (query: string, type: ResearchType, context
 
     try {
         const response = await callOpenRouter(prompt, true);
-        const result = JSON.parse(response);
+        
+        // Validate response is not empty
+        if (!response || response.trim().length === 0) {
+            log.error('Empty response from OpenRouter for research query', { query, type });
+            throw new Error("Received empty response from AI service");
+        }
+        
+        let result: any;
+        try {
+            result = JSON.parse(response);
+        } catch (parseError) {
+            log.error('Failed to parse research response', { response: response.substring(0, 500), error: parseError });
+            throw new Error("AI response was not valid JSON format");
+        }
+        
+        // Validate required fields exist
+        if (!result.content || !result.summary || !result.confidence) {
+            log.error('Missing required fields in research response', { result });
+            throw new Error("AI response missing required fields");
+        }
 
-        // Convert response to proper format
-        const sources: ResearchSource[] = result.sources.map((s: any, index: number) => ({
-            id: `source_${Date.now()}_${index}`,
-            title: s.title,
-            credibility: s.credibility as SourceCredibility,
-            accessDate: new Date(),
-            notes: s.type
-        }));
+        // Convert response to proper format with fallbacks
+        const sources: ResearchSource[] = Array.isArray(result.sources) 
+            ? result.sources.map((s: any, index: number) => ({
+                id: `source_${Date.now()}_${index}`,
+                title: s.title || 'Unknown Source',
+                credibility: (s.credibility as SourceCredibility) || 'Questionable',
+                accessDate: new Date(),
+                notes: s.type || 'General'
+            }))
+            : [];
 
         return {
             content: result.content,
             summary: result.summary,
             confidence: result.confidence as ResearchConfidence,
             sources,
-            tags: result.tags
+            tags: Array.isArray(result.tags) ? result.tags : []
         };
     } catch (error) {
         log.aiError('Research failed', error as Error);
-        throw new Error("Failed to perform research with AI.");
+        // Provide more specific error message
+        const errorMessage = error instanceof Error ? error.message : "Failed to perform research with AI";
+        throw new Error(errorMessage);
     }
 };
 

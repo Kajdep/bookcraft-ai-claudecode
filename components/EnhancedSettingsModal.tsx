@@ -650,43 +650,51 @@ export const EnhancedSettingsModal: React.FC<EnhancedSettingsModalProps> = ({ is
                                 description="Configure your API keys for AI services"
                                 icon={<UserIcon className="w-5 h-5 text-cyan-400" />}
                             >
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-300 mb-2">OpenRouter API Key</label>
-                                    <div className="relative">
-                                        <Input
-                                            type={showApiKeys.openRouter ? "text" : "password"}
-                                            value={localSettings.openRouterApiKey || ''}
-                                            onChange={(e) => updateLocalSetting('openRouterApiKey', e.target.value)}
-                                            placeholder="sk-or-v1-..."
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowApiKeys(prev => ({ ...prev, openRouter: !prev.openRouter }))}
-                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200"
-                                        >
-                                            {showApiKeys.openRouter ? <EyeSlashIcon className="w-4 h-4" /> : <EyeIcon className="w-4 h-4" />}
-                                        </button>
+                                <form onSubmit={(e) => e.preventDefault()}>
+                                    <div>
+                                        <label htmlFor="openrouter-api-key" className="block text-sm font-medium text-slate-300 mb-2">OpenRouter API Key</label>
+                                        <div className="relative">
+                                            <Input
+                                                id="openrouter-api-key"
+                                                name="openrouter-api-key"
+                                                type={showApiKeys.openRouter ? "text" : "password"}
+                                                value={localSettings.openRouterApiKey || ''}
+                                                onChange={(e) => updateLocalSetting('openRouterApiKey', e.target.value)}
+                                                placeholder="sk-or-v1-..."
+                                                autoComplete="off"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowApiKeys(prev => ({ ...prev, openRouter: !prev.openRouter }))}
+                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200"
+                                            >
+                                                {showApiKeys.openRouter ? <EyeSlashIcon className="w-4 h-4" /> : <EyeIcon className="w-4 h-4" />}
+                                            </button>
+                                        </div>
                                     </div>
-                                </div>
 
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-300 mb-2">Gemini API Key</label>
-                                    <div className="relative">
-                                        <Input
-                                            type={showApiKeys.gemini ? "text" : "password"}
-                                            value={localSettings.geminiApiKey || ''}
-                                            onChange={(e) => updateLocalSetting('geminiApiKey', e.target.value)}
-                                            placeholder="AIza..."
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowApiKeys(prev => ({ ...prev, gemini: !prev.gemini }))}
-                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200"
-                                        >
-                                            {showApiKeys.gemini ? <EyeSlashIcon className="w-4 h-4" /> : <EyeIcon className="w-4 h-4" />}
-                                        </button>
+                                    <div className="mt-4">
+                                        <label htmlFor="gemini-api-key" className="block text-sm font-medium text-slate-300 mb-2">Gemini API Key</label>
+                                        <div className="relative">
+                                            <Input
+                                                id="gemini-api-key"
+                                                name="gemini-api-key"
+                                                type={showApiKeys.gemini ? "text" : "password"}
+                                                value={localSettings.geminiApiKey || ''}
+                                                onChange={(e) => updateLocalSetting('geminiApiKey', e.target.value)}
+                                                placeholder="AIza..."
+                                                autoComplete="off"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowApiKeys(prev => ({ ...prev, gemini: !prev.gemini }))}
+                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200"
+                                            >
+                                                {showApiKeys.gemini ? <EyeSlashIcon className="w-4 h-4" /> : <EyeIcon className="w-4 h-4" />}
+                                            </button>
+                                        </div>
                                     </div>
-                                </div>
+                                </form>
 
                                 <div>
                                     <label className="block text-sm font-medium text-slate-300 mb-2">Default AI Model</label>

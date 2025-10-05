@@ -47,6 +47,7 @@ export const ChapterEditorView: React.FC<ChapterEditorViewProps> = ({ chapterId 
     const suggestVisualForText = useBookCraftStore(state => state.suggestVisualForText);
     const analyzeChapterForVisuals = useBookCraftStore(state => state.analyzeChapterForVisuals);
     const isAnalyzingChapter = useBookCraftStore(state => state.isAnalyzingChapter);
+    const getAIAssistantResponse = useBookCraftStore(state => state.getAIAssistantResponse);
 
 
     const [title, setTitle] = useState('');

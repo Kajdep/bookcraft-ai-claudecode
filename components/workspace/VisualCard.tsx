@@ -27,22 +27,50 @@ export const VisualCard: React.FC<VisualCardProps> = ({ visual }) => {
         const renderDiagram = async () => {
             if (visual.content.mermaidCode) {
                 try {
-                    // Initialize Mermaid with dark theme
+                    // Log the Mermaid code for debugging
+                    log.debug('Rendering Mermaid diagram', { 
+                        visualId: visual.id, 
+                        type: visual.type,
+                        codePreview: visual.content.mermaidCode.substring(0, 100) 
+                    });
+                    
+                    // Initialize Mermaid with dark theme and enhanced error handling
                     mermaid.initialize({
                         startOnLoad: false,
                         theme: 'dark',
-                        securityLevel: 'loose'
+                        securityLevel: 'loose',
+                        logLevel: 'error', // Reduce console noise
+                        suppressErrors: false // Show errors for debugging
                     });
 
-                    const { svg } = await mermaid.render(`mermaid-svg-${visual.id}`, visual.content.mermaidCode);
+                    const { svg } = await mermaid.render(
+                        `mermaid-svg-${visual.id}`, 
+                        visual.content.mermaidCode
+                    );
+                    
                     if (isMounted) {
                         setSvgContent(svg);
                         setError(null);
+                        log.debug('Mermaid diagram rendered successfully', { visualId: visual.id });
                     }
                 } catch (e: any) {
-                    log.error('Mermaid diagram render failed', e as Error);
+                    const errorMessage = e?.message || e?.toString() || 'Unknown error';
+                    log.error('Mermaid diagram render failed', {
+                        error: errorMessage,
+                        visualId: visual.id,
+                        type: visual.type,
+                        codePreview: visual.content.mermaidCode.substring(0, 200)
+                    });
+                    
                     if (isMounted) {
-                        setError("Could not render diagram. Please check syntax.");
+                        // Provide more specific error message
+                        const userMessage = errorMessage.includes('Parse error') 
+                            ? "Diagram syntax error detected. The diagram code has formatting issues."
+                            : errorMessage.includes('Lexical error')
+                            ? "Invalid characters in diagram code."
+                            : "Could not render diagram. The diagram structure may be invalid.";
+                        
+                        setError(userMessage);
                         setShowImageFallback(true);
                     }
                 }

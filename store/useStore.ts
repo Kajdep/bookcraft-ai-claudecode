@@ -175,6 +175,7 @@ interface BookCraftActions {
     startAnalysis: () => Promise<void>;
     analyzeChapterForVisuals: (chapterId: string) => Promise<void>;
     acceptRecommendation: (rec: VisualRecommendation) => Promise<void>;
+    acceptRecommendationAsImage: (rec: VisualRecommendation) => Promise<void>;
     rejectRecommendation: (recId: string) => void;
     generateImage: (prompt: string) => Promise<void>;
     suggestVisualForText: (text: string) => Promise<void>;
@@ -831,10 +832,52 @@ export const useBookCraftStore = create<BookCraftState & BookCraftActions>()(
                            project.recommendations = project.recommendations.filter(r => r.id !== rec.id);
                         }
                     });
+                    
+                    toast.success('Diagram Generated', 'The diagram has been added to your Visual Library!');
 
                 } catch (error) {
                     log.storeError('Visual recommendation acceptance failed', error as Error);
                     toast.error('Visual Generation Failed', 'Sorry, there was an error generating this visual.');
+                } finally {
+                    set({ generatingVisualFor: null });
+                }
+            },
+            acceptRecommendationAsImage: async (rec) => {
+                const projectId = get().activeProjectId;
+                if (!projectId) return;
+
+                set({ generatingVisualFor: rec.id });
+                try {
+                    // Create a descriptive prompt based on the recommendation
+                    const prompt = `Create a professional ${rec.type.toLowerCase()} visualization for: ${rec.context}. ${rec.reasoning}. Style: clean, modern, informative.`;
+                    
+                    log.info('Generating AI image for recommendation', { 
+                        type: rec.type, 
+                        promptPreview: prompt.substring(0, 100) 
+                    });
+                    
+                    const base64Image = await ai.generateImage(prompt);
+                    const newImage: GeneratedImage = {
+                        id: `img_${Date.now()}`,
+                        prompt,
+                        base64Image,
+                    };
+
+                    set(state => {
+                        const project = state.projects[projectId];
+                        if (project) {
+                            // Add to generated images library
+                            project.generatedImages.unshift(newImage);
+                            // Remove from recommendations
+                            project.recommendations = project.recommendations.filter(r => r.id !== rec.id);
+                        }
+                    });
+                    
+                    toast.success('Image Generated', 'The AI image has been added to your Image Generation library!');
+
+                } catch (error) {
+                    log.storeError('Image recommendation acceptance failed', error as Error);
+                    toast.error('Image Generation Failed', 'Sorry, there was an error generating this image.');
                 } finally {
                     set({ generatingVisualFor: null });
                 }

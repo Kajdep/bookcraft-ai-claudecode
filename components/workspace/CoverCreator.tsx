@@ -14,6 +14,7 @@ import {
 } from '../Icons';
 
 type BookFormat = 'ebook' | 'paperback' | 'hardback';
+type CoverType = 'front' | 'back';
 type CoverStyle = 'modern' | 'classic' | 'minimalist' | 'bold' | 'artistic' | 'professional';
 type TypographyStyle = 'serif' | 'sans-serif' | 'display' | 'script' | 'monospace';
 type LayoutType = 'centered' | 'top-heavy' | 'bottom-heavy' | 'asymmetric' | 'split';
@@ -127,6 +128,7 @@ const COVER_STYLES: Record<CoverStyle, { name: string; description: string; colo
 
 export const CoverCreator: React.FC = () => {
     const [bookFormat, setBookFormat] = useState<BookFormat>('ebook');
+    const [coverType, setCoverType] = useState<CoverType>('front');
     const [coverStyle, setCoverStyle] = useState<CoverStyle>('modern');
     const [isGenerating, setIsGenerating] = useState(false);
     const [showPreview, setShowPreview] = useState(false);
@@ -139,6 +141,12 @@ export const CoverCreator: React.FC = () => {
     const [title, setTitle] = useState('');
     const [author, setAuthor] = useState('');
     const [subtitle, setSubtitle] = useState('');
+    
+    // Back cover specific fields
+    const [blurb, setBlurb] = useState('');
+    const [authorBio, setAuthorBio] = useState('');
+    const [isbn, setIsbn] = useState('');
+    const [price, setPrice] = useState('');
     const [showAdvanced, setShowAdvanced] = useState(false);
     
     // Advanced design options
@@ -170,27 +178,43 @@ export const CoverCreator: React.FC = () => {
     const styleInfo = COVER_STYLES[coverStyle];
 
     const handleGenerateAICover = async () => {
-        if (!title.trim()) {
+        if (coverType === 'front' && !title.trim()) {
             alert('Please enter a book title');
+            return;
+        }
+        
+        if (coverType === 'back' && !blurb.trim()) {
+            alert('Please enter a book blurb/description');
             return;
         }
 
         setIsGenerating(true);
         const processId = 'cover-generation';
+        const coverTypeLabel = coverType === 'front' ? 'Front Cover' : 'Back Cover';
         startAIProcess(
             processId, 
-            'Generating Book Cover', 
+            `Generating Book ${coverTypeLabel}`, 
             'visual', 
-            `Creating ${bookFormat} cover in ${styleInfo.name.toLowerCase()} style`
+            `Creating ${bookFormat} ${coverTypeLabel.toLowerCase()} in ${styleInfo.name.toLowerCase()} style`
         );
 
         try {
             // Build AI prompt for cover generation
             const genreContext = activeProject ? `Genre: ${activeProject.genre}` : '';
-            const basePrompt = customPrompt.trim() || 
-                `Create a professional book cover for "${title}" ${subtitle ? `with subtitle "${subtitle}"` : ''} ${author ? `by ${author}` : ''}. ${genreContext}`;
+            let stylePrompt: string;
             
-            const stylePrompt = `${basePrompt}. Style: ${styleInfo.description}. Format: ${bookFormat} book cover. High quality, professional design, ${dimensions.description}. Include title text prominently.`;
+            if (coverType === 'front') {
+                const basePrompt = customPrompt.trim() || 
+                    `Create a professional book cover for "${title}" ${subtitle ? `with subtitle "${subtitle}"` : ''} ${author ? `by ${author}` : ''}. ${genreContext}`;
+                
+                stylePrompt = `${basePrompt}. Style: ${styleInfo.description}. Format: ${bookFormat} book cover. High quality, professional design, ${dimensions.description}. Include title text prominently.`;
+            } else {
+                // Back cover generation
+                const basePrompt = customPrompt.trim() || 
+                    `Create a professional back cover design for a book. ${genreContext}. Include elegant background that complements a book description.`;
+                
+                stylePrompt = `${basePrompt}. Style: ${styleInfo.description}. Format: ${bookFormat} back cover. High quality, professional design, ${dimensions.description}. Subtle background suitable for text overlay.`;
+            }
             
             await generateImage(stylePrompt);
             setShowPreview(true);
@@ -232,23 +256,28 @@ export const CoverCreator: React.FC = () => {
             addBorder(ctx, canvas.width, canvas.height);
         }
         
-        // Position text based on layout
-        const textPositions = calculateTextPositions(canvas.width, canvas.height, advancedOptions.layout);
-        
         // Typography settings
         const fontFamily = TYPOGRAPHY_STYLES[advancedOptions.typography].fonts[0];
         
-        // Draw title
-        drawTitle(ctx, title, textPositions.title, fontFamily, canvas.width);
-        
-        // Draw subtitle if exists
-        if (subtitle) {
-            drawSubtitle(ctx, subtitle, textPositions.subtitle, fontFamily, canvas.width);
-        }
-        
-        // Draw author
-        if (author) {
-            drawAuthor(ctx, author, textPositions.author, fontFamily, canvas.width);
+        if (coverType === 'front') {
+            // Front cover layout
+            const textPositions = calculateTextPositions(canvas.width, canvas.height, advancedOptions.layout);
+            
+            // Draw title
+            drawTitle(ctx, title, textPositions.title, fontFamily, canvas.width);
+            
+            // Draw subtitle if exists
+            if (subtitle) {
+                drawSubtitle(ctx, subtitle, textPositions.subtitle, fontFamily, canvas.width);
+            }
+            
+            // Draw author
+            if (author) {
+                drawAuthor(ctx, author, textPositions.author, fontFamily, canvas.width);
+            }
+        } else {
+            // Back cover layout
+            drawBackCover(ctx, canvas.width, canvas.height, fontFamily);
         }
         
         // Add finishing touches
@@ -257,7 +286,7 @@ export const CoverCreator: React.FC = () => {
         }
         
         setGeneratedCover(canvas.toDataURL('image/png', 0.95));
-    }, [dimensions, backgroundColor, textColor, title, subtitle, author, advancedOptions]);
+    }, [dimensions, backgroundColor, textColor, title, subtitle, author, blurb, authorBio, isbn, price, coverType, advancedOptions]);
     
     // Helper functions for advanced cover generation
     const generateBackground = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
@@ -404,6 +433,92 @@ export const CoverCreator: React.FC = () => {
         ctx.fillText(text.toUpperCase(), pos.x, pos.y);
     };
     
+    const drawBackCover = (ctx: CanvasRenderingContext2D, width: number, height: number, fontFamily: string) => {
+        const margin = width * 0.1;
+        const contentWidth = width - (margin * 2);
+        let currentY = margin + height * 0.08;
+        
+        // Draw blurb/description
+        if (blurb) {
+            const blurbFontSize = Math.floor(width * 0.035);
+            ctx.font = `${blurbFontSize}px ${fontFamily}`;
+            ctx.fillStyle = textColor;
+            ctx.textAlign = 'left';
+            
+            const lineHeight = blurbFontSize * 1.5;
+            const words = blurb.split(' ');
+            let line = '';
+            
+            for (let n = 0; n < words.length; n++) {
+                const testLine = line + words[n] + ' ';
+                const metrics = ctx.measureText(testLine);
+                const testWidth = metrics.width;
+                
+                if (testWidth > contentWidth && n > 0) {
+                    ctx.fillText(line, margin, currentY);
+                    line = words[n] + ' ';
+                    currentY += lineHeight;
+                } else {
+                    line = testLine;
+                }
+            }
+            ctx.fillText(line, margin, currentY);
+            currentY += lineHeight * 2;
+        }
+        
+        // Draw author bio
+        if (authorBio) {
+            const bioFontSize = Math.floor(width * 0.028);
+            ctx.font = `italic ${bioFontSize}px ${fontFamily}`;
+            ctx.fillStyle = adjustColorBrightness(textColor, -15);
+            ctx.textAlign = 'left';
+            
+            // "About the Author" heading
+            ctx.font = `bold ${bioFontSize * 1.2}px ${fontFamily}`;
+            ctx.fillText('About the Author', margin, currentY);
+            currentY += bioFontSize * 2;
+            
+            // Bio text
+            ctx.font = `${bioFontSize}px ${fontFamily}`;
+            const lineHeight = bioFontSize * 1.4;
+            const words = authorBio.split(' ');
+            let line = '';
+            
+            for (let n = 0; n < words.length; n++) {
+                const testLine = line + words[n] + ' ';
+                const metrics = ctx.measureText(testLine);
+                const testWidth = metrics.width;
+                
+                if (testWidth > contentWidth && n > 0) {
+                    ctx.fillText(line, margin, currentY);
+                    line = words[n] + ' ';
+                    currentY += lineHeight;
+                } else {
+                    line = testLine;
+                }
+            }
+            ctx.fillText(line, margin, currentY);
+            currentY += lineHeight * 2;
+        }
+        
+        // Draw ISBN and Price at the bottom
+        const bottomY = height - margin;
+        const detailFontSize = Math.floor(width * 0.025);
+        ctx.font = `${detailFontSize}px ${fontFamily}`;
+        ctx.fillStyle = textColor;
+        ctx.textAlign = 'left';
+        
+        if (isbn) {
+            ctx.fillText(`ISBN: ${isbn}`, margin, bottomY - detailFontSize * 2);
+        }
+        
+        if (price) {
+            ctx.textAlign = 'right';
+            ctx.font = `bold ${detailFontSize * 1.5}px ${fontFamily}`;
+            ctx.fillText(price, width - margin, bottomY - detailFontSize * 2);
+        }
+    };
+    
     const wrapText = (ctx: CanvasRenderingContext2D, text: string, x: number, y: number, maxWidth: number, lineHeight: number) => {
         const words = text.split(' ');
         let line = '';
@@ -437,10 +552,16 @@ export const CoverCreator: React.FC = () => {
     };
 
     const handleGenerateManualCover = () => {
-        if (!title.trim()) {
+        if (coverType === 'front' && !title.trim()) {
             alert('Please enter a book title');
             return;
         }
+        
+        if (coverType === 'back' && !blurb.trim()) {
+            alert('Please enter a book blurb/description');
+            return;
+        }
+        
         generateCanvasPreview();
         setShowPreview(true);
     };
@@ -448,7 +569,8 @@ export const CoverCreator: React.FC = () => {
     const handleDownload = (format: 'png' | 'jpg' | 'pdf' = 'png') => {
         if (!generatedCover) return;
         
-        const filename = `${title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_${bookFormat}_cover`;
+        const coverName = coverType === 'front' ? (title || 'book') : 'book';
+        const filename = `${coverName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_${bookFormat}_${coverType}_cover`;
         
         if (format === 'pdf') {
             // For PDF, we'll create a simple PDF with the image
@@ -518,6 +640,39 @@ export const CoverCreator: React.FC = () => {
             </div>
 
             <div className="space-y-6">
+                {/* Cover Type Selection */}
+                <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-3">Cover Type</label>
+                    <div className="grid grid-cols-2 gap-3">
+                        <button
+                            onClick={() => setCoverType('front')}
+                            className={`p-4 rounded-lg border-2 transition-all text-left ${
+                                coverType === 'front'
+                                    ? 'border-purple-500 bg-purple-500/20 text-purple-200'
+                                    : 'border-slate-600 bg-slate-700/50 text-slate-300 hover:border-slate-500'
+                            }`}
+                        >
+                            <div className="font-semibold mb-1">Front Cover</div>
+                            <div className="text-xs text-slate-400">
+                                Main cover with title and imagery
+                            </div>
+                        </button>
+                        <button
+                            onClick={() => setCoverType('back')}
+                            className={`p-4 rounded-lg border-2 transition-all text-left ${
+                                coverType === 'back'
+                                    ? 'border-purple-500 bg-purple-500/20 text-purple-200'
+                                    : 'border-slate-600 bg-slate-700/50 text-slate-300 hover:border-slate-500'
+                            }`}
+                        >
+                            <div className="font-semibold mb-1">Back Cover</div>
+                            <div className="text-xs text-slate-400">
+                                Book blurb, bio, and details
+                            </div>
+                        </button>
+                    </div>
+                </div>
+
                 {/* Book Format Selection */}
                 <div>
                     <label className="block text-sm font-medium text-slate-300 mb-3">Book Format</label>
@@ -546,48 +701,108 @@ export const CoverCreator: React.FC = () => {
                 </div>
 
                 {/* Book Information */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label htmlFor="cover-title" className="block text-sm font-medium text-slate-300 mb-2">
-                            Book Title *
-                        </label>
-                        <input
-                            type="text"
-                            id="cover-title"
-                            value={title}
-                            onChange={(e) => setTitle(e.target.value)}
-                            placeholder="Enter book title"
-                            className="w-full bg-slate-700 border-slate-600 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 text-white placeholder-slate-400 p-3"
-                            required
-                        />
+                {coverType === 'front' ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label htmlFor="cover-title" className="block text-sm font-medium text-slate-300 mb-2">
+                                Book Title *
+                            </label>
+                            <input
+                                type="text"
+                                id="cover-title"
+                                value={title}
+                                onChange={(e) => setTitle(e.target.value)}
+                                placeholder="Enter book title"
+                                className="w-full bg-slate-700 border-slate-600 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 text-white placeholder-slate-400 p-3"
+                                required
+                            />
+                        </div>
+                        <div>
+                            <label htmlFor="cover-author" className="block text-sm font-medium text-slate-300 mb-2">
+                                Author Name
+                            </label>
+                            <input
+                                type="text"
+                                id="cover-author"
+                                value={author}
+                                onChange={(e) => setAuthor(e.target.value)}
+                                placeholder="Author name"
+                                className="w-full bg-slate-700 border-slate-600 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 text-white placeholder-slate-400 p-3"
+                            />
+                        </div>
+                        <div className="md:col-span-2">
+                            <label htmlFor="cover-subtitle" className="block text-sm font-medium text-slate-300 mb-2">
+                                Subtitle (Optional)
+                            </label>
+                            <input
+                                type="text"
+                                id="cover-subtitle"
+                                value={subtitle}
+                                onChange={(e) => setSubtitle(e.target.value)}
+                                placeholder="Book subtitle"
+                                className="w-full bg-slate-700 border-slate-600 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 text-white placeholder-slate-400 p-3"
+                            />
+                        </div>
                     </div>
-                    <div>
-                        <label htmlFor="cover-author" className="block text-sm font-medium text-slate-300 mb-2">
-                            Author Name
-                        </label>
-                        <input
-                            type="text"
-                            id="cover-author"
-                            value={author}
-                            onChange={(e) => setAuthor(e.target.value)}
-                            placeholder="Author name"
-                            className="w-full bg-slate-700 border-slate-600 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 text-white placeholder-slate-400 p-3"
-                        />
+                ) : (
+                    <div className="space-y-4">
+                        <div>
+                            <label htmlFor="book-blurb" className="block text-sm font-medium text-slate-300 mb-2">
+                                Book Blurb / Description *
+                            </label>
+                            <textarea
+                                id="book-blurb"
+                                value={blurb}
+                                onChange={(e) => setBlurb(e.target.value)}
+                                placeholder="Enter the book description or blurb that will appear on the back cover..."
+                                rows={4}
+                                className="w-full bg-slate-700 border-slate-600 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 text-white placeholder-slate-400 p-3 resize-none"
+                                required
+                            />
+                        </div>
+                        <div>
+                            <label htmlFor="author-bio" className="block text-sm font-medium text-slate-300 mb-2">
+                                Author Bio
+                            </label>
+                            <textarea
+                                id="author-bio"
+                                value={authorBio}
+                                onChange={(e) => setAuthorBio(e.target.value)}
+                                placeholder="Brief author biography..."
+                                rows={3}
+                                className="w-full bg-slate-700 border-slate-600 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 text-white placeholder-slate-400 p-3 resize-none"
+                            />
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label htmlFor="isbn" className="block text-sm font-medium text-slate-300 mb-2">
+                                    ISBN
+                                </label>
+                                <input
+                                    type="text"
+                                    id="isbn"
+                                    value={isbn}
+                                    onChange={(e) => setIsbn(e.target.value)}
+                                    placeholder="ISBN-13: 978-0-00-000000-0"
+                                    className="w-full bg-slate-700 border-slate-600 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 text-white placeholder-slate-400 p-3"
+                                />
+                            </div>
+                            <div>
+                                <label htmlFor="price" className="block text-sm font-medium text-slate-300 mb-2">
+                                    Price
+                                </label>
+                                <input
+                                    type="text"
+                                    id="price"
+                                    value={price}
+                                    onChange={(e) => setPrice(e.target.value)}
+                                    placeholder="$9.99"
+                                    className="w-full bg-slate-700 border-slate-600 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 text-white placeholder-slate-400 p-3"
+                                />
+                            </div>
+                        </div>
                     </div>
-                    <div className="md:col-span-2">
-                        <label htmlFor="cover-subtitle" className="block text-sm font-medium text-slate-300 mb-2">
-                            Subtitle (Optional)
-                        </label>
-                        <input
-                            type="text"
-                            id="cover-subtitle"
-                            value={subtitle}
-                            onChange={(e) => setSubtitle(e.target.value)}
-                            placeholder="Book subtitle"
-                            className="w-full bg-slate-700 border-slate-600 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 text-white placeholder-slate-400 p-3"
-                        />
-                    </div>
-                </div>
+                )}
 
                 {/* Cover Style Selection */}
                 <div>
@@ -809,19 +1024,21 @@ export const CoverCreator: React.FC = () => {
                         <Button
                             onClick={handleGenerateAICover}
                             isLoading={isGenerating}
-                            disabled={isGenerating || !title.trim()}
+                            disabled={isGenerating || (coverType === 'front' && !title.trim()) || (coverType === 'back' && !blurb.trim())}
                         >
                             <SparklesIcon className="w-5 h-5 mr-2" />
-                            {isGenerating ? 'Generating AI Cover...' : 'Generate AI Cover'}
+                            {isGenerating 
+                                ? `Generating AI ${coverType === 'front' ? 'Front' : 'Back'} Cover...` 
+                                : `Generate AI ${coverType === 'front' ? 'Front' : 'Back'} Cover`}
                         </Button>
                         
                         <Button
                             onClick={handleGenerateManualCover}
-                            disabled={!title.trim()}
+                            disabled={(coverType === 'front' && !title.trim()) || (coverType === 'back' && !blurb.trim())}
                             variant="secondary"
                         >
                             <PaintBrushIcon className="w-5 h-5 mr-2" />
-                            Create Manual Cover
+                            Create Manual {coverType === 'front' ? 'Front' : 'Back'} Cover
                         </Button>
                     </div>
                     

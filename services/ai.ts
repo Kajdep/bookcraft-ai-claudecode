@@ -355,70 +355,349 @@ export const analyzeChapterForVisuals = async (chapterContent: string, chapterTi
 };
 
 /**
- * Generates Mermaid.js code for a specific visual recommendation.
+ * Sanitizes and validates Mermaid.js code
  */
-export const generateVisual = async (rec: VisualRecommendation): Promise<string> => {
-    const prompt = `
-        Generate Mermaid.js code for a "${rec.type}" diagram.
-        The diagram should visually represent the concept from the following text snippet:
-        "${rec.context}"
-        Reasoning for creation: ${rec.reasoning}.
+const sanitizeMermaidCode = (code: string): string => {
+    // Remove markdown fences
+    let cleaned = code.replace(/```mermaid\n|```/g, "").trim();
+    
+    // Remove any leading/trailing quotes that might have been added
+    cleaned = cleaned.replace(/^["']|["']$/g, '');
+    
+    // Ensure proper line breaks and remove excessive whitespace
+    cleaned = cleaned.replace(/\r\n/g, '\n');
+    cleaned = cleaned.split('\n')
+        .map(line => line.trim())
+        .filter(line => line.length > 0)
+        .join('\n');
+    
+    // Fix common syntax issues
+    // 1. Ensure arrows have proper spacing
+    cleaned = cleaned.replace(/-->/g, ' --> ');
+    cleaned = cleaned.replace(/--->/g, ' ---> ');
+    cleaned = cleaned.replace(/\|/g, ' | ');
+    
+    // 2. Clean up excessive spaces
+    cleaned = cleaned.replace(/\s+/g, ' ');
+    cleaned = cleaned.split('\n').map(line => line.trim()).join('\n');
+    
+    // 3. Ensure node IDs don't have spaces (common error)
+    // This is a basic fix for common cases
+    cleaned = cleaned.replace(/([A-Z]+\d+)\s+([A-Z]+\d+)/g, '$1_$2');
+    
+    return cleaned;
+};
 
-        Return ONLY the raw Mermaid.js code block. Do not include markdown fences like \`\`\`mermaid or any other explanations.
-    `;
+/**
+ * Validates basic Mermaid.js syntax
+ */
+const validateMermaidSyntax = (code: string): { valid: boolean; error?: string } => {
+    const lines = code.split('\n');
+    
+    // Check if first line declares diagram type
+    const validTypes = ['graph', 'flowchart', 'sequenceDiagram', 'classDiagram', 'stateDiagram', 
+                        'erDiagram', 'journey', 'gantt', 'pie', 'mindmap', 'timeline'];
+    
+    const firstLine = lines[0].toLowerCase();
+    const hasValidType = validTypes.some(type => firstLine.startsWith(type));
+    
+    if (!hasValidType) {
+        return { 
+            valid: false, 
+            error: `Missing or invalid diagram type. First line should start with one of: ${validTypes.join(', ')}` 
+        };
+    }
+    
+    // Basic syntax checks
+    if (code.length < 10) {
+        return { valid: false, error: 'Mermaid code too short to be valid' };
+    }
+    
+    // Check for balanced brackets/quotes (basic check)
+    const openBrackets = (code.match(/\[/g) || []).length;
+    const closeBrackets = (code.match(/\]/g) || []).length;
+    const openParens = (code.match(/\(/g) || []).length;
+    const closeParens = (code.match(/\)/g) || []).length;
+    
+    if (Math.abs(openBrackets - closeBrackets) > 2 || Math.abs(openParens - closeParens) > 2) {
+        return { valid: false, error: 'Unbalanced brackets or parentheses in Mermaid code' };
+    }
+    
+    return { valid: true };
+};
 
-    try {
-        const response = await callOpenRouter(prompt);
-        return response.replace(/```mermaid\n|```/g, "").trim();
-    } catch (error) {
-        log.aiError('Visual generation failed', error as Error);
-        throw new Error("Failed to generate visual from AI.");
+/**
+ * Generates a fallback simple Mermaid diagram when generation fails
+ */
+const generateFallbackMermaid = (type: VisualType, context: string): string => {
+    const safeContext = context.substring(0, 50).replace(/[\[\]"']/g, '');
+    
+    switch (type) {
+        case VisualType.Flowchart:
+            return `flowchart TD
+    A[Start] --> B[${safeContext}]
+    B --> C[End]`;
+        
+        case VisualType.MindMap:
+            return `mindmap
+  root((${safeContext}))
+    Topic 1
+    Topic 2
+    Topic 3`;
+        
+        case VisualType.Timeline:
+            return `timeline
+    title ${safeContext}
+    Step 1
+    Step 2
+    Step 3`;
+        
+        case VisualType.Pie:
+            return `pie title ${safeContext}
+    "Section A" : 30
+    "Section B" : 40
+    "Section C" : 30`;
+        
+        case VisualType.Gantt:
+            return `gantt
+    title ${safeContext}
+    dateFormat YYYY-MM-DD
+    section Section
+    Task 1 :a1, 2024-01-01, 30d
+    Task 2 :after a1, 20d`;
+        
+        default:
+            return `graph TD
+    A[${safeContext}] --> B[Details]
+    B --> C[More Info]`;
     }
 };
 
 /**
- * Generates an image based on a text prompt.
- * Currently uses placeholder generation as Gemini doesn't support native image generation yet.
- * In the future, this can integrate with DALL-E, Stable Diffusion, or other image generation APIs.
+ * Generates Mermaid.js code for a specific visual recommendation.
+ */
+export const generateVisual = async (rec: VisualRecommendation): Promise<string> => {
+    // Enhanced prompt with specific Mermaid syntax guidance
+    const typeGuidance = {
+        [VisualType.Flowchart]: 'Use "flowchart TD" or "flowchart LR" syntax. Nodes should be in format: A[Label] --> B[Label]',
+        [VisualType.MindMap]: 'Use "mindmap" syntax with proper indentation. Root node: root((Label))',
+        [VisualType.Timeline]: 'Use "timeline" syntax with title and chronological events',
+        [VisualType.Pie]: 'Use "pie" syntax with title and sections with percentages',
+        [VisualType.Gantt]: 'Use "gantt" syntax with dateFormat, sections, and tasks',
+        [VisualType.Diagram]: 'Use "graph TD" syntax for top-down or "graph LR" for left-right flow'
+    };
+    
+    const guidance = typeGuidance[rec.type] || 'Use appropriate Mermaid syntax';
+    
+    const prompt = `
+        Generate valid Mermaid.js code for a "${rec.type}" diagram.
+        
+        Context to visualize: "${rec.context.substring(0, 300)}"
+        Purpose: ${rec.reasoning}
+        
+        IMPORTANT SYNTAX RULES:
+        - ${guidance}
+        - Start with the diagram type declaration (e.g., "flowchart TD", "mindmap", "timeline")
+        - Keep node labels short and clear (under 30 characters)
+        - Use simple ASCII characters only, avoid special symbols
+        - Ensure all brackets and parentheses are balanced
+        - Test that your syntax is valid Mermaid.js v10+ compatible
+        
+        Return ONLY the raw Mermaid.js code. Do NOT include:
+        - Markdown fences (\`\`\`mermaid)
+        - Explanations or comments
+        - Any text before or after the diagram code
+        
+        Example format:
+        flowchart TD
+            A[Start] --> B[Process]
+            B --> C[End]
+    `;
+
+    try {
+        const response = await callOpenRouter(prompt);
+        let mermaidCode = sanitizeMermaidCode(response);
+        
+        // Validate the generated code
+        const validation = validateMermaidSyntax(mermaidCode);
+        
+        if (!validation.valid) {
+            log.warn('Generated Mermaid code failed validation', { 
+                error: validation.error,
+                type: rec.type,
+                codePreview: mermaidCode.substring(0, 100)
+            });
+            
+            // Try to use fallback
+            log.info('Using fallback Mermaid diagram', { type: rec.type });
+            mermaidCode = generateFallbackMermaid(rec.type, rec.context);
+        }
+        
+        return mermaidCode;
+    } catch (error) {
+        log.aiError('Visual generation failed, using fallback', error as Error);
+        // Return a fallback diagram instead of throwing
+        return generateFallbackMermaid(rec.type, rec.context);
+    }
+};
+
+/**
+ * Generates an image based on a text prompt using Google Gemini Imagen API.
+ * Falls back to placeholder generation if Gemini API is not configured.
  */
 export const generateImage = async (prompt: string): Promise<string> => {
     const settings = await getAISettings();
-    
-    // Check if we have alternative image generation APIs configured
-    const dalleApiKey = process.env.DALLE_API_KEY;
-    const stabilityApiKey = process.env.STABILITY_API_KEY;
+    const envConfig = getEnvironmentConfig();
     
     try {
+        // Primary: Try Gemini Imagen if API key is available
+        if (settings.geminiApiKey) {
+            log.info('Attempting Gemini Imagen generation', { prompt: prompt.substring(0, 50) });
+            try {
+                return await generateImageWithGemini(prompt, settings.geminiApiKey);
+            } catch (error) {
+                log.error('Gemini image generation failed', error as Error);
+                // Continue to fallbacks
+            }
+        }
+        
+        // Secondary: Check for alternative image generation APIs from environment
+        const dalleApiKey = process.env.DALLE_API_KEY;
+        const stabilityApiKey = process.env.STABILITY_API_KEY;
+        
         // Try DALL-E if available
         if (dalleApiKey) {
             log.info('Attempting DALL-E image generation', { prompt: prompt.substring(0, 50) });
-            return await generateImageWithDallE(prompt, dalleApiKey);
+            try {
+                return await generateImageWithDallE(prompt, dalleApiKey);
+            } catch (error) {
+                log.error('DALL-E image generation failed', error as Error);
+            }
         }
         
         // Try Stability AI if available
         if (stabilityApiKey) {
             log.info('Attempting Stability AI image generation', { prompt: prompt.substring(0, 50) });
-            return await generateImageWithStability(prompt, stabilityApiKey);
-        }
-        
-        // Try OpenRouter with vision models (some may support image generation)
-        if (settings.openRouterApiKey) {
-            log.info('Attempting OpenRouter image generation', { prompt: prompt.substring(0, 50) });
             try {
-                return await generateImageWithOpenRouter(prompt, settings.openRouterApiKey);
+                return await generateImageWithStability(prompt, stabilityApiKey);
             } catch (error) {
-                log.warn('OpenRouter image generation failed, falling back to placeholder', error as Error);
+                log.error('Stability AI image generation failed', error as Error);
             }
         }
         
         // Fallback: Generate a placeholder image with text overlay
-        log.info('Generating placeholder image', { prompt: prompt.substring(0, 50) });
+        log.info('No image generation API configured, using placeholder', { prompt: prompt.substring(0, 50) });
         return generatePlaceholderImage(prompt);
         
     } catch (error) {
         log.aiError('All image generation methods failed', error as Error);
         // Always fall back to placeholder generation
         return generatePlaceholderImage(prompt);
+    }
+};
+
+/**
+ * Generates an image using Google Gemini Imagen API via Vertex AI
+ * Note: As of 2024, Gemini's text-to-image is available through Vertex AI Imagen
+ * This implementation uses the Google AI Studio API format
+ */
+const generateImageWithGemini = async (prompt: string, apiKey: string): Promise<string> => {
+    log.info('Attempting Gemini-based image generation', { promptLength: prompt.length });
+    
+    try {
+        // Try using Vertex AI Imagen API format
+        // Model: imagen-3.0-generate-001 or imagen-3.0-fast-generate-001
+        const apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:generateImages';
+        
+        const response = await fetch(`${apiUrl}?key=${apiKey}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                prompt: prompt,
+                number_of_images: 1,
+                aspect_ratio: '1:1',
+                safety_filter_level: 'block_some',
+                person_generation: 'allow_adult',
+                include_safety_attributes: false
+            })
+        });
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            let errorDetails;
+            try {
+                errorDetails = JSON.parse(errorText);
+            } catch {
+                errorDetails = errorText;
+            }
+            
+            log.error('Gemini Imagen API error', { 
+                status: response.status, 
+                statusText: response.statusText,
+                error: errorDetails 
+            });
+            
+            // Check if it's a "not available" error
+            if (response.status === 404 || response.status === 400) {
+                throw new Error('Gemini Imagen API is not available or not enabled for this API key. Please enable Vertex AI Imagen in your Google Cloud project.');
+            }
+            
+            throw new Error(`Gemini Imagen API error (${response.status}): ${JSON.stringify(errorDetails)}`);
+        }
+        
+        const data = await response.json();
+        
+        log.debug('Gemini Imagen response structure', { 
+            hasGeneratedImages: !!data.generated_images,
+            responseKeys: Object.keys(data)
+        });
+        
+        // Parse response - Gemini Imagen returns base64 images
+        if (data.generated_images && data.generated_images.length > 0) {
+            const imageData = data.generated_images[0];
+            
+            // Check various possible field names for the base64 image
+            if (imageData.image_base64) {
+                log.info('Gemini Imagen generation successful via image_base64');
+                return imageData.image_base64;
+            } else if (imageData.bytesBase64Encoded) {
+                log.info('Gemini Imagen generation successful via bytesBase64Encoded');
+                return imageData.bytesBase64Encoded;
+            } else if (imageData.image) {
+                log.info('Gemini Imagen generation successful via image');
+                return imageData.image;
+            } else if (typeof imageData === 'string') {
+                log.info('Gemini Imagen generation successful (string response)');
+                return imageData;
+            } else {
+                log.error('Unexpected image data structure', { imageData: JSON.stringify(imageData).substring(0, 200) });
+                throw new Error('Gemini Imagen returned unexpected image data structure');
+            }
+        }
+        
+        // Also check for alternative response formats
+        if (data.predictions && data.predictions.length > 0) {
+            const prediction = data.predictions[0];
+            if (prediction.bytesBase64Encoded) {
+                log.info('Gemini Imagen generation successful via predictions');
+                return prediction.bytesBase64Encoded;
+            }
+        }
+        
+        log.error('Gemini Imagen response missing image data', { 
+            responseKeys: Object.keys(data),
+            response: JSON.stringify(data).substring(0, 500)
+        });
+        throw new Error('Gemini Imagen response did not contain expected image data');
+        
+    } catch (error) {
+        log.error('Gemini Imagen generation failed', {
+            error: error instanceof Error ? error.message : String(error),
+            promptPreview: prompt.substring(0, 50)
+        });
+        throw error;
     }
 };
 

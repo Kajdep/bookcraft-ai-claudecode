@@ -1,0 +1,61 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "D:\\googleaistudio\\bookcraft-ai-claudecode"
+      ],
+      "description": "Enhanced file system operations with watching and metadata",
+      "disabled": false
+    },
+    "git": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-git",
+        "--repository",
+        "D:\\googleaistudio\\bookcraft-ai-claudecode"
+      ],
+      "description": "Advanced git operations including history, blame, and diffs",
+      "disabled": false
+    },
+    "sqlite": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-sqlite",
+        "--db-path",
+        "D:\\googleaistudio\\bookcraft-ai-claudecode\\bookcraft.db"
+      ],
+      "description": "SQLite database for structured project data storage",
+      "disabled": false
+    },
+    "brave-search": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-brave-search"
+      ],
+      "env": {
+        "BRAVE_API_KEY": ""
+      },
+      "description": "Web search capabilities for research features (requires Brave API key)",
+      "disabled": true
+    },
+    "visual-ui-debug-agent": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@samihalawa/visual-ui-debug-agent-mcp"
+      ],
+      "env": {
+        "SMITHERY_PROFILE": "unwilling-gerbil-tTtNVd",
+        "SMITHERY_KEY": "c67d419d-888a-4c9c-aea4-f3e4573e90dd"
+      },
+      "description": "Visual UI debugging agent for React component inspection and testing",
+      "disabled": false
+    }
+  }
+}

@@ -53,8 +53,8 @@ export const ImageGenerationTab: React.FC<ImageGenerationTabProps> = ({ project 
             </Card>
 
             <div>
-                <h3 className="text-2xl font-bold mb-4">Generated Images</h3>
-                {isGeneratingImage && project.generatedImages.length === 0 && (
+                <h3 className="text-2xl font-bold text-slate-200 mb-4">Generated Images</h3>
+                {isGeneratingImage && (project.generatedImages || []).length === 0 && (
                      <Card className="bg-slate-800/50">
                         <LoadingState
                             type="image"
@@ -64,9 +64,9 @@ export const ImageGenerationTab: React.FC<ImageGenerationTabProps> = ({ project 
                     </Card>
                 )}
 
-                {project.generatedImages.length > 0 ? (
+                {(project.generatedImages || []).length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {project.generatedImages.map(image => (
+                        {(project.generatedImages || []).map(image => (
                             <ErrorBoundary key={image.id}>
                                 <Card className="group overflow-hidden">
                                     <div className="aspect-square bg-slate-900 flex items-center justify-center">

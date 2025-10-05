@@ -288,7 +288,7 @@ export const KDPCalculator: React.FC = () => {
                         <div className="text-sm text-red-200">
                             <p className="font-medium mb-2">KDP Compliance Issues:</p>
                             <ul className="list-disc pl-4 space-y-1">
-                                {validationErrors?.map((error, index) => (
+                                {(validationErrors || []).map((error, index) => (
                                     <li key={index}>{error}</li>
                                 ))}
                             </ul>
@@ -356,7 +356,7 @@ export const KDPCalculator: React.FC = () => {
             <div className="bg-slate-900/50 p-4 rounded-lg">
                 <h4 className="font-semibold text-brand-primary mb-3">Recommended Sizes for {selectedGenre?.charAt(0).toUpperCase() + selectedGenre?.slice(1)}</h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {recommendedSizes?.map(size => (
+                    {(recommendedSizes || []).map(size => (
                         <button
                             key={size.key}
                             onClick={() => setPaperSize(size.key)}

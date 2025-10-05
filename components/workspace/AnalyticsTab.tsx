@@ -190,17 +190,20 @@ const SimpleChart: React.FC<{
     color?: string;
     height?: number;
 }> = ({ data, type, color = '#3B82F6', height = 200 }) => {
-    if (data.length === 0) return <div className="text-center text-slate-500 p-8">No data available</div>;
+    // Defensive check: ensure data is an array
+    const safeData = Array.isArray(data) ? data : [];
 
-    const maxValue = Math.max(...data.map(d => d.value));
-    const minValue = Math.min(...data.map(d => d.value));
+    if (safeData.length === 0) return <div className="text-center text-slate-500 p-8">No data available</div>;
+
+    const maxValue = Math.max(...safeData.map(d => d.value));
+    const minValue = Math.min(...safeData.map(d => d.value));
     const range = maxValue - minValue || 1;
 
     return (
         <div className="relative" style={{ height }}>
             <svg width="100%" height="100%" className="overflow-visible">
-                {data.map((item, index) => {
-                    const x = (index / (data.length - 1 || 1)) * 100;
+                {safeData.map((item, index) => {
+                    const x = (index / (safeData.length - 1 || 1)) * 100;
                     const y = 100 - ((item.value - minValue) / range) * 80;
                     
                     return (
@@ -215,12 +218,12 @@ const SimpleChart: React.FC<{
                                     className="opacity-80 hover:opacity-100"
                                 />
                             )}
-                            {type === 'line' && index < data.length - 1 && (
+                            {type === 'line' && index < safeData.length - 1 && (
                                 <line
                                     x1={`${x}%`}
                                     y1={`${y}%`}
-                                    x2={`${((index + 1) / (data.length - 1)) * 100}%`}
-                                    y2={`${100 - ((data[index + 1].value - minValue) / range) * 80}%`}
+                                    x2={`${((index + 1) / (safeData.length - 1)) * 100}%`}
+                                    y2={`${100 - ((safeData[index + 1].value - minValue) / range) * 80}%`}
                                     stroke={color}
                                     strokeWidth="2"
                                 />
@@ -466,8 +469,8 @@ export const AnalyticsTab: React.FC = () => {
                         />
                         <StatCard
                             title="Active Goals"
-                            value={analyticsData.goals.filter(g => !g.completed).length}
-                            subtitle={`${analyticsData.goals.filter(g => g.completed).length} completed`}
+                            value={(analyticsData.goals || []).filter(g => !g.completed).length}
+                            subtitle={`${(analyticsData.goals || []).filter(g => g.completed).length} completed`}
                             icon={<TargetIcon className="w-6 h-6" />}
                             color="purple"
                         />
@@ -481,7 +484,7 @@ export const AnalyticsTab: React.FC = () => {
                                 Daily Word Count (Last 14 Days)
                             </h3>
                             <SimpleChart
-                                data={analyticsData.productivity.daily.map(d => ({
+                                data={(analyticsData.productivity?.daily || []).map(d => ({
                                     label: d.date,
                                     value: d.words
                                 }))}
@@ -497,7 +500,7 @@ export const AnalyticsTab: React.FC = () => {
                                 Daily Writing Time (Minutes)
                             </h3>
                             <SimpleChart
-                                data={analyticsData.productivity.daily.map(d => ({
+                                data={(analyticsData.productivity?.daily || []).map(d => ({
                                     label: d.date,
                                     value: d.minutes
                                 }))}
@@ -520,7 +523,7 @@ export const AnalyticsTab: React.FC = () => {
                             </Button>
                         </div>
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                            {analyticsData.goals.slice(0, 4).map(goal => (
+                            {(analyticsData.goals || []).slice(0, 4).map(goal => (
                                 <GoalCard
                                     key={goal.id}
                                     goal={goal}
@@ -544,7 +547,7 @@ export const AnalyticsTab: React.FC = () => {
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                        {analyticsData.goals.map(goal => (
+                        {(analyticsData.goals || []).map(goal => (
                             <GoalCard
                                 key={goal.id}
                                 goal={goal}
@@ -555,7 +558,7 @@ export const AnalyticsTab: React.FC = () => {
                         ))}
                     </div>
 
-                    {analyticsData.goals.length === 0 && (
+                    {(analyticsData.goals || []).length === 0 && (
                         <Card className="p-8 text-center">
                             <TargetIcon className="mx-auto h-12 w-12 text-slate-600 mb-4" />
                             <h3 className="text-lg font-semibold text-slate-300 mb-2">No Goals Set</h3>
@@ -586,7 +589,7 @@ export const AnalyticsTab: React.FC = () => {
                         <Card className="p-6">
                             <h4 className="text-lg font-semibold text-slate-200 mb-4">Words Written</h4>
                             <SimpleChart
-                                data={analyticsData.productivity.daily.map(d => ({
+                                data={(analyticsData.productivity?.daily || []).map(d => ({
                                     label: d.date,
                                     value: d.words
                                 }))}
@@ -599,7 +602,7 @@ export const AnalyticsTab: React.FC = () => {
                         <Card className="p-6">
                             <h4 className="text-lg font-semibold text-slate-200 mb-4">Time Spent Writing</h4>
                             <SimpleChart
-                                data={analyticsData.productivity.daily.map(d => ({
+                                data={(analyticsData.productivity?.daily || []).map(d => ({
                                     label: d.date,
                                     value: d.minutes
                                 }))}
@@ -615,19 +618,28 @@ export const AnalyticsTab: React.FC = () => {
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div className="text-center p-4 bg-slate-800/50 rounded-lg">
                                 <div className="text-2xl font-bold text-blue-400">
-                                    {Math.round(analyticsData.productivity.daily.reduce((sum, d) => sum + d.words, 0) / analyticsData.productivity.daily.length)}
+                                    {(analyticsData.productivity?.daily || []).length > 0
+                                        ? Math.round((analyticsData.productivity?.daily || []).reduce((sum, d) => sum + d.words, 0) / (analyticsData.productivity?.daily || []).length)
+                                        : 0}
                                 </div>
                                 <div className="text-sm text-slate-400">Avg Words/Day</div>
                             </div>
                             <div className="text-center p-4 bg-slate-800/50 rounded-lg">
                                 <div className="text-2xl font-bold text-green-400">
-                                    {Math.round(analyticsData.productivity.daily.reduce((sum, d) => sum + d.minutes, 0) / analyticsData.productivity.daily.length)}
+                                    {(analyticsData.productivity?.daily || []).length > 0
+                                        ? Math.round((analyticsData.productivity?.daily || []).reduce((sum, d) => sum + d.minutes, 0) / (analyticsData.productivity?.daily || []).length)
+                                        : 0}
                                 </div>
                                 <div className="text-sm text-slate-400">Avg Minutes/Day</div>
                             </div>
                             <div className="text-center p-4 bg-slate-800/50 rounded-lg">
                                 <div className="text-2xl font-bold text-purple-400">
-                                    {Math.round(analyticsData.productivity.daily.reduce((sum, d) => sum + d.words, 0) / analyticsData.productivity.daily.reduce((sum, d) => sum + d.minutes, 0) * 60)}
+                                    {(() => {
+                                        const daily = analyticsData.productivity?.daily || [];
+                                        const totalWords = daily.reduce((sum, d) => sum + d.words, 0);
+                                        const totalMinutes = daily.reduce((sum, d) => sum + d.minutes, 0);
+                                        return totalMinutes > 0 ? Math.round(totalWords / totalMinutes * 60) : 0;
+                                    })()}
                                 </div>
                                 <div className="text-sm text-slate-400">Words/Hour</div>
                             </div>
@@ -666,7 +678,7 @@ export const AnalyticsTab: React.FC = () => {
                         <Card className="p-6">
                             <h4 className="text-lg font-semibold text-slate-200 mb-4">Chapter Analysis</h4>
                             <div className="space-y-4">
-                                {project.chapters.slice(0, 5).map((chapter, index) => (
+                                {(project?.chapters || []).slice(0, 5).map((chapter, index) => (
                                     <div key={chapter.id} className="flex justify-between items-center">
                                         <span className="text-slate-300 truncate">{chapter.title || `Chapter ${chapter.order}`}</span>
                                         <span className="text-slate-400">{(chapter.content?.split(' ').length || 0).toLocaleString()} words</span>

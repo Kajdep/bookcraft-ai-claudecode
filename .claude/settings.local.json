@@ -42,7 +42,16 @@
       "Bash(git clone:*)",
       "Bash(tasklist:*)",
       "Bash(grep:*)",
-      "Bash(ren:*)"
+      "Bash(ren:*)",
+      "Bash(if not exist test-screenshots mkdir test-screenshots)",
+      "Bash(npm run preview:*)",
+      "Bash(start msedge http://localhost:4173/)",
+      "Bash(start msedge http://localhost:4174/)",
+      "Bash(start msedge http://localhost:4175/)",
+      "Bash(git log:*)",
+      "Bash(where node)",
+      "Bash(npm --version)",
+      "mcp__ide__getDiagnostics"
     ],
     "deny": [],
     "ask": []

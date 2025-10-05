@@ -433,7 +433,8 @@ export const MaterialTab: React.FC = () => {
 
     // Filter and search materials
     const filteredMaterials = useMemo(() => {
-        return materials.filter(material => {
+        // Create a copy of materials array to avoid mutating readonly state
+        return [...materials].filter(material => {
             if (searchTerm && !material.title.toLowerCase().includes(searchTerm.toLowerCase()) &&
                 !material.description?.toLowerCase().includes(searchTerm.toLowerCase()) &&
                 !material.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))) {

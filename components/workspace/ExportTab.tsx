@@ -152,21 +152,21 @@ export const ExportTab: React.FC = () => {
         if (!project) return;
 
         try {
-            // Prepare chapters content
-            const chapters = project.chapters
+            // Prepare chapters content - Defensive check for chapters array
+            const chapters = (project.chapters || [])
                 .sort((a, b) => a.order - b.order)
                 .map((chapter, index) => {
                     let content = `<h1>${chapter.title}</h1>`;
-                    
+
                     // Convert plain text content to HTML with basic formatting
                     const htmlContent = chapter.content
                         .replace(/\n\n/g, '</p><p>')
                         .replace(/\n/g, '<br/>')
                         .replace(/^/, '<p>')
                         .replace(/$/, '</p>');
-                    
+
                     content += htmlContent;
-                    
+
                     return {
                         title: chapter.title,
                         data: content,
@@ -174,10 +174,10 @@ export const ExportTab: React.FC = () => {
                     };
                 });
 
-            // Add images if included
+            // Add images if included - Defensive check for generatedImages array
             const images: Array<{url: string, alt: string, filename: string}> = [];
-            if (exportOptions.includeImages && project.generatedImages) {
-                project.generatedImages.forEach((img, index) => {
+            if (exportOptions.includeImages && Array.isArray(project.generatedImages)) {
+                (project.generatedImages || []).forEach((img, index) => {
                     images.push({
                         url: img.base64Image,
                         alt: img.prompt,
@@ -186,15 +186,15 @@ export const ExportTab: React.FC = () => {
                 });
             }
 
-            // Render visuals as SVG if included
-            if (exportOptions.includeVisuals && project.visuals) {
+            // Render visuals as SVG if included - Defensive check for visuals array
+            if (exportOptions.includeVisuals && Array.isArray(project.visuals) && project.visuals.length > 0) {
                 mermaid.initialize({
                     startOnLoad: false,
                     theme: 'default',
                     securityLevel: 'loose'
                 });
 
-                for (const [index, visual] of project.visuals.entries()) {
+                for (const [index, visual] of (project.visuals || []).entries()) {
                     try {
                         const { svg } = await mermaid.render(`epub-vis-${visual.id}`, visual.content.mermaidCode);
                         
@@ -396,26 +396,26 @@ export const ExportTab: React.FC = () => {
             
             addNewPage();
 
-            // Table of Contents
+            // Table of Contents - Defensive check for chapters array
             if (exportOptions.includeTOC) {
                 pdf.setFontSize(18);
                 pdf.text('Table of Contents', pageWidth / 2, yPosition, { align: 'center' });
                 yPosition += 40;
-                
+
                 pdf.setFontSize(typo.fontSize);
-                project.chapters
+                (project.chapters || [])
                     .sort((a, b) => a.order - b.order)
                     .forEach((chapter, index) => {
                         checkPageBreak(typo.fontSize * typo.lineHeight + 5);
                         pdf.text(`${index + 1}. ${chapter.title}`, margins.left, yPosition);
                         yPosition += typo.fontSize * typo.lineHeight + 5;
                     });
-                    
+
                 addNewPage();
             }
 
-            // Chapters
-            project.chapters
+            // Chapters - Defensive check for chapters array
+            (project.chapters || [])
                 .sort((a, b) => a.order - b.order)
                 .forEach((chapter, chapterIndex) => {
                     // Chapter title
@@ -467,9 +467,9 @@ export const ExportTab: React.FC = () => {
                     yPosition += typo.fontSize * typo.chapterSpacing;
                 });
             
-            // Images
-            if (exportOptions.includeImages && project.generatedImages) {
-                for (const img of project.generatedImages) {
+            // Images - Defensive check for generatedImages array
+            if (exportOptions.includeImages && Array.isArray(project.generatedImages) && project.generatedImages.length > 0) {
+                for (const img of (project.generatedImages || [])) {
                     addNewPage();
                     
                     pdf.setFontSize(14);
@@ -506,15 +506,15 @@ export const ExportTab: React.FC = () => {
                 }
             }
             
-            // Visuals
-            if (exportOptions.includeVisuals && project.visuals) {
+            // Visuals - Defensive check for visuals array
+            if (exportOptions.includeVisuals && Array.isArray(project.visuals) && project.visuals.length > 0) {
                 mermaid.initialize({
                     startOnLoad: false,
                     theme: 'default',
                     securityLevel: 'loose'
                 });
 
-                for (const visual of project.visuals) {
+                for (const visual of (project.visuals || [])) {
                     addNewPage();
                     
                     pdf.setFontSize(14);
@@ -636,7 +636,7 @@ export const ExportTab: React.FC = () => {
             
             const documentChildren = [...titlePageChildren];
             
-            // Table of Contents
+            // Table of Contents - Defensive check for chapters array
             if (exportOptions.includeTOC) {
                 documentChildren.push(
                     new Paragraph({
@@ -651,8 +651,8 @@ export const ExportTab: React.FC = () => {
                         spacing: { after: 400 }
                     })
                 );
-                
-                project.chapters
+
+                (project.chapters || [])
                     .sort((a, b) => a.order - b.order)
                     .forEach((chapter, index) => {
                         documentChildren.push(
@@ -670,8 +670,8 @@ export const ExportTab: React.FC = () => {
                 documentChildren.push(new Paragraph({ children: [new PageBreak()] }));
             }
             
-            // Chapters
-            project.chapters
+            // Chapters - Defensive check for chapters array
+            (project.chapters || [])
                 .sort((a, b) => a.order - b.order)
                 .forEach((chapter, chapterIndex) => {
                     // Chapter title
@@ -689,11 +689,11 @@ export const ExportTab: React.FC = () => {
                             pageBreakBefore: chapterIndex > 0
                         })
                     );
-                    
+
                     // Chapter content - split into paragraphs
-                    const paragraphs = chapter.content.split('\n\n').filter(p => p.trim());
-                    
-                    paragraphs.forEach((paragraphText, paragraphIndex) => {
+                    const paragraphs = (chapter.content || '').split('\n\n').filter(p => p.trim());
+
+                    (paragraphs || []).forEach((paragraphText, paragraphIndex) => {
                         const isFirstParagraph = paragraphIndex === 0;
                         const children = [];
                         
@@ -739,8 +739,8 @@ export const ExportTab: React.FC = () => {
                     });
                 });
             
-            // Images section
-            if (exportOptions.includeImages && project.generatedImages) {
+            // Images section - Defensive check for generatedImages array
+            if (exportOptions.includeImages && Array.isArray(project.generatedImages) && project.generatedImages.length > 0) {
                 documentChildren.push(
                     new Paragraph({ children: [new PageBreak()] }),
                     new Paragraph({
@@ -755,8 +755,8 @@ export const ExportTab: React.FC = () => {
                         spacing: { after: 400 }
                     })
                 );
-                
-                for (const img of project.generatedImages) {
+
+                for (const img of (project.generatedImages || [])) {
                     try {
                         // Add image title
                         documentChildren.push(
@@ -1052,10 +1052,10 @@ export const ExportTab: React.FC = () => {
                 htmlContent += `<p style="text-align: center; font-size: 1.2em; margin-bottom: 2em;">by ${exportOptions.author}</p>`;
             }
 
-            // Table of Contents
+            // Table of Contents - Defensive check for chapters array
             if (exportOptions.includeTOC) {
                 htmlContent += '<div class="toc"><h2>Table of Contents</h2><ul>';
-                project.chapters
+                (project.chapters || [])
                     .sort((a, b) => a.order - b.order)
                     .forEach((chapter, index) => {
                         const anchor = `chapter-${index + 1}`;
@@ -1064,27 +1064,27 @@ export const ExportTab: React.FC = () => {
                 htmlContent += '</ul></div>';
             }
 
-            // Chapters
-            project.chapters
+            // Chapters - Defensive check for chapters array
+            (project.chapters || [])
                 .sort((a, b) => a.order - b.order)
                 .forEach((chapter, index) => {
                     const anchor = `chapter-${index + 1}`;
                     htmlContent += `<div class="chapter"><h2 id="${anchor}">${chapter.title}</h2>`;
-                    
+
                     // Convert plain text to HTML paragraphs
-                    const paragraphs = chapter.content
+                    const paragraphs = (chapter.content || '')
                         .split('\n\n')
                         .filter(p => p.trim())
                         .map(p => `<p>${p.trim().replace(/\n/g, '<br>')}</p>`)
                         .join('');
-                    
+
                     htmlContent += paragraphs + '</div>';
                 });
 
-            // Images
-            if (exportOptions.includeImages && project.generatedImages) {
+            // Images - Defensive check for generatedImages array
+            if (exportOptions.includeImages && Array.isArray(project.generatedImages) && project.generatedImages.length > 0) {
                 htmlContent += '<div class="images-section"><h2>Generated Images</h2>';
-                project.generatedImages.forEach(img => {
+                (project.generatedImages || []).forEach(img => {
                     htmlContent += `
                         <div style="margin-bottom: 2em; text-align: center;">
                             <h3>${img.prompt}</h3>
@@ -1095,17 +1095,17 @@ export const ExportTab: React.FC = () => {
                 htmlContent += '</div>';
             }
 
-            // Visuals
-            if (exportOptions.includeVisuals && project.visuals) {
+            // Visuals - Defensive check for visuals array
+            if (exportOptions.includeVisuals && Array.isArray(project.visuals) && project.visuals.length > 0) {
                 htmlContent += '<div class="visuals-section"><h2>Diagrams</h2>';
-                
+
                 mermaid.initialize({
                     startOnLoad: false,
                     theme: 'default',
                     securityLevel: 'loose'
                 });
 
-                for (const visual of project.visuals) {
+                for (const visual of (project.visuals || [])) {
                     try {
                         const { svg } = await mermaid.render(`html-vis-${visual.id}`, visual.content.mermaidCode);
                         htmlContent += `

@@ -13,9 +13,9 @@ export const VisualLibraryTab: React.FC<VisualLibraryTabProps> = ({ project }) =
     return (
         <div className="space-y-6 animate-fade-in">
              <h3 className="text-2xl font-bold">Generated Visuals</h3>
-             {project.visuals.length > 0 ? (
+             {(project.visuals || []).length > 0 ? (
                 <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                    {project.visuals.map(vis => <VisualCard key={vis.id} visual={vis} />)}
+                    {(project.visuals || []).map(vis => <VisualCard key={vis.id} visual={vis} />)}
                 </div>
              ) : (
                 <div className="text-center py-16 border-2 border-dashed border-slate-700 rounded-lg bg-slate-800/20">

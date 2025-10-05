@@ -49,7 +49,7 @@ export const PlottingToolModal: React.FC<PlottingToolModalProps> = ({ isOpen, on
                         onChange={(e) => setPrompt(e.target.value)}
                         placeholder={'e.g., "A detective in a cyberpunk city has to solve the murder of a high-profile CEO, but the main suspect is an advanced android who claims innocence."'}
                         rows={5}
-                        className="w-full bg-slate-700 border-slate-600 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary sm:text-sm p-2"
+                        className="w-full bg-slate-700 border-slate-600 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary sm:text-sm p-2 text-slate-200 placeholder-slate-400"
                         required
                     />
                  </div>

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useBookCraftStore } from '../../store/useStore';
 import { ChapterKanbanView } from './ChapterKanbanView';
 import { ChapterListView } from './ChapterListView';
@@ -17,28 +17,38 @@ type ViewMode = 'list' | 'kanban';
 export const WritingDesk: React.FC = () => {
     const [viewMode, setViewMode] = useState<ViewMode>('list');
     const chapters = useBookCraftStore(state => state.projects[state.activeProjectId!]?.chapters || []);
-    const [selectedChapterId, setSelectedChapterId] = useState<string | null>(null);
+    const storedActiveChapterId = useBookCraftStore(state => state.activeChapterId);
+    const setActiveChapter = useBookCraftStore(state => state.setActiveChapter);
+    const clearActiveChapter = useBookCraftStore(state => state.clearActiveChapter);
     const [isPlannerOpen, setIsPlannerOpen] = useState(false);
     const [isResearchOpen, setIsResearchOpen] = useState(false);
     const [isTemplatesOpen, setIsTemplatesOpen] = useState(false);
 
     // FIX: Refactored active chapter logic to be more declarative and robust.
     // This solves the bug where the editor wouldn't appear after generating chapters.
+    const sortedChapters = useMemo(() => [...chapters].sort((a, b) => a.order - b.order), [chapters]);
+
     const activeChapterId = useMemo(() => {
-        // If the user has selected a chapter and it still exists, keep it.
-        if (selectedChapterId && chapters.some(c => c.id === selectedChapterId)) {
-            return selectedChapterId;
+        if (storedActiveChapterId && sortedChapters.some(c => c.id === storedActiveChapterId)) {
+            return storedActiveChapterId;
         }
-        // If there's no valid selection but chapters exist, default to the first one.
-        if (chapters.length > 0) {
-            return [...chapters].sort((a, b) => a.order - b.order)[0].id;
+        if (sortedChapters.length > 0) {
+            return sortedChapters[0].id;
         }
-        // Otherwise, no chapter is active.
         return null;
-    }, [chapters, selectedChapterId]);
+    }, [sortedChapters, storedActiveChapterId]);
+
+    useEffect(() => {
+        if (activeChapterId && activeChapterId !== storedActiveChapterId) {
+            setActiveChapter(activeChapterId);
+        }
+        if (!activeChapterId && storedActiveChapterId) {
+            clearActiveChapter();
+        }
+    }, [activeChapterId, storedActiveChapterId, setActiveChapter, clearActiveChapter]);
 
     const handleChapterSelect = (id: string) => {
-        setSelectedChapterId(id);
+        setActiveChapter(id);
     };
 
     const ViewToggle: React.FC = () => (
@@ -88,7 +98,7 @@ export const WritingDesk: React.FC = () => {
                     </div>
                 </div>
                 <ChapterKanbanView onChapterSelect={(id) => {
-                    setSelectedChapterId(id);
+                    setActiveChapter(id);
                     setViewMode('list');
                 }} />
 

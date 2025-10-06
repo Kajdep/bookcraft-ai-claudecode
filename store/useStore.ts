@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 import { storageAdapter } from './storageAdapter';
-import type { Project, Chapter, VisualRecommendation, Visual, GeneratedImage, PlotPoint, ResearchItem, ResearchType, FactCheckResult, ResearchQuery, ResearchFolder, Citation, CitationStyle, ThematicTag, ResearchTimeline, ResearchMindMap, ResearchAttachment, ResearchContradiction, Settings, MaterialItem, MaterialFolder, MaterialType, MaterialCategory } from '../types';
+import type { Project, Chapter, VisualRecommendation, Visual, GeneratedImage, PlotPoint, ResearchItem, ResearchType, FactCheckResult, ResearchQuery, ResearchFolder, Citation, CitationStyle, ThematicTag, ResearchTimeline, ResearchMindMap, ResearchAttachment, ResearchContradiction, Settings, MaterialItem, MaterialFolder, MaterialType, MaterialCategory, User } from '../types';
 
 // Analytics types
 export interface WritingSession {
@@ -97,6 +97,14 @@ interface BookCraftState {
     // Settings state
     settings: Settings | null;
 
+    // Setup wizard state
+    isSetupComplete: boolean;
+    availableModels: Array<{ value: string; label: string; description?: string }>;
+
+    // Auth state
+    isAuthenticated: boolean;
+    currentUser: User | null;
+
     // Research state
     activeResearchQuery: string | null;
     isResearching: boolean;
@@ -145,6 +153,15 @@ interface BookCraftActions {
 
     // Settings Management
     updateSettings: (newSettings: Partial<Settings>) => void;
+    markSetupComplete: () => void;
+    setAvailableModels: (models: Array<{ value: string; label: string; description?: string }>) => void;
+    setTheme: (theme: 'light' | 'dark') => void;
+
+    // Auth Management
+    login: (email: string, password: string) => Promise<boolean>;
+    register: (email: string, password: string, name: string) => Promise<boolean>;
+    logout: () => void;
+    updateUserProfile: (updates: Partial<User>) => void;
 
     // Chapter Management
     addChapter: () => void;
@@ -324,6 +341,14 @@ export const useBookCraftStore = create<BookCraftState & BookCraftActions>()(
 
             // Settings state
             settings: null,
+
+            // Setup wizard state
+            isSetupComplete: false,
+            availableModels: [],
+
+            // Auth state
+            isAuthenticated: false,
+            currentUser: null,
 
             // Research state
             activeResearchQuery: null,
@@ -523,6 +548,152 @@ export const useBookCraftStore = create<BookCraftState & BookCraftActions>()(
                 set((state) => {
                     state.settings = { ...state.settings, ...newSettings };
                 });
+            },
+
+            markSetupComplete: () => {
+                set((state) => {
+                    state.isSetupComplete = true;
+                });
+            },
+
+            setAvailableModels: (models) => {
+                set((state) => {
+                    state.availableModels = models;
+                });
+            },
+
+            setTheme: (theme) => {
+                set((state) => {
+                    if (!state.settings) {
+                        state.settings = {};
+                    }
+                    state.settings.theme = theme;
+                });
+                // Apply theme to document
+                if (theme === 'dark') {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+            },
+
+            // Auth Management
+            login: async (email, password) => {
+                try {
+                    // Get stored users from localStorage
+                    const storedUsers = localStorage.getItem('bookcraft_users');
+                    const users = storedUsers ? JSON.parse(storedUsers) : {};
+
+                    // Check if user exists and password matches
+                    const userKey = email.toLowerCase();
+                    if (users[userKey] && users[userKey].password === password) {
+                        const user: User = {
+                            id: users[userKey].id,
+                            email: email,
+                            name: users[userKey].name,
+                            createdAt: new Date(users[userKey].createdAt),
+                            lastLogin: new Date()
+                        };
+
+                        // Update last login
+                        users[userKey].lastLogin = new Date().toISOString();
+                        localStorage.setItem('bookcraft_users', JSON.stringify(users));
+
+                        set((state) => {
+                            state.isAuthenticated = true;
+                            state.currentUser = user;
+                        });
+
+                        toast.success('Welcome Back!', `Logged in as ${user.name}`);
+                        return true;
+                    } else {
+                        toast.error('Login Failed', 'Invalid email or password');
+                        return false;
+                    }
+                } catch (error) {
+                    toast.error('Login Error', 'An error occurred during login');
+                    return false;
+                }
+            },
+
+            register: async (email, password, name) => {
+                try {
+                    // Get stored users from localStorage
+                    const storedUsers = localStorage.getItem('bookcraft_users');
+                    const users = storedUsers ? JSON.parse(storedUsers) : {};
+
+                    const userKey = email.toLowerCase();
+
+                    // Check if user already exists
+                    if (users[userKey]) {
+                        toast.error('Registration Failed', 'An account with this email already exists');
+                        return false;
+                    }
+
+                    // Create new user
+                    const userId = `user_${Date.now()}`;
+                    const now = new Date().toISOString();
+
+                    users[userKey] = {
+                        id: userId,
+                        email: email,
+                        name: name,
+                        password: password, // In production, this should be hashed
+                        createdAt: now,
+                        lastLogin: now
+                    };
+
+                    // Save to localStorage
+                    localStorage.setItem('bookcraft_users', JSON.stringify(users));
+
+                    // Auto-login after registration
+                    const user: User = {
+                        id: userId,
+                        email: email,
+                        name: name,
+                        createdAt: new Date(now),
+                        lastLogin: new Date(now)
+                    };
+
+                    set((state) => {
+                        state.isAuthenticated = true;
+                        state.currentUser = user;
+                    });
+
+                    toast.success('Account Created!', `Welcome to BookCraft AI, ${name}!`);
+                    return true;
+                } catch (error) {
+                    toast.error('Registration Error', 'An error occurred during registration');
+                    return false;
+                }
+            },
+
+            logout: () => {
+                set((state) => {
+                    state.isAuthenticated = false;
+                    state.currentUser = null;
+                });
+                toast.success('Logged Out', 'You have been successfully logged out');
+            },
+
+            updateUserProfile: (updates) => {
+                set((state) => {
+                    if (state.currentUser) {
+                        state.currentUser = { ...state.currentUser, ...updates };
+
+                        // Update in localStorage
+                        const storedUsers = localStorage.getItem('bookcraft_users');
+                        if (storedUsers) {
+                            const users = JSON.parse(storedUsers);
+                            const userKey = state.currentUser.email.toLowerCase();
+                            if (users[userKey]) {
+                                users[userKey].name = state.currentUser.name;
+                                localStorage.setItem('bookcraft_users', JSON.stringify(users));
+                            }
+                        }
+                    }
+                });
+                toast.success('Profile Updated', 'Your profile has been updated successfully');
             },
 
             // Chapter Management

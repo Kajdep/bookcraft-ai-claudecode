@@ -382,6 +382,15 @@ export interface Project {
     };
 }
 
+// User Authentication
+export interface User {
+    id: string;
+    email: string;
+    name: string;
+    createdAt: Date;
+    lastLogin: Date;
+}
+
 // Application Settings
 export interface Settings {
     // API Configuration

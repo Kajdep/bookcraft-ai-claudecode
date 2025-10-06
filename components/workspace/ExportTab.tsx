@@ -134,8 +134,10 @@ export const ExportTab: React.FC = () => {
         publicationDate: new Date().toISOString().split('T')[0]
     });
     const [showAdvanced, setShowAdvanced] = useState(false);
-    
-    const project = useBookCraftStore(state => state.projects[state.activeProjectId!]);
+
+    const project = useBookCraftStore(state =>
+        state.activeProjectId ? state.projects[state.activeProjectId] : null
+    );
 
     // Initialize author and genre from project
     React.useEffect(() => {
@@ -1174,6 +1176,21 @@ export const ExportTab: React.FC = () => {
         }
     };
 
+
+    // Show message if no project is selected
+    if (!project) {
+        return (
+            <div className="animate-fade-in">
+                <Card className="p-12 text-center">
+                    <BookOpenIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                    <h3 className="text-xl font-semibold text-gray-700 mb-2">No Project Selected</h3>
+                    <p className="text-gray-600">
+                        Please select or create a project to export your manuscript.
+                    </p>
+                </Card>
+            </div>
+        );
+    }
 
     return (
         <div className="animate-fade-in space-y-6">

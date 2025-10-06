@@ -127,7 +127,7 @@ export const WritingDesk: React.FC = () => {
                         <SparklesIcon className="w-5 h-5 mr-2"/>
                         AI Project Planner
                     </Button>
-                    <Button onClick={() => setIsTemplatesOpen(true)} variant="outline">
+                    <Button onClick={() => setIsTemplatesOpen(true)} variant="secondary">
                         <DocumentTextIcon className="w-5 h-5 mr-2"/>
                         Writing Templates
                     </Button>

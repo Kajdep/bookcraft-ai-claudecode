@@ -766,12 +766,15 @@ export const WritingTemplatesModal: React.FC<WritingTemplatesModalProps> = ({ is
                 });
             });
 
+            toast.success('Template Applied!', `Created "${projectTitle}" with ${selectedTemplate.structure.length} chapters. Start writing in the Writing Studio tab!`);
+
             onClose();
             setSelectedTemplate(null);
             setCustomSettings({});
-            
+
         } catch (error) {
             log.error('WritingTemplatesModal: Error applying writing template', error);
+            toast.error('Template Error', 'Failed to apply template. Please try again.');
         }
     };
 

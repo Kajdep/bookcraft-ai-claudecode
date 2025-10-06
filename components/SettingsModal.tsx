@@ -226,7 +226,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                     <div className="space-y-6 pb-6">
                         {/* API Keys Tab */}
                         {activeTab === 'api' && (
-                            <>
+                            <form onSubmit={(e) => e.preventDefault()}>
                                 <div>
                                     <h3 className="text-lg font-semibold text-gray-900 mb-2">API Configuration</h3>
                                     <p className="text-sm text-gray-600 mb-6">
@@ -361,7 +361,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                         </div>
                                     </div>
                                 </div>
-                            </>
+                            </form>
                         )}
 
                         {/* Storage Tab */}

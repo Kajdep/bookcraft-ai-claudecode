@@ -75,42 +75,65 @@ export const ChapterEditorView: React.FC<ChapterEditorViewProps> = ({ chapterId 
     }, [chapter]);
 
     // FIX: Save content immediately when component unmounts
+    // Use refs to avoid infinite loop caused by dependencies
+    const contentRef = React.useRef(content);
+    const notesRef = React.useRef(notes);
+    const titleRef = React.useRef(title);
+    const chapterRef = React.useRef(chapter);
+
+    React.useEffect(() => {
+        contentRef.current = content;
+        notesRef.current = notes;
+        titleRef.current = title;
+        chapterRef.current = chapter;
+    }, [content, notes, title, chapter]);
+
     useEffect(() => {
         return () => {
             // Save any pending changes when unmounting
-            if (chapter && content && content !== chapter.content) {
-                log.debug('ChapterEditorView: Saving content on unmount', { chapterId: chapter.id });
-                updateChapter(chapter.id, { content });
+            const currentChapter = chapterRef.current;
+            const currentContent = contentRef.current;
+            const currentNotes = notesRef.current;
+            const currentTitle = titleRef.current;
+
+            if (currentChapter && currentContent && currentContent !== currentChapter.content) {
+                log.debug('ChapterEditorView: Saving content on unmount', { chapterId: currentChapter.id });
+                updateChapter(currentChapter.id, { content: currentContent });
             }
-            if (chapter && notes && notes !== chapter.notes) {
-                log.debug('ChapterEditorView: Saving notes on unmount', { chapterId: chapter.id });
-                updateChapter(chapter.id, { notes });
+            if (currentChapter && currentNotes && currentNotes !== currentChapter.notes) {
+                log.debug('ChapterEditorView: Saving notes on unmount', { chapterId: currentChapter.id });
+                updateChapter(currentChapter.id, { notes: currentNotes });
             }
-            if (chapter && title && title !== chapter.title) {
-                log.debug('ChapterEditorView: Saving title on unmount', { chapterId: chapter.id });
-                updateChapter(chapter.id, { title });
+            if (currentChapter && currentTitle && currentTitle !== currentChapter.title) {
+                log.debug('ChapterEditorView: Saving title on unmount', { chapterId: currentChapter.id });
+                updateChapter(currentChapter.id, { title: currentTitle });
             }
         };
-    }, [chapter, content, notes, title, updateChapter]);
+    }, [updateChapter]); // Only depend on updateChapter, use refs for values
 
     // ENHANCED: Add beforeunload safety to prevent data loss on browser navigation/refresh
     useEffect(() => {
         const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-            // Always try to save before potential unload
-            if (chapter) {
-                if (content && content !== chapter.content) {
-                    updateChapter(chapter.id, { content });
-                    log.info('ChapterEditorView: Emergency save on beforeunload', { chapterId: chapter.id });
+            // Always try to save before potential unload using refs
+            const currentChapter = chapterRef.current;
+            const currentContent = contentRef.current;
+            const currentNotes = notesRef.current;
+            const currentTitle = titleRef.current;
+
+            if (currentChapter) {
+                if (currentContent && currentContent !== currentChapter.content) {
+                    updateChapter(currentChapter.id, { content: currentContent });
+                    log.info('ChapterEditorView: Emergency save on beforeunload', { chapterId: currentChapter.id });
                 }
-                if (notes && notes !== chapter.notes) {
-                    updateChapter(chapter.id, { notes });
+                if (currentNotes && currentNotes !== currentChapter.notes) {
+                    updateChapter(currentChapter.id, { notes: currentNotes });
                 }
-                if (title && title !== chapter.title) {
-                    updateChapter(chapter.id, { title });
+                if (currentTitle && currentTitle !== currentChapter.title) {
+                    updateChapter(currentChapter.id, { title: currentTitle });
                 }
-                
+
                 // Show warning if there are unsaved changes
-                if (content !== chapter.content || notes !== chapter.notes || title !== chapter.title) {
+                if (currentContent !== currentChapter.content || currentNotes !== currentChapter.notes || currentTitle !== currentChapter.title) {
                     e.preventDefault();
                     e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
                     return e.returnValue;
@@ -120,7 +143,7 @@ export const ChapterEditorView: React.FC<ChapterEditorViewProps> = ({ chapterId 
 
         window.addEventListener('beforeunload', handleBeforeUnload);
         return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-    }, [chapter, content, notes, title, updateChapter]);
+    }, [updateChapter]); // Only updateChapter in dependencies
 
 
     // FIX: Stable content saving with memoized comparison

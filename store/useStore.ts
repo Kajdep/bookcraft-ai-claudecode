@@ -62,6 +62,7 @@ import { log } from '../services/logger';
 interface BookCraftState {
     projects: Record<string, Project>;
     activeProjectId: string | null;
+    activeChapterId: string | null;
     isCreateModalOpen: boolean;
     isLoading: boolean; // For global loading like analysis
     generatingVisualFor: string | null; // ID of recommendation being generated
@@ -147,6 +148,8 @@ interface BookCraftActions {
     updateProject: (id: string, updates: Partial<Pick<Project, 'title' | 'genre' | 'visualStyle' | 'status'>>) => void;
     deleteProject: (id: string) => void;
     setActiveProject: (id: string | null) => void;
+    setActiveChapter: (chapterId: string | null) => void;
+    clearActiveChapter: () => void;
     toggleCreateModal: (isOpen: boolean) => void;
     closeAllModals: () => void;
     initializeApp: () => void;
@@ -332,6 +335,7 @@ export const useBookCraftStore = create<BookCraftState & BookCraftActions>()(
             // STATE
             projects: {} as Record<string, Project>,
             activeProjectId: null,
+            activeChapterId: null,
             isCreateModalOpen: false,
             isLoading: false,
             generatingVisualFor: null,
@@ -467,10 +471,19 @@ export const useBookCraftStore = create<BookCraftState & BookCraftActions>()(
                     if (state.activeProjectId === id) {
                         state.activeProjectId = null;
                     }
+                    if (state.activeChapterId) {
+                        state.activeChapterId = null;
+                    }
                 });
             },
             setActiveProject: (id) => {
                 set({ activeProjectId: id });
+            },
+            setActiveChapter: (chapterId) => {
+                set({ activeChapterId: chapterId });
+            },
+            clearActiveChapter: () => {
+                set({ activeChapterId: null });
             },
             toggleCreateModal: (isOpen) => {
                 set((state) => {
@@ -737,10 +750,13 @@ export const useBookCraftStore = create<BookCraftState & BookCraftActions>()(
             deleteChapter: (chapterId) => {
                 const projectId = get().activeProjectId;
                 if (!projectId) return;
-                 set(state => {
+                set(state => {
                     const project = state.projects[projectId];
                     if (project) {
                         project.chapters = project.chapters.filter(c => c.id !== chapterId);
+                    }
+                    if (state.activeChapterId === chapterId) {
+                        state.activeChapterId = null;
                     }
                 });
             },
@@ -2781,6 +2797,7 @@ export const useBookCraftStore = create<BookCraftState & BookCraftActions>()(
                 // ONLY persist data, NEVER persist UI state
                 projects: state.projects,
                 activeProjectId: state.activeProjectId,
+                activeChapterId: state.activeChapterId,
                 settings: state.settings,
                 // Persist analytics data
                 writingSessions: state.writingSessions,

@@ -15,6 +15,8 @@ const ChapterCard: React.FC<ChapterCardProps> = ({ chapter, onSelect }) => {
     // FIX: Select actions individually to prevent re-renders from new object references.
     const updateChapter = useBookCraftStore(state => state.updateChapter);
     const deleteChapter = useBookCraftStore(state => state.deleteChapter);
+    const setActiveChapter = useBookCraftStore(state => state.setActiveChapter);
+    const clearActiveChapter = useBookCraftStore(state => state.clearActiveChapter);
 
     const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         e.stopPropagation();
@@ -25,13 +27,19 @@ const ChapterCard: React.FC<ChapterCardProps> = ({ chapter, onSelect }) => {
         e.stopPropagation();
         if (window.confirm(`Are you sure you want to delete "${chapter.title}"?`)) {
             deleteChapter(chapter.id);
+            if (useBookCraftStore.getState().activeChapterId === chapter.id) {
+                clearActiveChapter();
+            }
         }
     };
 
     return (
         <Card
             className="mb-3 cursor-pointer bg-gray-100 hover:bg-white/50 hover:border-brand-primary"
-            onClick={() => onSelect(chapter.id)}
+            onClick={() => {
+                setActiveChapter(chapter.id);
+                onSelect(chapter.id);
+            }}
         >
             <div className="p-4">
                 <div className="flex justify-between items-start">

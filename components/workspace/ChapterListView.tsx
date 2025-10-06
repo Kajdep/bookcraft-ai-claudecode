@@ -150,6 +150,8 @@ export const ChapterListView: React.FC<ChapterListViewProps> = ({ activeChapterI
     // FIX: Select the raw chapters array to prevent re-renders.
     const rawChapters = useBookCraftStore(state => state.projects[state.activeProjectId!]?.chapters || []);
     const reorderChapters = useBookCraftStore(state => state.reorderChapters);
+    const setActiveChapter = useBookCraftStore(state => state.setActiveChapter);
+    const clearActiveChapter = useBookCraftStore(state => state.clearActiveChapter);
 
     const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
     const [dropTargetIndex, setDropTargetIndex] = useState<number | null>(null);
@@ -165,14 +167,21 @@ export const ChapterListView: React.FC<ChapterListViewProps> = ({ activeChapterI
     
     const handleDeleteChapter = (chapterId: string) => {
         deleteChapter(chapterId);
-        // If the deleted chapter was active, clear the selection
         if (chapterId === activeChapterId) {
-            // Select the first remaining chapter if available
             const remainingChapters = chapters.filter(c => c.id !== chapterId);
             if (remainingChapters.length > 0) {
-                onChapterSelect(remainingChapters[0].id);
+                const nextId = remainingChapters[0].id;
+                setActiveChapter(nextId);
+                onChapterSelect(nextId);
+            } else {
+                clearActiveChapter();
             }
         }
+    };
+
+    const handleSelectChapter = (chapterId: string) => {
+        setActiveChapter(chapterId);
+        onChapterSelect(chapterId);
     };
     
     const handleStatusChange = (chapterId: string, status: ChapterStatus) => {
@@ -228,7 +237,7 @@ export const ChapterListView: React.FC<ChapterListViewProps> = ({ activeChapterI
                             chapter={chap}
                             index={index}
                             isActive={chap.id === activeChapterId}
-                            onSelect={onChapterSelect}
+                            onSelect={handleSelectChapter}
                             onDelete={handleDeleteChapter}
                             onStatusChange={handleStatusChange}
                             isDragged={draggedIndex === index}

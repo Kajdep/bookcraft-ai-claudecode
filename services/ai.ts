@@ -1120,6 +1120,136 @@ export const cleanupAndFormatText = async (text: string): Promise<string> => {
 };
 
 /**
+ * Grammar check interface
+ */
+export interface GrammarError {
+    id: string;
+    type: 'grammar' | 'spelling' | 'punctuation' | 'style' | 'clarity';
+    originalText: string;
+    suggestion: string;
+    explanation: string;
+    startOffset: number;
+    endOffset: number;
+    severity: 'error' | 'warning' | 'suggestion';
+}
+
+/**
+ * Performs comprehensive grammar, spelling, punctuation, and style checking on text.
+ * Uses AI to detect and suggest corrections for various writing issues.
+ */
+export const checkGrammar = async (text: string): Promise<GrammarError[]> => {
+    // Limit text length to avoid excessive API costs
+    const maxLength = 3000;
+    const analyzedText = text.length > maxLength ? text.substring(0, maxLength) : text;
+    
+    const prompt = `
+        You are an expert copy editor and proofreader. Analyze the following text for grammar, spelling, punctuation, style, and clarity issues.
+        
+        TEXT TO ANALYZE:
+        ---
+        ${analyzedText}
+        ---
+        
+        For EACH issue you find, provide:
+        1. "type": The category - one of: grammar, spelling, punctuation, style, clarity
+        2. "originalText": The exact text that has the issue (keep it short, 1-10 words)
+        3. "suggestion": The corrected version
+        4. "explanation": Brief explanation of why this is an issue (1 sentence)
+        5. "severity": How serious - one of: error, warning, suggestion
+        
+        IMPORTANT RULES:
+        - Focus on the most important issues (max 15 issues)
+        - "originalText" should be SHORT - just the phrase with the problem
+        - Be specific and actionable
+        - Prioritize errors > warnings > suggestions
+        - For clarity issues, suggest better phrasing
+        - For style issues, suggest improvements for readability
+        
+        Return ONLY a valid JSON object with this exact format (no markdown, no explanations):
+        {
+            "errors": [
+                {
+                    "type": "grammar",
+                    "originalText": "he don't",
+                    "suggestion": "he doesn't",
+                    "explanation": "Subject-verb agreement: singular subject requires 'doesn't'",
+                    "severity": "error"
+                },
+                {
+                    "type": "clarity",
+                    "originalText": "very good",
+                    "suggestion": "excellent",
+                    "explanation": "More precise word choice improves clarity",
+                    "severity": "suggestion"
+                }
+            ]
+        }
+        
+        If no issues are found, return: {"errors": []}
+    `;
+
+    try {
+        log.debug('Starting grammar check', { textLength: analyzedText.length });
+        const response = await callOpenRouter(prompt, true);
+        
+        let json;
+        try {
+            json = JSON.parse(response);
+        } catch (parseError) {
+            log.error('Failed to parse grammar check JSON', { 
+                response: response.substring(0, 200),
+                error: parseError 
+            });
+            throw new Error('Invalid JSON response from AI service');
+        }
+        
+        // Validate and process errors
+        if (!json.errors || !Array.isArray(json.errors)) {
+            log.warn('Invalid grammar check response format', { json });
+            return [];
+        }
+        
+        // Map to GrammarError format with IDs and offsets
+        const grammarErrors: GrammarError[] = json.errors
+            .filter((e: any) => 
+                e.type && e.originalText && e.suggestion && e.explanation && e.severity
+            )
+            .map((e: any, index: number) => {
+                // Try to find the text position in the original
+                const startOffset = text.indexOf(e.originalText);
+                const endOffset = startOffset >= 0 ? startOffset + e.originalText.length : 0;
+                
+                return {
+                    id: `grammar_${Date.now()}_${index}`,
+                    type: e.type,
+                    originalText: e.originalText,
+                    suggestion: e.suggestion,
+                    explanation: e.explanation,
+                    startOffset: startOffset >= 0 ? startOffset : 0,
+                    endOffset: endOffset,
+                    severity: e.severity
+                } as GrammarError;
+            });
+        
+        log.info('Grammar check completed', { 
+            errorsFound: grammarErrors.length,
+            byType: {
+                grammar: grammarErrors.filter(e => e.type === 'grammar').length,
+                spelling: grammarErrors.filter(e => e.type === 'spelling').length,
+                punctuation: grammarErrors.filter(e => e.type === 'punctuation').length,
+                style: grammarErrors.filter(e => e.type === 'style').length,
+                clarity: grammarErrors.filter(e => e.type === 'clarity').length,
+            }
+        });
+        
+        return grammarErrors;
+    } catch (error) {
+        log.aiError('Grammar check failed', error as Error);
+        throw new Error("Failed to check grammar with AI.");
+    }
+};
+
+/**
  * Analyzes text and suggests a visual (image or diagram).
  */
 export const generateVisualSuggestion = async (text: string): Promise<{ type: 'image' | 'diagram'; prompt: string; reasoning: string; diagramType?: VisualType }> => {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Modal, Button, Input, Select } from './UI';
 import { useBookCraftStore } from '../store/useStore';
 import { 
@@ -10,6 +10,21 @@ import {
 import { logger } from '../services/logger';
 import { toast } from '../services/toast';
 
+const FALLBACK_OPENROUTER_MODELS: Array<{ value: string; label: string; description?: string }> = [
+    { value: 'nvidia/nemotron-nano-9b-v2:free', label: 'Nemotron Nano 9B (Free)', description: 'Fast and efficient free model' },
+    { value: 'anthropic/claude-3.5-sonnet', label: 'Claude 3.5 Sonnet', description: 'High-quality reasoning and writing' },
+    { value: 'anthropic/claude-3-haiku', label: 'Claude 3 Haiku', description: 'Fast and cost-effective' },
+    { value: 'openai/gpt-4o', label: 'GPT-4o', description: "OpenAI's latest multimodal model" },
+    { value: 'openai/gpt-4o-mini', label: 'GPT-4o Mini', description: 'Smaller, faster GPT-4o variant' },
+    { value: 'openai/gpt-4-turbo', label: 'GPT-4 Turbo', description: 'Advanced reasoning with large context' },
+    { value: 'openai/gpt-3.5-turbo', label: 'GPT-3.5 Turbo', description: 'Balanced performance and cost' },
+    { value: 'google/gemini-pro-1.5', label: 'Gemini Pro 1.5', description: "Google's advanced model" },
+    { value: 'meta-llama/llama-3.1-405b-instruct', label: 'Llama 3.1 405B', description: "Meta's largest open model" },
+    { value: 'meta-llama/llama-3.1-70b-instruct', label: 'Llama 3.1 70B', description: 'Balanced open source model' },
+    { value: 'mistralai/mistral-large', label: 'Mistral Large', description: "Mistral's flagship model" },
+    { value: 'cohere/command-r-plus', label: 'Command R+', description: "Cohere's advanced model" }
+];
+
 interface SettingsModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -18,7 +33,18 @@ interface SettingsModalProps {
 type TabType = 'api' | 'models' | 'storage' | 'editor' | 'export' | 'advanced';
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
-    const { settings, updateSettings, syncStatus, lastSyncTime, storageMode, manualSync, getStorageStats, configureStorage } = useBookCraftStore();
+    const {
+        settings,
+        updateSettings,
+        syncStatus,
+        lastSyncTime,
+        storageMode,
+        manualSync,
+        getStorageStats,
+        configureStorage,
+        availableModels,
+        setAvailableModels,
+    } = useBookCraftStore();
     const [activeTab, setActiveTab] = useState<TabType>('api');
 
     // Local form state - API Keys
@@ -54,21 +80,88 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     const [debugMode, setDebugMode] = useState(settings?.debugMode || false);
     const [telemetry, setTelemetry] = useState(settings?.telemetry !== false);
 
-    // Available OpenRouter models
-    const openRouterModels = [
-        { value: 'nvidia/nemotron-nano-9b-v2:free', label: 'Nemotron Nano 9B (Free)', description: 'Fast and efficient free model' },
-        { value: 'anthropic/claude-3.5-sonnet', label: 'Claude 3.5 Sonnet', description: 'High-quality reasoning and writing' },
-        { value: 'anthropic/claude-3-haiku', label: 'Claude 3 Haiku', description: 'Fast and cost-effective' },
-        { value: 'openai/gpt-4o', label: 'GPT-4o', description: 'OpenAI\'s latest multimodal model' },
-        { value: 'openai/gpt-4o-mini', label: 'GPT-4o Mini', description: 'Smaller, faster GPT-4o variant' },
-        { value: 'openai/gpt-4-turbo', label: 'GPT-4 Turbo', description: 'Advanced reasoning with large context' },
-        { value: 'openai/gpt-3.5-turbo', label: 'GPT-3.5 Turbo', description: 'Balanced performance and cost' },
-        { value: 'google/gemini-pro-1.5', label: 'Gemini Pro 1.5', description: 'Google\'s advanced model' },
-        { value: 'meta-llama/llama-3.1-405b-instruct', label: 'Llama 3.1 405B', description: 'Meta\'s largest open model' },
-        { value: 'meta-llama/llama-3.1-70b-instruct', label: 'Llama 3.1 70B', description: 'Balanced open source model' },
-        { value: 'mistralai/mistral-large', label: 'Mistral Large', description: 'Mistral\'s flagship model' },
-        { value: 'cohere/command-r-plus', label: 'Command R+', description: 'Cohere\'s advanced model' }
-    ];
+    const [isFetchingModels, setIsFetchingModels] = useState(false);
+    const [modelsError, setModelsError] = useState<string | null>(null);
+
+    const savedOpenRouterKey = settings?.openRouterApiKey;
+    const savedOpenRouterEndpoint = (settings?.openRouterEndpoint || 'https://openrouter.ai/api/v1').replace(/\/+$/, '');
+
+    useEffect(() => {
+        if (!availableModels || availableModels.length === 0) {
+            setAvailableModels([...FALLBACK_OPENROUTER_MODELS]);
+        }
+    }, [availableModels, setAvailableModels]);
+
+    useEffect(() => {
+        if (!isOpen) {
+            setModelsError(null);
+            setIsFetchingModels(false);
+        }
+    }, [isOpen]);
+
+    const fetchAvailableModels = useCallback(async () => {
+        if (!savedOpenRouterKey) {
+            setModelsError('Add and save your OpenRouter API key in the API Keys tab to load the latest model list.');
+            return;
+        }
+
+        setIsFetchingModels(true);
+        setModelsError(null);
+
+        try {
+            const response = await fetch(`${savedOpenRouterEndpoint}/models`, {
+                headers: {
+                    Authorization: `Bearer ${savedOpenRouterKey}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error(`OpenRouter responded with status ${response.status}`);
+            }
+
+            const payload = await response.json();
+            const mappedModels = (Array.isArray(payload?.data) ? payload.data : [])
+                .map((model: any) => {
+                    const value = model?.id || model?.slug || model?.name;
+                    if (!value) {
+                        return null;
+                    }
+
+                    return {
+                        value,
+                        label: model?.name || model?.id || 'Unnamed Model',
+                        description:
+                            model?.description ||
+                            model?.details?.description ||
+                            model?.pricing?.prompt ||
+                            undefined,
+                    };
+                })
+                .filter((model): model is { value: string; label: string; description?: string } => Boolean(model));
+
+            if (mappedModels.length === 0) {
+                setModelsError('No models were returned by OpenRouter. Showing the fallback list for now.');
+                return;
+            }
+
+            mappedModels.sort((a, b) => a.label.localeCompare(b.label));
+            setAvailableModels(mappedModels);
+        } catch (error) {
+            logger.error('Failed to fetch OpenRouter models', error);
+            setModelsError('Unable to load models from OpenRouter. Showing the fallback list instead.');
+        } finally {
+            setIsFetchingModels(false);
+        }
+    }, [logger, savedOpenRouterEndpoint, savedOpenRouterKey, setAvailableModels]);
+
+    useEffect(() => {
+        if (isOpen && activeTab === 'models') {
+            fetchAvailableModels();
+        }
+    }, [isOpen, activeTab, fetchAvailableModels]);
+
+    const modelOptions = availableModels && availableModels.length > 0 ? availableModels : FALLBACK_OPENROUTER_MODELS;
 
     // Sync with store when modal opens
     useEffect(() => {
@@ -317,7 +410,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                         />
                                     </div>
                                 </div>
-                            </>
+                            </form>
                         )}
 
                         {/* AI Models Tab */}
@@ -332,15 +425,41 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
 
                                 <div className="space-y-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                                            Default AI Model
-                                        </label>
+                                        <div className="flex items-center justify-between mb-2">
+                                            <label className="block text-sm font-medium text-gray-700">
+                                                Default AI Model
+                                            </label>
+                                            <Button
+                                                variant="secondary"
+                                                size="sm"
+                                                onClick={fetchAvailableModels}
+                                                disabled={isFetchingModels}
+                                            >
+                                                <RefreshCw
+                                                    size={14}
+                                                    className={`${isFetchingModels ? 'animate-spin' : ''} mr-2`}
+                                                />
+                                                {isFetchingModels ? 'Refreshing...' : 'Refresh'}
+                                            </Button>
+                                        </div>
                                         <Select
                                             value={defaultModel}
                                             onChange={setDefaultModel}
-                                            options={openRouterModels}
+                                            options={modelOptions}
                                             placeholder="Select a model..."
                                         />
+                                        {isFetchingModels && (
+                                            <p className="text-xs text-gray-500 mt-2 flex items-center space-x-2">
+                                                <RefreshCw size={14} className="animate-spin" />
+                                                <span>Loading the latest models from OpenRouter...</span>
+                                            </p>
+                                        )}
+                                        {modelsError && (
+                                            <div className="mt-2 flex items-start space-x-2 rounded-md border border-red-200 bg-red-50 p-3 text-xs text-red-600">
+                                                <AlertCircle size={14} className="mt-0.5" />
+                                                <span>{modelsError}</span>
+                                            </div>
+                                        )}
                                         <p className="text-xs text-gray-500 mt-1">
                                             Choose the AI model for text generation. Free models are marked accordingly.
                                         </p>
@@ -361,7 +480,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                         </div>
                                     </div>
                                 </div>
-                            </form>
+                            </>
                         )}
 
                         {/* Storage Tab */}

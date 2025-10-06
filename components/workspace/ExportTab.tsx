@@ -20,6 +20,7 @@ type ExportFormat = 'pdf' | 'epub' | 'html' | 'docx';
 type TrimSize = 'dynamic' | '6x9' | '5.5x8.5' | '5x8' | '7x10' | '8.5x11' | '8.5x5.5';
 type FontFamily = 'times' | 'georgia' | 'garamond' | 'minion' | 'palatino';
 type PaperColor = 'white' | 'cream' | 'natural';
+type DropdownOption = { value: string; label: string; description?: string };
 
 interface TypographyOptions {
     fontFamily: FontFamily;
@@ -108,6 +109,40 @@ const PAPER_COLORS = {
     'cream': { name: 'Cream', color: '#fefdf8', description: 'Warm, easy on eyes' },
     'natural': { name: 'Natural', color: '#faf9f6', description: 'Slightly off-white' }
 };
+
+const EXPORT_FORMAT_OPTIONS: DropdownOption[] = [
+    { value: 'pdf', label: '📄 PDF (Print Ready)', description: 'Perfect for print-on-demand and physical books' },
+    { value: 'epub', label: '📚 EPUB (eBook)', description: 'Standard ebook format for digital distribution' },
+    { value: 'docx', label: '📝 Word Document (DOCX)', description: 'Microsoft Word format for traditional publishing workflows' },
+    { value: 'html', label: '🌐 HTML (Web)', description: 'Web-friendly format for online reading' }
+];
+
+const LANGUAGE_OPTIONS: DropdownOption[] = [
+    { value: 'en', label: 'English' },
+    { value: 'es', label: 'Spanish' },
+    { value: 'fr', label: 'French' },
+    { value: 'de', label: 'German' },
+    { value: 'it', label: 'Italian' },
+    { value: 'pt', label: 'Portuguese' }
+];
+
+const TRIM_SIZE_OPTIONS: DropdownOption[] = Object.entries(TRIM_SIZES).map(([key, size]) => ({
+    value: key,
+    label: size.name,
+    description: size.description
+}));
+
+const FONT_FAMILY_OPTIONS: DropdownOption[] = Object.entries(FONT_FAMILIES).map(([key, font]) => ({
+    value: key,
+    label: font.name,
+    description: font.description
+}));
+
+const PAPER_COLOR_OPTIONS: DropdownOption[] = Object.entries(PAPER_COLORS).map(([key, color]) => ({
+    value: key,
+    label: color.name,
+    description: color.description
+}));
 
 export const ExportTab: React.FC = () => {
     const [isExporting, setIsExporting] = useState(false);
@@ -1222,13 +1257,9 @@ export const ExportTab: React.FC = () => {
                         <label className="block text-sm font-medium text-gray-700 mb-2">Export Format</label>
                         <Select
                             value={exportOptions.format}
-                            onChange={(e) => setExportOptions(prev => ({ ...prev, format: e.target.value as ExportFormat }))}
-                        >
-                            <option value="pdf">📄 PDF (Print Ready)</option>
-                            <option value="epub">📚 EPUB (eBook)</option>
-                            <option value="docx">📝 Word Document (DOCX)</option>
-                            <option value="html">🌐 HTML (Web)</option>
-                        </Select>
+                            onChange={(value) => setExportOptions(prev => ({ ...prev, format: value as ExportFormat }))}
+                            options={EXPORT_FORMAT_OPTIONS}
+                        />
                         <p className="text-xs text-gray-500 mt-1">
                             {exportOptions.format === 'pdf' && 'Perfect for print-on-demand and physical books'}
                             {exportOptions.format === 'epub' && 'Standard ebook format for digital distribution'}
@@ -1243,12 +1274,9 @@ export const ExportTab: React.FC = () => {
                             <label className="block text-sm font-medium text-gray-700 mb-2">Trim Size</label>
                             <Select
                                 value={exportOptions.trimSize}
-                                onChange={(e) => setExportOptions(prev => ({ ...prev, trimSize: e.target.value as TrimSize }))}
-                            >
-                                {Object.entries(TRIM_SIZES).map(([key, size]) => (
-                                    <option key={key} value={key} title={size.description}>{size.name}</option>
-                                ))}
-                            </Select>
+                                onChange={(value) => setExportOptions(prev => ({ ...prev, trimSize: value as TrimSize }))}
+                                options={TRIM_SIZE_OPTIONS}
+                            />
                             <p className="text-xs text-gray-500 mt-1">
                                 {TRIM_SIZES[exportOptions.trimSize].description}
                             </p>
@@ -1271,15 +1299,9 @@ export const ExportTab: React.FC = () => {
                             <label className="block text-sm font-medium text-gray-700 mb-2">Language</label>
                             <Select
                                 value={exportOptions.language || 'en'}
-                                onChange={(e) => setExportOptions(prev => ({ ...prev, language: e.target.value }))}
-                            >
-                                <option value="en">English</option>
-                                <option value="es">Spanish</option>
-                                <option value="fr">French</option>
-                                <option value="de">German</option>
-                                <option value="it">Italian</option>
-                                <option value="pt">Portuguese</option>
-                            </Select>
+                                onChange={(value) => setExportOptions(prev => ({ ...prev, language: value }))}
+                                options={LANGUAGE_OPTIONS}
+                            />
                         </div>
                     )}
                 </div>
@@ -1330,15 +1352,12 @@ export const ExportTab: React.FC = () => {
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Font Family</label>
                                 <Select
                                     value={exportOptions.typography.fontFamily}
-                                    onChange={(e) => setExportOptions(prev => ({
+                                    onChange={(value) => setExportOptions(prev => ({
                                         ...prev,
-                                        typography: { ...prev.typography, fontFamily: e.target.value as FontFamily }
+                                        typography: { ...prev.typography, fontFamily: value as FontFamily }
                                     }))}
-                                >
-                                    {Object.entries(FONT_FAMILIES).map(([key, font]) => (
-                                        <option key={key} value={key} title={font.description}>{font.name}</option>
-                                    ))}
-                                </Select>
+                                    options={FONT_FAMILY_OPTIONS}
+                                />
                                 <p className="text-xs text-gray-500 mt-1">
                                     {FONT_FAMILIES[exportOptions.typography.fontFamily].description}
                                 </p>
@@ -1368,15 +1387,12 @@ export const ExportTab: React.FC = () => {
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Paper Color</label>
                                 <Select
                                     value={exportOptions.typography.paperColor}
-                                    onChange={(e) => setExportOptions(prev => ({
+                                    onChange={(value) => setExportOptions(prev => ({
                                         ...prev,
-                                        typography: { ...prev.typography, paperColor: e.target.value as PaperColor }
+                                        typography: { ...prev.typography, paperColor: value as PaperColor }
                                     }))}
-                                >
-                                    {Object.entries(PAPER_COLORS).map(([key, color]) => (
-                                        <option key={key} value={key} title={color.description}>{color.name}</option>
-                                    ))}
-                                </Select>
+                                    options={PAPER_COLOR_OPTIONS}
+                                />
                                 <p className="text-xs text-gray-500 mt-1">
                                     {PAPER_COLORS[exportOptions.typography.paperColor].description}
                                 </p>

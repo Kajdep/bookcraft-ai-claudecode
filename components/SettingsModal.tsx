@@ -317,7 +317,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                         />
                                     </div>
                                 </div>
-                            </>
+                            </form>
                         )}
 
                         {/* AI Models Tab */}
@@ -361,7 +361,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                         </div>
                                     </div>
                                 </div>
-                            </form>
+                            </>
                         )}
 
                         {/* Storage Tab */}

@@ -2294,56 +2294,94 @@ export const useBookCraftStore = create<BookCraftState & BookCraftActions>()(
                     return await materialFileManager.extractFileMetadata(file);
                 } catch (error) {
                     log.warn('Failed to extract file metadata', error as Error);
-                    return {};
+
+                    const metadata: Partial<MaterialItem['metadata']> = {};
+
+                    if (file.lastModified) {
+                        metadata.dateCreated = new Date(file.lastModified);
+                    }
+
+                    if (file.type.startsWith('image/')) {
+                        try {
+                            const dimensions = await new Promise<{ width: number; height: number }>((resolve, reject) => {
+                                const reader = new FileReader();
+                                reader.onload = () => {
+                                    const img = new Image();
+                                    img.onload = () => resolve({ width: img.width, height: img.height });
+                                    img.onerror = () => reject(new Error('Failed to load image for metadata extraction'));
+                                    img.src = reader.result as string;
+                                };
+                                reader.onerror = () => reject(new Error('Failed to read image for metadata extraction'));
+                                reader.readAsDataURL(file);
                             });
-                            
-                            if (file.type.startsWith('video/')) {
-                                (element as HTMLVideoElement).src = url;
-                            }
-                            
-                            // Timeout after 10 seconds
-                            setTimeout(() => {
-                                URL.revokeObjectURL(url);
-                                resolve(0);
-                            }, 10000);
-                        });
-                        
-                        metadata.duration = duration;
-                        
-                        if (file.type.startsWith('video/')) {
-                            // Extract additional video metadata if possible
-                            metadata.format = file.type;
+
+                            metadata.dimensions = dimensions;
+                        } catch (imageError) {
+                            log.debug('Fallback image metadata extraction failed', imageError as Error);
                         }
-                    } catch (error) {
-                        metadata.duration = 0;
                     }
-                } else if (file.type === 'application/pdf') {
-                    // For PDF files, try to extract basic information
-                    try {
-                        metadata.format = 'PDF';
-                        metadata.fileType = 'document';
-                    } catch (error) {
-                        // Ignore errors
+
+                    if (file.type.startsWith('video/') || file.type.startsWith('audio/')) {
+                        try {
+                            const duration = await new Promise<number>((resolve) => {
+                                const element = document.createElement(
+                                    file.type.startsWith('audio/') ? 'audio' : 'video'
+                                );
+                                const url = URL.createObjectURL(file);
+                                let finished = false;
+
+                                const finalize = (value: number) => {
+                                    if (!finished) {
+                                        finished = true;
+                                        URL.revokeObjectURL(url);
+                                        resolve(value);
+                                    }
+                                };
+
+                                element.preload = 'metadata';
+                                element.onloadedmetadata = () => {
+                                    const value = Number.isFinite(element.duration) ? element.duration : 0;
+                                    finalize(value);
+                                };
+                                element.onerror = () => finalize(0);
+
+                                setTimeout(() => finalize(0), 10000);
+
+                                element.src = url;
+                            });
+
+                            if (duration > 0) {
+                                metadata.duration = duration;
+                            }
+                        } catch (mediaError) {
+                            log.debug('Fallback media metadata extraction failed', mediaError as Error);
+                        }
                     }
-                } else if (file.type.includes('text') || file.name.match(/\.(txt|md|rtf)$/i)) {
-                    // For text files, calculate word count
-                    try {
-                        const text = await new Promise<string>((resolve, reject) => {
-                            const reader = new FileReader();
-                            reader.onload = () => resolve(reader.result as string);
-                            reader.onerror = reject;
-                            reader.readAsText(file);
-                        });
-                        
-                        metadata.wordCount = text.split(/\s+/).filter(word => word.length > 0).length;
-                        metadata.characterCount = text.length;
-                        metadata.lineCount = text.split('\n').length;
-                    } catch (error) {
-                        // Ignore errors
+
+                    if (file.type.includes('text') || /\.(txt|md|rtf)$/i.test(file.name)) {
+                        try {
+                            const text = await new Promise<string>((resolve, reject) => {
+                                const reader = new FileReader();
+                                reader.onload = () => resolve(reader.result as string);
+                                reader.onerror = () => reject(new Error('Failed to read text for metadata extraction'));
+                                reader.readAsText(file);
+                            });
+
+                            const wordCount = text
+                                .split(/\s+/)
+                                .map(word => word.trim())
+                                .filter(Boolean).length;
+
+                            if (wordCount > 0) {
+                                metadata.wordCount = wordCount;
+                            }
+                        } catch (textError) {
+                            log.debug('Fallback text metadata extraction failed', textError as Error);
+                        }
                     }
+
+                    return metadata;
                 }
-                
-                return metadata;
             },
 
             // AI Process tracking

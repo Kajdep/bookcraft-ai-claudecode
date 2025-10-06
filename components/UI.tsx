@@ -27,13 +27,13 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     // FIX: Destructure the 'size' prop with a default value.
     ({ children, className = '', variant = 'primary', isLoading = false, size = 'md', ...props }, ref) => {
         // FIX: Removed sizing classes from baseClasses to be handled by size variants.
-        const baseClasses = "inline-flex items-center justify-center rounded-md font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md";
+        const baseClasses = "inline-flex items-center justify-center rounded-md font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 dark:focus-visible:ring-offset-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md";
         const variantClasses = {
-            primary: 'bg-brand-primary text-gray-900 hover:bg-brand-primary/90 focus-visible:ring-brand-primary focus-visible:shadow-[0_0_15px_1px_rgba(79,70,229,0.5)]',
-            secondary: 'bg-white text-gray-900 hover:bg-gray-300 focus-visible:ring-slate-500 focus-visible:shadow-[0_0_15px_1px_rgba(100,116,139,0.4)]',
-            danger: 'bg-red-600 text-gray-900 hover:bg-red-500 focus-visible:ring-red-500 focus-visible:shadow-[0_0_15px_1px_rgba(220,38,38,0.5)]',
-            success: 'bg-green-600 text-gray-900 hover:bg-green-500 focus-visible:ring-green-500 focus-visible:shadow-[0_0_15px_1px_rgba(22,163,74,0.5)]',
-            ghost: 'bg-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-100/50 focus-visible:ring-slate-500'
+            primary: 'bg-brand-primary text-white hover:bg-brand-primary/90 focus-visible:ring-brand-primary focus-visible:shadow-[0_0_15px_1px_rgba(79,70,229,0.5)]',
+            secondary: 'bg-white dark:bg-dark-bg-tertiary text-gray-900 dark:text-dark-text-primary hover:bg-gray-200 dark:hover:bg-dark-hover focus-visible:ring-slate-500 focus-visible:shadow-[0_0_15px_1px_rgba(100,116,139,0.4)]',
+            danger: 'bg-red-600 text-white hover:bg-red-500 focus-visible:ring-red-500 focus-visible:shadow-[0_0_15px_1px_rgba(220,38,38,0.5)]',
+            success: 'bg-green-600 text-white hover:bg-green-500 focus-visible:ring-green-500 focus-visible:shadow-[0_0_15px_1px_rgba(22,163,74,0.5)]',
+            ghost: 'bg-transparent text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-100/50 dark:hover:bg-dark-hover focus-visible:ring-slate-500'
         };
         // FIX: Define classes for different button sizes.
         const sizeClasses = {
@@ -61,7 +61,7 @@ Button.displayName = "Button";
 // FIX: Updated the Card component to accept and spread all standard div HTML attributes (like onClick).
 // This allows it to be used as a clickable element, which is required in the ChapterKanbanView.
 export const Card: React.FC<PropsWithChildren<React.HTMLAttributes<HTMLDivElement>>> = ({ children, className, ...props }) => (
-    <div className={`bg-gray-100/40 border border-gray-300/50 rounded-lg shadow-lg overflow-hidden ${className || ''}`} {...props}>
+    <div className={`bg-white dark:bg-dark-bg-secondary border border-gray-200 dark:border-dark-border-primary rounded-lg shadow-lg overflow-hidden ${className || ''}`} {...props}>
         {children}
     </div>
 );
@@ -109,15 +109,19 @@ export const Modal: React.FC<PropsWithChildren<ModalProps>> = ({ isOpen, onClose
             }}
         >
             <div 
-                className="relative bg-gray-100 rounded-lg shadow-xl w-full max-w-lg m-4 border border-gray-300"
+                className="relative bg-white dark:bg-dark-bg-secondary rounded-lg shadow-xl w-full max-w-lg m-4 border border-gray-200 dark:border-dark-border-primary"
                 onClick={(e) => {
                     // Prevent backdrop click when clicking inside modal
                     e.stopPropagation();
                 }}
             >
-                <div className="flex items-center justify-between p-4 border-b border-gray-300">
-                    <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
-                    <button onClick={onClose} className="text-gray-600 hover:text-gray-900 transition-colors rounded-full p-1 hover:bg-white">
+                <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-dark-border-primary">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-dark-text-primary">{title}</h3>
+                    <button 
+                        type="button"
+                        onClick={onClose} 
+                        className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition-colors rounded-full p-1 hover:bg-gray-100 dark:hover:bg-dark-hover"
+                    >
                          <XMarkIcon className="h-6 w-6" />
                     </button>
                 </div>
@@ -148,7 +152,7 @@ export const ConfirmationModal: React.FC<PropsWithChildren<ConfirmationModalProp
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} title={title}>
-            <div className="text-gray-700">{children}</div>
+            <div className="text-gray-700 dark:text-gray-300">{children}</div>
             <div className="flex justify-end space-x-3 mt-6">
                 <Button variant="secondary" onClick={onClose}>{cancelText}</Button>
                 <Button variant="danger" onClick={handleConfirm}>{confirmText}</Button>
@@ -164,10 +168,10 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     ({ className = '', variant = 'default', ...props }, ref) => {
-        const baseClasses = "w-full px-3 py-2 text-sm rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white";
+        const baseClasses = "w-full px-3 py-2 text-sm rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-800";
         const variantClasses = {
-            default: 'bg-white border-gray-300 text-gray-800 placeholder-gray-400 focus:border-brand-primary focus:ring-brand-primary',
-            error: 'bg-white border-red-500 text-gray-800 placeholder-gray-400 focus:border-red-400 focus:ring-red-400'
+            default: 'bg-white dark:bg-dark-bg-tertiary border-gray-300 dark:border-dark-border-primary text-gray-800 dark:text-dark-text-primary placeholder-gray-400 dark:placeholder-gray-500 focus:border-brand-primary focus:ring-brand-primary',
+            error: 'bg-white dark:bg-dark-bg-tertiary border-red-500 dark:border-red-400 text-gray-800 dark:text-dark-text-primary placeholder-gray-400 dark:placeholder-gray-500 focus:border-red-400 focus:ring-red-400'
         };
 
         return (

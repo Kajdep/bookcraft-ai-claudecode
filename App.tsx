@@ -12,6 +12,7 @@ import { RegisterPage } from './components/auth/RegisterPage';
 import { useBookCraftStore } from './store/useStore';
 import { initializeStorage } from './store/storageAdapter';
 import { logger } from './services/logger';
+import { themeManager } from './services/themeManager';
 
 const Header: React.FC<{ onSettingsClick: () => void }> = ({ onSettingsClick }) => {
     const theme = useBookCraftStore(state => state.settings?.theme || 'light');
@@ -91,12 +92,21 @@ const App: React.FC = () => {
 
     // Initialize the app with clean UI state on startup
     React.useEffect(() => {
-        // Initialize storage system first
+        // Initialize theme first (synchronous)
+        themeManager.initialize();
+        
+        // Initialize storage system
         initializeStorage()
             .then(() => {
                 logger.info('Storage initialized successfully');
                 initializeApp();
                 closeAllModals(); // Ensure all modals are closed on app start
+                
+                // Sync theme with store settings
+                const storedTheme = settings?.theme;
+                if (storedTheme && storedTheme !== themeManager.getTheme()) {
+                    themeManager.setTheme(storedTheme);
+                }
             })
             .catch((error) => {
                 logger.error('Failed to initialize storage', error);

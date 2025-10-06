@@ -4,6 +4,8 @@ import { ArrowDownOnSquareIcon, BookOpenIcon, DocumentIcon, CogIcon } from '../I
 import { useBookCraftStore } from '../../store/useStore';
 import { log } from '../../services/logger';
 import { toast } from '../../services/toast';
+import { exportManager } from '../../services/exportManager';
+import type { ExportOptions as ExportManagerOptions } from '../../services/exportManager';
 
 // Import proper packages instead of CDN globals
 import jsPDF from 'jspdf';

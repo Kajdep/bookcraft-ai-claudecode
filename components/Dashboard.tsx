@@ -35,7 +35,7 @@ const GenreIcon: React.FC<{ genre: string }> = ({ genre }) => {
         [Genre.SelfHelp]: <LightBulbIcon className="w-6 h-6 text-amber-400" />,
         [Genre.Technical]: <AcademicCapIcon className="w-6 h-6 text-rose-400" />,
     };
-    return <div className="p-2 bg-white/50 rounded-full">{iconMap[genre] || <BookOpenIcon className="w-6 h-6 text-gray-600" />}</div>
+    return <div className="p-2 bg-white/50 dark:bg-dark-bg-tertiary rounded-full">{iconMap[genre] || <BookOpenIcon className="w-6 h-6 text-gray-600 dark:text-gray-400" />}</div>
 }
 
 
@@ -48,18 +48,18 @@ const ProjectCard: React.FC<{ project: Project; onEdit: () => void; onDelete: ()
                     <div className="flex items-center gap-4">
                         <GenreIcon genre={project.genre} />
                         <div>
-                             <h3 className="text-lg font-bold text-gray-900 truncate">{project.title}</h3>
-                            <p className="text-sm text-gray-600">{project.genre}</p>
+                             <h3 className="text-lg font-bold text-gray-900 dark:text-dark-text-primary truncate">{project.title}</h3>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">{project.genre}</p>
                         </div>
                     </div>
                     <StatusBadge status={project.status} />
                 </div>
                 
-                <p className="text-xs text-gray-500 mt-4">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-4">
                     Created on: {new Date(project.createdAt).toLocaleDateString()}
                 </p>
             </div>
-            <div className="bg-white/50 p-3 border-t border-gray-300/50 flex items-center justify-between gap-2">
+            <div className="bg-gray-50 dark:bg-dark-bg-tertiary p-3 border-t border-gray-200 dark:border-dark-border-primary flex items-center justify-between gap-2">
                 <Button onClick={() => setActiveProject(project.id)} className="flex-grow" variant="secondary">
                     Open Project
                 </Button>

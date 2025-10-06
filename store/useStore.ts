@@ -563,18 +563,18 @@ export const useBookCraftStore = create<BookCraftState & BookCraftActions>()(
             },
 
             setTheme: (theme) => {
+                // Use ThemeManager to handle theme switching
+                import('../services/themeManager').then(({ themeManager }) => {
+                    themeManager.setTheme(theme);
+                });
+                
+                // Update store state
                 set((state) => {
                     if (!state.settings) {
                         state.settings = {};
                     }
                     state.settings.theme = theme;
                 });
-                // Apply theme to document
-                if (theme === 'dark') {
-                    document.documentElement.classList.add('dark');
-                } else {
-                    document.documentElement.classList.remove('dark');
-                }
             },
 
             // Auth Management
@@ -1762,37 +1762,45 @@ export const useBookCraftStore = create<BookCraftState & BookCraftActions>()(
             
             // Autosave functionality
             triggerAutosave: () => {
+                const projectId = get().activeProjectId;
+                if (!projectId) return;
+                
+                const project = get().projects[projectId];
+                if (!project) return;
+                
+                // Use the new AutosaveManager
+                import('../services/autosave').then(({ autosaveManager }) => {
+                    autosaveManager.triggerSave(projectId, project);
+                });
+                
                 set(state => {
                     state.pendingChanges = true;
                 });
-                
-                // Debounced autosave - will save after 2 seconds of inactivity
-                const currentTime = Date.now();
-                setTimeout(() => {
-                    const state = get();
-                    if (state.pendingChanges && !state.isAutoSaving) {
-                        get().manualSave();
-                    }
-                }, 2000);
             },
             
             manualSave: async () => {
+                const projectId = get().activeProjectId;
+                if (!projectId) return;
+                
                 set(state => {
                     state.isAutoSaving = true;
-                    state.pendingChanges = false;
                 });
                 
                 try {
-                    // The persist middleware handles the actual saving
-                    // We just need to update the last saved timestamp
+                    // Use the new AutosaveManager for immediate save
+                    const { autosaveManager } = await import('../services/autosave');
+                    await autosaveManager.forceSave(projectId);
+                    
                     set(state => {
                         state.lastSaved = new Date();
+                        state.pendingChanges = false;
                     });
                     
-                    // Optional: Show a subtle save indicator
-                    log.debug('Data autosaved', { time: new Date().toLocaleTimeString() });
+                    log.info('Manual save completed', { projectId });
+                    toast.success('Saved', 'Your changes have been saved successfully');
                 } catch (error) {
-                    log.error('Autosave failed', error as Error, 'useStore');
+                    log.error('Manual save failed', error as Error);
+                    toast.error('Save Failed', 'Unable to save changes. Please try again.');
                 } finally {
                     set(state => {
                         state.isAutoSaving = false;
@@ -2076,11 +2084,24 @@ export const useBookCraftStore = create<BookCraftState & BookCraftActions>()(
                 if (!projectId) return;
 
                 try {
-                    // Generate thumbnail for supported file types
-                    const thumbnail = await get().generateThumbnail(file);
+                    // Use MaterialFileManager for file storage
+                    const { materialFileManager } = await import('../services/materialFileManager');
+                    
+                    // Store the file (routes to IndexedDB or Supabase based on size)
+                    const fileId = await materialFileManager.storeFile(file, projectId);
+                    
+                    // Generate thumbnail for images
+                    let thumbnail: string | undefined;
+                    if (file.type.startsWith('image/')) {
+                        try {
+                            thumbnail = await materialFileManager.generateThumbnail(file);
+                        } catch (error) {
+                            log.warn('Failed to generate thumbnail', error as Error);
+                        }
+                    }
                     
                     // Extract metadata
-                    const metadata = await get().extractFileMetadata(file);
+                    const metadata = await materialFileManager.extractFileMetadata(file);
                     
                     // Determine material type based on file type
                     let materialType: MaterialType;
@@ -2096,30 +2117,6 @@ export const useBookCraftStore = create<BookCraftState & BookCraftActions>()(
                         materialType = MaterialType.Archive;
                     }
 
-                    // Store file with proper handling for different storage strategies
-                    let fileUrl: string;
-                    let fileId: string;
-                    
-                    if (typeof window !== 'undefined' && 'indexedDB' in window) {
-                        // Use IndexedDB for better file storage
-                        fileId = `file_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-                        fileUrl = await get().storeFileInIndexedDB(file, fileId);
-                    } else {
-                        // Fallback to base64 for smaller files (limit to 50MB to prevent memory issues)
-                        if (file.size > 50 * 1024 * 1024) {
-                            throw new Error('File too large. Please use files smaller than 50MB.');
-                        }
-                        
-                        const base64 = await new Promise<string>((resolve, reject) => {
-                            const reader = new FileReader();
-                            reader.onload = () => resolve(reader.result as string);
-                            reader.onerror = reject;
-                            reader.readAsDataURL(file);
-                        });
-                        fileUrl = base64;
-                        fileId = `base64_${Date.now()}`;
-                    }
-
                     const newMaterial: Omit<MaterialItem, 'id' | 'createdAt' | 'lastModified'> = {
                         title: file.name,
                         type: materialType,
@@ -2128,7 +2125,6 @@ export const useBookCraftStore = create<BookCraftState & BookCraftActions>()(
                         fileSize: file.size,
                         mimeType: file.type,
                         thumbnail,
-                        url: fileUrl,
                         tags: [],
                         linkedChapterIds: [],
                         isBookmarked: false,
@@ -2136,8 +2132,7 @@ export const useBookCraftStore = create<BookCraftState & BookCraftActions>()(
                         metadata: {
                             ...metadata,
                             fileId,
-                            uploadDate: new Date().toISOString(),
-                            storageType: fileId.startsWith('base64_') ? 'base64' : 'indexeddb'
+                            storageType: file.size < 5 * 1024 * 1024 ? 'indexeddb' : 'supabase'
                         }
                     };
 
@@ -2284,75 +2279,22 @@ export const useBookCraftStore = create<BookCraftState & BookCraftActions>()(
             },
 
             generateThumbnail: async (file) => {
-                if (file.type.startsWith('image/')) {
-                    // For images, create a smaller thumbnail
-                    return new Promise<string>((resolve, reject) => {
-                        const canvas = document.createElement('canvas');
-                        const ctx = canvas.getContext('2d');
-                        const img = new Image();
-                        
-                        img.onload = () => {
-                            // Set thumbnail size
-                            const maxWidth = 200;
-                            const maxHeight = 200;
-                            let { width, height } = img;
-                            
-                            if (width > height) {
-                                if (width > maxWidth) {
-                                    height *= maxWidth / width;
-                                    width = maxWidth;
-                                }
-                            } else {
-                                if (height > maxHeight) {
-                                    width *= maxHeight / height;
-                                    height = maxHeight;
-                                }
-                            }
-                            
-                            canvas.width = width;
-                            canvas.height = height;
-                            ctx?.drawImage(img, 0, 0, width, height);
-                            resolve(canvas.toDataURL('image/jpeg', 0.7));
-                        };
-                        
-                        img.onerror = reject;
-                        img.src = URL.createObjectURL(file);
-                    });
+                const { materialFileManager } = await import('../services/materialFileManager');
+                try {
+                    return await materialFileManager.generateThumbnail(file);
+                } catch (error) {
+                    log.warn('Failed to generate thumbnail', error as Error);
+                    return '';
                 }
-                return ''; // No thumbnail for non-image files
             },
 
             extractFileMetadata: async (file) => {
-                const metadata: Partial<MaterialItem['metadata']> = {};
-                
-                if (file.type.startsWith('image/')) {
-                    // For images, extract dimensions
-                    try {
-                        const dimensions = await new Promise<{width: number, height: number}>((resolve, reject) => {
-                            const img = new Image();
-                            img.onload = () => resolve({ width: img.width, height: img.height });
-                            img.onerror = reject;
-                            img.src = URL.createObjectURL(file);
-                        });
-                        metadata.dimensions = dimensions;
-                    } catch (error) {
-                        // Ignore errors
-                    }
-                } else if (file.type.startsWith('audio/') || file.type.startsWith('video/')) {
-                    // For media files, extract duration using HTML5 media elements
-                    try {
-                        const duration = await new Promise<number>((resolve, reject) => {
-                            const url = URL.createObjectURL(file);
-                            const element = file.type.startsWith('audio/') ? new Audio(url) : document.createElement('video');
-                            
-                            element.addEventListener('loadedmetadata', () => {
-                                URL.revokeObjectURL(url);
-                                resolve(element.duration || 0);
-                            });
-                            
-                            element.addEventListener('error', () => {
-                                URL.revokeObjectURL(url);
-                                resolve(0);
+                const { materialFileManager } = await import('../services/materialFileManager');
+                try {
+                    return await materialFileManager.extractFileMetadata(file);
+                } catch (error) {
+                    log.warn('Failed to extract file metadata', error as Error);
+                    return {};
                             });
                             
                             if (file.type.startsWith('video/')) {

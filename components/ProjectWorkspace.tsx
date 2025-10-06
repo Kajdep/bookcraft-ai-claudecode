@@ -12,6 +12,7 @@ import { MaterialTab } from './workspace/MaterialTab';
 import { PlotTab } from './workspace/PlotTab';
 import { AnalyticsTab } from './workspace/AnalyticsTab';
 import { ErrorBoundary } from './ErrorBoundary';
+import { SaveStatusIndicator } from './SaveStatusIndicator';
 
 type WorkspaceTab = 'Writing' | 'Visuals' | 'Research' | 'Material' | 'Plot' | 'Analytics' | 'Cover Creator' | 'KDP Calculator' | 'Export';
 
@@ -48,12 +49,15 @@ export const ProjectWorkspace: React.FC = () => {
     return (
         <div className="animate-fade-in">
             <header className="mb-8">
-                <Button onClick={() => setActiveProject(null)} variant="secondary" className="mb-4">
-                    <ArrowLeftIcon className="w-5 h-5 mr-2"/>
-                    Back to Dashboard
-                </Button>
+                <div className="flex items-center justify-between mb-4">
+                    <Button onClick={() => setActiveProject(null)} variant="secondary">
+                        <ArrowLeftIcon className="w-5 h-5 mr-2"/>
+                        Back to Dashboard
+                    </Button>
+                    <SaveStatusIndicator />
+                </div>
                 <h2 className="text-4xl font-bold bg-gradient-to-r from-slate-100 to-slate-400 text-transparent bg-clip-text">{project.title}</h2>
-                <p className="text-gray-600 mt-1">{project.genre} - {project.visualStyle} Style</p>
+                <p className="text-gray-600 dark:text-gray-400 mt-1">{project.genre} - {project.visualStyle} Style</p>
             </header>
 
             <div className="flex flex-col lg:flex-row gap-6">

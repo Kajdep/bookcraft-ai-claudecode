@@ -5,15 +5,6 @@ import react from '@vitejs/plugin-react';
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', '');
     
-    // Validate required environment variables in production
-    if (mode === 'production') {
-        const requiredVars = ['OPENROUTER_API_KEY', 'GEMINI_API_KEY'];
-        const missing = requiredVars.filter(key => !env[key]);
-        if (missing.length > 0) {
-            console.warn(`⚠️  Missing required environment variables: ${missing.join(', ')}`);
-        }
-    }
-    
     return {
       plugins: [
         react({
@@ -24,6 +15,34 @@ export default defineConfig(({ mode }) => {
       esbuild: {
         jsx: 'automatic',
         jsxDev: mode === 'development'
+      },
+      build: {
+        target: 'es2015',
+        minify: 'esbuild',
+        sourcemap: mode === 'development',
+        rollupOptions: {
+          output: {
+            manualChunks: {
+              'react-vendor': ['react', 'react-dom'],
+              'editor': ['lexical', '@lexical/react', '@lexical/html'],
+              'export': ['docx', 'jspdf', 'epub-gen-memory'],
+              'ui': ['lucide-react']
+            }
+          }
+        },
+        chunkSizeWarningLimit: 1000
+      },
+      optimizeDeps: {
+        include: ['react', 'react-dom', 'zustand', 'dexie']
+      },
+      resolve: {
+        alias: {
+          '@': path.resolve(__dirname, './'),
+          '@components': path.resolve(__dirname, './components'),
+          '@services': path.resolve(__dirname, './services'),
+          '@store': path.resolve(__dirname, './store'),
+          '@types': path.resolve(__dirname, './types.ts')
+        }
       },
       define: {
         // === REQUIRED API KEYS ===

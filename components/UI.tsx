@@ -443,7 +443,7 @@ export const Select: React.FC<SelectProps> = ({
                 </option>
             )}
             {options.map((option) => (
-                <option key={option.value} value={option.value}>
+                <option key={option.value} value={option.value} title={option.description}>
                     {option.label}
                 </option>
             ))}

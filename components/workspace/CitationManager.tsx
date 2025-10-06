@@ -186,8 +186,8 @@ export const CitationManager: React.FC<CitationManagerProps> = ({ className = ""
   return (
     <div className={`citation-manager ${className}`}>
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-slate-100 mb-2">Citation Manager</h2>
-        <p className="text-slate-400">
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Citation Manager</h2>
+        <p className="text-gray-600">
           Generate academic citations and manage your bibliography
         </p>
       </div>
@@ -195,13 +195,13 @@ export const CitationManager: React.FC<CitationManagerProps> = ({ className = ""
       {/* Style Selector and Search */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
         <Card className="p-4">
-          <label className="block text-sm font-medium text-slate-300 mb-2">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
             Citation Style
           </label>
           <select
             value={selectedStyle}
             onChange={(e) => setSelectedStyle(e.target.value as CitationStyle)}
-            className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-primary"
+            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-brand-primary"
           >
             {Object.values(CitationStyle).map(style => (
               <option key={style} value={style}>{style}</option>
@@ -210,7 +210,7 @@ export const CitationManager: React.FC<CitationManagerProps> = ({ className = ""
         </Card>
 
         <Card className="p-4">
-          <label className="block text-sm font-medium text-slate-300 mb-2">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
             Search Sources
           </label>
           <Input
@@ -227,15 +227,15 @@ export const CitationManager: React.FC<CitationManagerProps> = ({ className = ""
         {/* Available Sources */}
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-slate-200">Available Sources</h3>
-            <span className="text-sm text-slate-400">{filteredSources.length} sources</span>
+            <h3 className="text-lg font-semibold text-gray-800">Available Sources</h3>
+            <span className="text-sm text-gray-600">{filteredSources.length} sources</span>
           </div>
 
           {filteredSources.length === 0 ? (
             <Card className="p-6 text-center">
               <DocumentTextIcon className="mx-auto h-12 w-12 text-slate-600 mb-4" />
-              <h4 className="text-lg font-semibold text-slate-300 mb-2">No sources found</h4>
-              <p className="text-slate-400">
+              <h4 className="text-lg font-semibold text-gray-700 mb-2">No sources found</h4>
+              <p className="text-gray-600">
                 {searchTerm ? 'Try adjusting your search terms.' : 'Add research items to generate citations.'}
               </p>
             </Card>
@@ -249,8 +249,8 @@ export const CitationManager: React.FC<CitationManagerProps> = ({ className = ""
                   <Card key={source.id} className="p-4">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <h4 className="text-sm font-medium text-slate-200 mb-1">{source.title}</h4>
-                        <p className="text-xs text-slate-400 mb-2">
+                        <h4 className="text-sm font-medium text-gray-800 mb-1">{source.title}</h4>
+                        <p className="text-xs text-gray-600 mb-2">
                           {source.author && <span>By {source.author} • </span>}
                           <span className="capitalize">{source.sourceType}</span>
                           {source.publishDate && <span> • {new Date(source.publishDate).getFullYear()}</span>}
@@ -291,7 +291,7 @@ export const CitationManager: React.FC<CitationManagerProps> = ({ className = ""
                     </div>
 
                     {/* Preview citation */}
-                    <div className="mt-3 p-2 bg-slate-800/50 rounded text-xs text-slate-300">
+                    <div className="mt-3 p-2 bg-gray-100/50 rounded text-xs text-gray-700">
                       <strong>Preview ({selectedStyle}):</strong><br />
                       {formatCitation(source, selectedStyle)}
                     </div>
@@ -305,7 +305,7 @@ export const CitationManager: React.FC<CitationManagerProps> = ({ className = ""
         {/* Generated Citations */}
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-slate-200">Generated Citations ({selectedStyle})</h3>
+            <h3 className="text-lg font-semibold text-gray-800">Generated Citations ({selectedStyle})</h3>
             {existingCitations.length > 0 && (
               <Button
                 variant="outline"
@@ -322,8 +322,8 @@ export const CitationManager: React.FC<CitationManagerProps> = ({ className = ""
           {existingCitations.length === 0 ? (
             <Card className="p-6 text-center">
               <DocumentTextIcon className="mx-auto h-12 w-12 text-slate-600 mb-4" />
-              <h4 className="text-lg font-semibold text-slate-300 mb-2">No citations yet</h4>
-              <p className="text-slate-400">
+              <h4 className="text-lg font-semibold text-gray-700 mb-2">No citations yet</h4>
+              <p className="text-gray-600">
                 Generate citations from your sources to build your bibliography.
               </p>
             </Card>
@@ -336,12 +336,12 @@ export const CitationManager: React.FC<CitationManagerProps> = ({ className = ""
                 return (
                   <Card key={citation.id} className="p-4">
                     <div className="flex items-start justify-between mb-3">
-                      <h4 className="text-sm font-medium text-slate-200">{source.title}</h4>
+                      <h4 className="text-sm font-medium text-gray-800">{source.title}</h4>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => copyToClipboard(citation.formatted)}
-                        className="text-slate-400 hover:text-slate-200"
+                        className="text-gray-600 hover:text-gray-800"
                         title="Copy citation"
                       >
                         <ClipboardDocumentIcon className="w-4 h-4" />
@@ -350,30 +350,30 @@ export const CitationManager: React.FC<CitationManagerProps> = ({ className = ""
 
                     <div className="space-y-2">
                       <div>
-                        <p className="text-xs font-medium text-slate-400">Full Citation:</p>
-                        <p className="text-xs text-slate-300 bg-slate-800/50 p-2 rounded">
+                        <p className="text-xs font-medium text-gray-600">Full Citation:</p>
+                        <p className="text-xs text-gray-700 bg-gray-100/50 p-2 rounded">
                           {citation.formatted}
                         </p>
                       </div>
 
                       <div>
-                        <p className="text-xs font-medium text-slate-400">In-Text Citation:</p>
-                        <p className="text-xs text-slate-300 bg-slate-800/50 p-2 rounded">
+                        <p className="text-xs font-medium text-gray-600">In-Text Citation:</p>
+                        <p className="text-xs text-gray-700 bg-gray-100/50 p-2 rounded">
                           {citation.inText}
                         </p>
                       </div>
 
                       {citation.shortForm && (
                         <div>
-                          <p className="text-xs font-medium text-slate-400">Short Form:</p>
-                          <p className="text-xs text-slate-300 bg-slate-800/50 p-2 rounded">
+                          <p className="text-xs font-medium text-gray-600">Short Form:</p>
+                          <p className="text-xs text-gray-700 bg-gray-100/50 p-2 rounded">
                             {citation.shortForm}
                           </p>
                         </div>
                       )}
                     </div>
 
-                    <div className="mt-3 text-xs text-slate-500">
+                    <div className="mt-3 text-xs text-gray-500">
                       Created: {new Date(citation.createdAt).toLocaleString()}
                     </div>
                   </Card>
@@ -386,8 +386,8 @@ export const CitationManager: React.FC<CitationManagerProps> = ({ className = ""
 
       {/* Usage Instructions */}
       <Card className="p-4 mt-6">
-        <h4 className="text-sm font-medium text-slate-300 mb-2">Usage Instructions</h4>
-        <div className="text-xs text-slate-400 space-y-1">
+        <h4 className="text-sm font-medium text-gray-700 mb-2">Usage Instructions</h4>
+        <div className="text-xs text-gray-600 space-y-1">
           <p>• Select your preferred citation style (APA, MLA, Chicago, Harvard)</p>
           <p>• Generate citations for your research sources</p>
           <p>• Copy individual citations or the entire bibliography</p>

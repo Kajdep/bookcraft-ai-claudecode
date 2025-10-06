@@ -385,22 +385,22 @@ export const ResearchTemplatesModal: React.FC<ResearchTemplatesModalProps> = ({ 
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-slate-800 border border-slate-700 rounded-lg shadow-xl max-w-6xl w-full mx-4 max-h-[90vh] overflow-hidden">
+        <div className="fixed inset-0 bg-gray-900/30 flex items-center justify-center z-50">
+            <div className="bg-gray-100 border border-gray-300 rounded-lg shadow-xl max-w-6xl w-full mx-4 max-h-[90vh] overflow-hidden">
                 <div className="flex">
                     {/* Template Selection */}
-                    <div className="w-1/3 border-r border-slate-700 p-6 overflow-y-auto max-h-[90vh]">
+                    <div className="w-1/3 border-r border-gray-300 p-6 overflow-y-auto max-h-[90vh]">
                         <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-xl font-bold text-slate-100">Research Templates</h2>
+                            <h2 className="text-xl font-bold text-gray-900">Research Templates</h2>
                             <button
                                 onClick={onClose}
-                                className="text-slate-400 hover:text-slate-200"
+                                className="text-gray-600 hover:text-gray-800"
                             >
                                 <XMarkIcon className="w-6 h-6" />
                             </button>
                         </div>
                         
-                        <p className="text-sm text-slate-400 mb-6">
+                        <p className="text-sm text-gray-600 mb-6">
                             Choose from our comprehensive research templates designed for different writing genres. Each template includes customizable research folders, targeted prompts, and genre-specific guidance to help you gather authentic, relevant information for your writing project.
                         </p>
 
@@ -408,7 +408,7 @@ export const ResearchTemplatesModal: React.FC<ResearchTemplatesModalProps> = ({ 
                             {RESEARCH_TEMPLATES.map(template => (
                                 <Card
                                     key={template.id}
-                                    className={`p-4 cursor-pointer transition-all hover:bg-slate-700/50 ${
+                                    className={`p-4 cursor-pointer transition-all hover:bg-white/50 ${
                                         selectedTemplate?.id === template.id ? 'border-2 border-blue-500 bg-blue-900/20' : ''
                                     }`}
                                     onClick={() => handleTemplateSelect(template)}
@@ -421,13 +421,13 @@ export const ResearchTemplatesModal: React.FC<ResearchTemplatesModalProps> = ({ 
                                             {template.icon}
                                         </div>
                                         <div className="flex-1">
-                                            <h3 className="font-semibold text-slate-200">{template.name}</h3>
-                                            <p className="text-sm text-slate-400 mt-1">{template.description}</p>
+                                            <h3 className="font-semibold text-gray-800">{template.name}</h3>
+                                            <p className="text-sm text-gray-600 mt-1">{template.description}</p>
                                             <div className="flex items-center gap-2 mt-2">
-                                                <span className="text-xs bg-slate-700 text-slate-300 px-2 py-1 rounded">
+                                                <span className="text-xs bg-white text-gray-700 px-2 py-1 rounded">
                                                     {template.folders.length} folders
                                                 </span>
-                                                <span className="text-xs bg-slate-700 text-slate-300 px-2 py-1 rounded">
+                                                <span className="text-xs bg-white text-gray-700 px-2 py-1 rounded">
                                                     {template.prompts.length} prompts
                                                 </span>
                                             </div>
@@ -443,8 +443,8 @@ export const ResearchTemplatesModal: React.FC<ResearchTemplatesModalProps> = ({ 
                         {!selectedTemplate ? (
                             <div className="text-center py-20">
                                 <BookOpenIcon className="mx-auto h-12 w-12 text-slate-600 mb-4" />
-                                <h3 className="text-lg font-semibold text-slate-300 mb-2">Select a Template</h3>
-                                <p className="text-slate-400">Choose a research template from the left to see its details and customize it for your project.</p>
+                                <h3 className="text-lg font-semibold text-gray-700 mb-2">Select a Template</h3>
+                                <p className="text-gray-600">Choose a research template from the left to see its details and customize it for your project.</p>
                             </div>
                         ) : (
                             <div className="space-y-6">
@@ -456,19 +456,19 @@ export const ResearchTemplatesModal: React.FC<ResearchTemplatesModalProps> = ({ 
                                         {selectedTemplate.icon}
                                     </div>
                                     <div>
-                                        <h2 className="text-2xl font-bold text-slate-100">{selectedTemplate.name}</h2>
-                                        <p className="text-slate-400 mt-1">{selectedTemplate.description}</p>
+                                        <h2 className="text-2xl font-bold text-gray-900">{selectedTemplate.name}</h2>
+                                        <p className="text-gray-600 mt-1">{selectedTemplate.description}</p>
                                     </div>
                                 </div>
 
                                 {/* Custom Fields */}
                                 {selectedTemplate.fields.length > 0 && (
                                     <Card className="p-6">
-                                        <h3 className="text-lg font-semibold text-slate-200 mb-4">Customize Your Template</h3>
+                                        <h3 className="text-lg font-semibold text-gray-800 mb-4">Customize Your Template</h3>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             {selectedTemplate.fields.map(field => (
                                                 <div key={field.id}>
-                                                    <label className="block text-sm font-medium text-slate-300 mb-2">
+                                                    <label className="block text-sm font-medium text-gray-700 mb-2">
                                                         {field.name}
                                                         {field.required && <span className="text-red-400 ml-1">*</span>}
                                                     </label>
@@ -493,7 +493,7 @@ export const ResearchTemplatesModal: React.FC<ResearchTemplatesModalProps> = ({ 
                                                                 const values = Array.from(e.target.selectedOptions, option => option.value);
                                                                 handleFieldChange(field.id, values);
                                                             }}
-                                                            className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-primary"
+                                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-brand-primary"
                                                         >
                                                             {field.options?.map(option => (
                                                                 <option key={option} value={option}>{option}</option>
@@ -507,7 +507,7 @@ export const ResearchTemplatesModal: React.FC<ResearchTemplatesModalProps> = ({ 
                                                             onChange={(e) => handleFieldChange(field.id, e.target.value)}
                                                             placeholder={field.placeholder}
                                                             rows={3}
-                                                            className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-primary resize-none"
+                                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-brand-primary resize-none"
                                                         />
                                                     )}
                                                     
@@ -521,7 +521,7 @@ export const ResearchTemplatesModal: React.FC<ResearchTemplatesModalProps> = ({ 
                                                     )}
                                                     
                                                     {field.description && (
-                                                        <p className="text-xs text-slate-500 mt-1">{field.description}</p>
+                                                        <p className="text-xs text-gray-500 mt-1">{field.description}</p>
                                                     )}
                                                 </div>
                                             ))}
@@ -531,17 +531,17 @@ export const ResearchTemplatesModal: React.FC<ResearchTemplatesModalProps> = ({ 
 
                                 {/* Folder Structure Preview */}
                                 <Card className="p-6">
-                                    <h3 className="text-lg font-semibold text-slate-200 mb-4">Folder Structure</h3>
+                                    <h3 className="text-lg font-semibold text-gray-800 mb-4">Folder Structure</h3>
                                     <div className="space-y-3">
                                         {selectedTemplate.folders.map(folder => (
-                                            <div key={folder.name} className="flex items-center gap-3 p-3 bg-slate-800/50 rounded-lg">
+                                            <div key={folder.name} className="flex items-center gap-3 p-3 bg-gray-100/50 rounded-lg">
                                                 <div 
                                                     className="w-4 h-4 rounded"
                                                     style={{ backgroundColor: folder.color }}
                                                 />
                                                 <div>
-                                                    <h4 className="font-medium text-slate-200">{folder.name}</h4>
-                                                    <p className="text-xs text-slate-400">{folder.description}</p>
+                                                    <h4 className="font-medium text-gray-800">{folder.name}</h4>
+                                                    <p className="text-xs text-gray-600">{folder.description}</p>
                                                 </div>
                                             </div>
                                         ))}
@@ -550,24 +550,24 @@ export const ResearchTemplatesModal: React.FC<ResearchTemplatesModalProps> = ({ 
 
                                 {/* Research Prompts Preview */}
                                 <Card className="p-6">
-                                    <h3 className="text-lg font-semibold text-slate-200 mb-4">Initial Research Prompts</h3>
-                                    <p className="text-sm text-slate-400 mb-4">
+                                    <h3 className="text-lg font-semibold text-gray-800 mb-4">Initial Research Prompts</h3>
+                                    <p className="text-sm text-gray-600 mb-4">
                                         The template will generate these research queries to get you started:
                                     </p>
                                     <div className="space-y-3">
                                         {selectedTemplate.prompts.slice(0, 3).map(prompt => (
-                                            <div key={prompt.id} className="p-3 bg-slate-800/50 rounded-lg">
+                                            <div key={prompt.id} className="p-3 bg-gray-100/50 rounded-lg">
                                                 <div className="flex items-center gap-2 mb-2">
-                                                    <h4 className="font-medium text-slate-200">{prompt.title}</h4>
-                                                    <span className="text-xs bg-slate-700 text-slate-300 px-2 py-1 rounded">
+                                                    <h4 className="font-medium text-gray-800">{prompt.title}</h4>
+                                                    <span className="text-xs bg-white text-gray-700 px-2 py-1 rounded">
                                                         {prompt.category}
                                                     </span>
                                                 </div>
-                                                <p className="text-sm text-slate-400">{prompt.prompt.substring(0, 150)}...</p>
+                                                <p className="text-sm text-gray-600">{prompt.prompt.substring(0, 150)}...</p>
                                             </div>
                                         ))}
                                         {selectedTemplate.prompts.length > 3 && (
-                                            <p className="text-xs text-slate-500">
+                                            <p className="text-xs text-gray-500">
                                                 +{selectedTemplate.prompts.length - 3} more prompts available
                                             </p>
                                         )}
@@ -575,7 +575,7 @@ export const ResearchTemplatesModal: React.FC<ResearchTemplatesModalProps> = ({ 
                                 </Card>
 
                                 {/* Actions */}
-                                <div className="flex justify-end gap-3 pt-4 border-t border-slate-700">
+                                <div className="flex justify-end gap-3 pt-4 border-t border-gray-300">
                                     <Button variant="outline" onClick={() => setSelectedTemplate(null)}>
                                         Back
                                     </Button>

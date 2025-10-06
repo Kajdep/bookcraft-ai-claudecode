@@ -47,12 +47,12 @@ const ChapterListItem: React.FC<ChapterListItemProps> = ({ chapter, isActive, on
     
     const getStatusColor = (status: ChapterStatus) => {
         switch (status) {
-            case ChapterStatus.Idea: return 'text-slate-400';
+            case ChapterStatus.Idea: return 'text-gray-600';
             case ChapterStatus.Outline: return 'text-blue-400';
             case ChapterStatus.Draft: return 'text-yellow-400';
             case ChapterStatus.Review: return 'text-orange-400';
             case ChapterStatus.Done: return 'text-green-400';
-            default: return 'text-slate-400';
+            default: return 'text-gray-600';
         }
     };
     
@@ -62,7 +62,7 @@ const ChapterListItem: React.FC<ChapterListItemProps> = ({ chapter, isActive, on
             onDragEnter={(e) => onDragEnter(e, index)}
         >
             <div className={`flex items-start gap-2 p-3 rounded-md transition-all duration-200 ${
-                isActive ? 'bg-brand-primary/20' : 'hover:bg-slate-700/50'
+                isActive ? 'bg-brand-primary/20' : 'hover:bg-white/50'
             } ${isDragged ? 'opacity-30' : 'opacity-100'}`}>
                 <button
                     onClick={() => onSelect(chapter.id)}
@@ -71,9 +71,9 @@ const ChapterListItem: React.FC<ChapterListItemProps> = ({ chapter, isActive, on
                     onDragEnd={onDragEnd}
                     className="flex items-start gap-3 flex-grow text-left"
                 >
-                    <Bars3Icon className="h-5 w-5 text-slate-500 mt-0.5 flex-shrink-0 cursor-grab"/>
+                    <Bars3Icon className="h-5 w-5 text-gray-500 mt-0.5 flex-shrink-0 cursor-grab"/>
                     <div className="flex-grow">
-                        <h5 className={`font-semibold ${isActive ? 'text-brand-primary' : 'text-slate-200'}`}>{chapter.title}</h5>
+                        <h5 className={`font-semibold ${isActive ? 'text-brand-primary' : 'text-gray-800'}`}>{chapter.title}</h5>
                         <div className="flex items-center gap-2 mt-1">
                             <div className="relative">
                                 <button
@@ -88,12 +88,12 @@ const ChapterListItem: React.FC<ChapterListItemProps> = ({ chapter, isActive, on
                                 </button>
                                 
                                 {showStatusDropdown && (
-                                    <div className="absolute top-full left-0 mt-1 bg-slate-800 border border-slate-600 rounded-md shadow-lg z-10 min-w-[120px]">
+                                    <div className="absolute top-full left-0 mt-1 bg-gray-100 border border-gray-300 rounded-md shadow-lg z-10 min-w-[120px]">
                                         {Object.values(ChapterStatus).map(status => (
                                             <button
                                                 key={status}
                                                 onClick={(e) => handleStatusChange(e, status)}
-                                                className={`w-full text-left px-3 py-2 text-xs hover:bg-slate-700 transition-colors ${getStatusColor(status)} ${chapter.status === status ? 'bg-slate-700' : ''}`}
+                                                className={`w-full text-left px-3 py-2 text-xs hover:bg-white transition-colors ${getStatusColor(status)} ${chapter.status === status ? 'bg-white' : ''}`}
                                             >
                                                 {status}
                                             </button>
@@ -101,7 +101,7 @@ const ChapterListItem: React.FC<ChapterListItemProps> = ({ chapter, isActive, on
                                     </div>
                                 )}
                             </div>
-                            <p className="text-xs text-slate-500 flex-grow truncate">{chapter.content ? `${chapter.content.replace(/<[^>]*>/g, '').substring(0, 50)}...` : <span className="italic">Empty</span>}</p>
+                            <p className="text-xs text-gray-500 flex-grow truncate">{chapter.content ? `${chapter.content.replace(/<[^>]*>/g, '').substring(0, 50)}...` : <span className="italic">Empty</span>}</p>
                         </div>
                     </div>
                 </button>
@@ -119,7 +119,7 @@ const ChapterListItem: React.FC<ChapterListItemProps> = ({ chapter, isActive, on
                             </button>
                             <button
                                 onClick={handleCancel}
-                                className="p-1 text-slate-400 hover:text-slate-300 text-xs"
+                                className="p-1 text-gray-600 hover:text-gray-700 text-xs"
                                 title="Cancel"
                             >
                                 ✕
@@ -128,7 +128,7 @@ const ChapterListItem: React.FC<ChapterListItemProps> = ({ chapter, isActive, on
                     ) : (
                         <button
                             onClick={handleDelete}
-                            className="p-1 text-slate-400 hover:text-red-400 transition-colors"
+                            className="p-1 text-gray-600 hover:text-red-400 transition-colors"
                             title="Delete chapter"
                         >
                             <TrashIcon className="h-4 w-4" />
@@ -209,8 +209,8 @@ export const ChapterListView: React.FC<ChapterListViewProps> = ({ activeChapterI
     };
 
     return (
-        <div className="bg-slate-800/50 rounded-lg border border-slate-700/50 h-full flex flex-col">
-            <div className="p-3 border-b border-slate-700/50">
+        <div className="bg-gray-100/50 rounded-lg border border-gray-300/50 h-full flex flex-col">
+            <div className="p-3 border-b border-gray-300/50">
                 <Button onClick={addChapter} variant="secondary" className="w-full">
                     <PlusIcon className="w-5 h-5 mr-2" />
                     New Chapter
@@ -239,7 +239,7 @@ export const ChapterListView: React.FC<ChapterListViewProps> = ({ activeChapterI
                         />
                     ))
                 ) : (
-                    <p className="p-4 text-center text-sm text-slate-400">No chapters yet.</p>
+                    <p className="p-4 text-center text-sm text-gray-600">No chapters yet.</p>
                 )}
             </div>
         </div>

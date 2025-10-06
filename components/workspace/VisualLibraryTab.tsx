@@ -18,10 +18,10 @@ export const VisualLibraryTab: React.FC<VisualLibraryTabProps> = ({ project }) =
                     {(project.visuals || []).map(vis => <VisualCard key={vis.id} visual={vis} />)}
                 </div>
              ) : (
-                <div className="text-center py-16 border-2 border-dashed border-slate-700 rounded-lg bg-slate-800/20">
+                <div className="text-center py-16 border-2 border-dashed border-gray-300 rounded-lg bg-gray-100/20">
                     <CheckIcon className="mx-auto h-12 w-12 text-slate-600" />
-                    <h3 className="mt-4 text-xl font-semibold text-slate-300">Your Library is Empty</h3>
-                    <p className="mt-2 text-slate-400">Accept some AI recommendations from the 'AI Visuals' tab to get started.</p>
+                    <h3 className="mt-4 text-xl font-semibold text-gray-700">Your Library is Empty</h3>
+                    <p className="mt-2 text-gray-600">Accept some AI recommendations from the 'AI Visuals' tab to get started.</p>
                 </div>
              )}
         </div>

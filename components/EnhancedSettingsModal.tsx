@@ -109,13 +109,13 @@ const SettingsSection: React.FC<{
 }> = ({ title, description, icon, children }) => (
     <Card className="p-6">
         <div className="flex items-start gap-4 mb-6">
-            <div className="p-2 bg-slate-700 rounded-lg">
+            <div className="p-2 bg-white rounded-lg">
                 {icon}
             </div>
             <div>
-                <h3 className="text-lg font-semibold text-slate-100">{title}</h3>
+                <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
                 {description && (
-                    <p className="text-sm text-slate-400 mt-1">{description}</p>
+                    <p className="text-sm text-gray-600 mt-1">{description}</p>
                 )}
             </div>
         </div>
@@ -133,15 +133,15 @@ const ToggleSwitch: React.FC<{
 }> = ({ checked, onChange, label, description }) => (
     <div className="flex items-center justify-between">
         <div className="flex-1">
-            <label className="text-sm font-medium text-slate-300">{label}</label>
+            <label className="text-sm font-medium text-gray-700">{label}</label>
             {description && (
-                <p className="text-xs text-slate-500 mt-1">{description}</p>
+                <p className="text-xs text-gray-500 mt-1">{description}</p>
             )}
         </div>
         <button
             onClick={() => onChange(!checked)}
             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                checked ? 'bg-brand-primary' : 'bg-slate-700'
+                checked ? 'bg-brand-primary' : 'bg-white'
             }`}
         >
             <span
@@ -241,7 +241,7 @@ export const EnhancedSettingsModal: React.FC<EnhancedSettingsModalProps> = ({ is
         <Modal isOpen={isOpen} onClose={onClose} title="Settings" maxWidth="4xl">
             <div className="flex h-[600px]">
                 {/* Sidebar */}
-                <div className="w-1/4 border-r border-slate-700 pr-6">
+                <div className="w-1/4 border-r border-gray-300 pr-6">
                     <nav className="space-y-2">
                         {tabs.map(tab => (
                             <button
@@ -249,8 +249,8 @@ export const EnhancedSettingsModal: React.FC<EnhancedSettingsModalProps> = ({ is
                                 onClick={() => setActiveTab(tab.id)}
                                 className={`w-full flex items-center gap-3 px-4 py-2 text-left rounded-lg transition-colors ${
                                     activeTab === tab.id 
-                                        ? 'bg-brand-primary text-white' 
-                                        : 'text-slate-300 hover:bg-slate-700'
+                                        ? 'bg-brand-primary text-gray-900' 
+                                        : 'text-gray-700 hover:bg-white'
                                 }`}
                             >
                                 {tab.icon}
@@ -271,7 +271,7 @@ export const EnhancedSettingsModal: React.FC<EnhancedSettingsModalProps> = ({ is
                             >
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-300 mb-2">Language</label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">Language</label>
                                         <Select
                                             value={localSettings.language}
                                             onChange={(e) => updateLocalSetting('language', e.target.value)}
@@ -282,7 +282,7 @@ export const EnhancedSettingsModal: React.FC<EnhancedSettingsModalProps> = ({ is
                                         </Select>
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-300 mb-2">Time Format</label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">Time Format</label>
                                         <Select
                                             value={localSettings.timeFormat}
                                             onChange={(e) => updateLocalSetting('timeFormat', e.target.value as '12h' | '24h')}
@@ -307,7 +307,7 @@ export const EnhancedSettingsModal: React.FC<EnhancedSettingsModalProps> = ({ is
                                 />
                                 
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-300 mb-2">Backup Frequency</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Backup Frequency</label>
                                     <Select
                                         value={localSettings.backupFrequency}
                                         onChange={(e) => updateLocalSetting('backupFrequency', e.target.value as 'daily' | 'weekly' | 'monthly')}
@@ -337,7 +337,7 @@ export const EnhancedSettingsModal: React.FC<EnhancedSettingsModalProps> = ({ is
                                 icon={<PaintBrushIcon className="w-5 h-5 text-purple-400" />}
                             >
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-300 mb-3">Theme</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-3">Theme</label>
                                     <div className="grid grid-cols-3 gap-3">
                                         {[
                                             { value: 'light', icon: <SunIcon className="w-4 h-4" />, label: 'Light' },
@@ -350,7 +350,7 @@ export const EnhancedSettingsModal: React.FC<EnhancedSettingsModalProps> = ({ is
                                                 className={`p-3 rounded-lg border-2 flex flex-col items-center gap-2 transition-colors ${
                                                     localSettings.theme === theme.value
                                                         ? 'border-brand-primary bg-brand-primary/10'
-                                                        : 'border-slate-700 hover:border-slate-600'
+                                                        : 'border-gray-300 hover:border-gray-300'
                                                 }`}
                                             >
                                                 {theme.icon}
@@ -361,7 +361,7 @@ export const EnhancedSettingsModal: React.FC<EnhancedSettingsModalProps> = ({ is
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-300 mb-3">Accent Color</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-3">Accent Color</label>
                                     <div className="flex gap-3">
                                         {ACCENT_COLORS.map(color => (
                                             <button
@@ -370,7 +370,7 @@ export const EnhancedSettingsModal: React.FC<EnhancedSettingsModalProps> = ({ is
                                                 className={`w-8 h-8 rounded-full border-2 transition-all ${
                                                     localSettings.accentColor === color.value
                                                         ? 'border-white scale-110'
-                                                        : 'border-slate-600'
+                                                        : 'border-gray-300'
                                                 }`}
                                                 style={{ backgroundColor: color.value }}
                                                 title={color.name}
@@ -394,7 +394,7 @@ export const EnhancedSettingsModal: React.FC<EnhancedSettingsModalProps> = ({ is
                             >
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-300 mb-2">Font Size</label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">Font Size</label>
                                         <Select
                                             value={localSettings.fontSize}
                                             onChange={(e) => updateLocalSetting('fontSize', e.target.value as UserSettings['fontSize'])}
@@ -405,7 +405,7 @@ export const EnhancedSettingsModal: React.FC<EnhancedSettingsModalProps> = ({ is
                                         </Select>
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-300 mb-2">Editor Font</label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">Editor Font</label>
                                         <Select
                                             value={localSettings.editorFont}
                                             onChange={(e) => updateLocalSetting('editorFont', e.target.value as UserSettings['editorFont'])}
@@ -463,7 +463,7 @@ export const EnhancedSettingsModal: React.FC<EnhancedSettingsModalProps> = ({ is
                             >
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-300 mb-2">Default Genre</label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">Default Genre</label>
                                         <Select
                                             value={localSettings.defaultGenre}
                                             onChange={(e) => updateLocalSetting('defaultGenre', e.target.value)}
@@ -480,7 +480,7 @@ export const EnhancedSettingsModal: React.FC<EnhancedSettingsModalProps> = ({ is
                                         </Select>
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-300 mb-2">Writing Mode</label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">Writing Mode</label>
                                         <Select
                                             value={localSettings.writingMode}
                                             onChange={(e) => updateLocalSetting('writingMode', e.target.value as UserSettings['writingMode'])}
@@ -493,7 +493,7 @@ export const EnhancedSettingsModal: React.FC<EnhancedSettingsModalProps> = ({ is
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-300 mb-2">Daily Word Goal</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Daily Word Goal</label>
                                     <Input
                                         type="number"
                                         value={localSettings.dailyWordGoal}
@@ -501,7 +501,7 @@ export const EnhancedSettingsModal: React.FC<EnhancedSettingsModalProps> = ({ is
                                         min="0"
                                         step="100"
                                     />
-                                    <p className="text-xs text-slate-500 mt-1">Set 0 to disable daily goals</p>
+                                    <p className="text-xs text-gray-500 mt-1">Set 0 to disable daily goals</p>
                                 </div>
 
                                 <ToggleSwitch
@@ -532,7 +532,7 @@ export const EnhancedSettingsModal: React.FC<EnhancedSettingsModalProps> = ({ is
                                 />
 
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-300 mb-2">Auto-Save Interval (seconds)</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Auto-Save Interval (seconds)</label>
                                     <Input
                                         type="number"
                                         value={localSettings.autoSaveInterval}
@@ -613,7 +613,7 @@ export const EnhancedSettingsModal: React.FC<EnhancedSettingsModalProps> = ({ is
                                 icon={<ShieldCheckIcon className="w-5 h-5 text-red-400" />}
                             >
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-300 mb-2">Data Retention</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Data Retention</label>
                                     <Select
                                         value={localSettings.dataRetention}
                                         onChange={(e) => updateLocalSetting('dataRetention', e.target.value as UserSettings['dataRetention'])}
@@ -623,7 +623,7 @@ export const EnhancedSettingsModal: React.FC<EnhancedSettingsModalProps> = ({ is
                                         <option value="1-year">1 Year</option>
                                         <option value="forever">Forever</option>
                                     </Select>
-                                    <p className="text-xs text-slate-500 mt-1">How long to keep your writing history and analytics</p>
+                                    <p className="text-xs text-gray-500 mt-1">How long to keep your writing history and analytics</p>
                                 </div>
 
                                 <ToggleSwitch
@@ -652,7 +652,7 @@ export const EnhancedSettingsModal: React.FC<EnhancedSettingsModalProps> = ({ is
                             >
                                 <form onSubmit={(e) => e.preventDefault()}>
                                     <div>
-                                        <label htmlFor="openrouter-api-key" className="block text-sm font-medium text-slate-300 mb-2">OpenRouter API Key</label>
+                                        <label htmlFor="openrouter-api-key" className="block text-sm font-medium text-gray-700 mb-2">OpenRouter API Key</label>
                                         <div className="relative">
                                             <Input
                                                 id="openrouter-api-key"
@@ -666,7 +666,7 @@ export const EnhancedSettingsModal: React.FC<EnhancedSettingsModalProps> = ({ is
                                             <button
                                                 type="button"
                                                 onClick={() => setShowApiKeys(prev => ({ ...prev, openRouter: !prev.openRouter }))}
-                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200"
+                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-800"
                                             >
                                                 {showApiKeys.openRouter ? <EyeSlashIcon className="w-4 h-4" /> : <EyeIcon className="w-4 h-4" />}
                                             </button>
@@ -674,7 +674,7 @@ export const EnhancedSettingsModal: React.FC<EnhancedSettingsModalProps> = ({ is
                                     </div>
 
                                     <div className="mt-4">
-                                        <label htmlFor="gemini-api-key" className="block text-sm font-medium text-slate-300 mb-2">Gemini API Key</label>
+                                        <label htmlFor="gemini-api-key" className="block text-sm font-medium text-gray-700 mb-2">Gemini API Key</label>
                                         <div className="relative">
                                             <Input
                                                 id="gemini-api-key"
@@ -688,7 +688,7 @@ export const EnhancedSettingsModal: React.FC<EnhancedSettingsModalProps> = ({ is
                                             <button
                                                 type="button"
                                                 onClick={() => setShowApiKeys(prev => ({ ...prev, gemini: !prev.gemini }))}
-                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200"
+                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-800"
                                             >
                                                 {showApiKeys.gemini ? <EyeSlashIcon className="w-4 h-4" /> : <EyeIcon className="w-4 h-4" />}
                                             </button>
@@ -697,7 +697,7 @@ export const EnhancedSettingsModal: React.FC<EnhancedSettingsModalProps> = ({ is
                                 </form>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-300 mb-2">Default AI Model</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Default AI Model</label>
                                     <Select
                                         value={localSettings.defaultModel || 'nvidia/nemotron-nano-9b-v2:free'}
                                         onChange={(e) => updateLocalSetting('defaultModel', e.target.value)}
@@ -717,7 +717,7 @@ export const EnhancedSettingsModal: React.FC<EnhancedSettingsModalProps> = ({ is
             </div>
 
             {/* Footer */}
-            <div className="flex justify-between pt-6 border-t border-slate-700 mt-6">
+            <div className="flex justify-between pt-6 border-t border-gray-300 mt-6">
                 <Button variant="outline" onClick={handleReset}>
                     Reset to Defaults
                 </Button>

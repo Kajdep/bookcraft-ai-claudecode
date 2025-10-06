@@ -57,26 +57,26 @@ export const WritersBlockModal: React.FC<WritersBlockModalProps> = ({
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-slate-800 rounded-lg border border-slate-700 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-                <div className="flex items-center justify-between p-6 border-b border-slate-700">
+            <div className="bg-gray-100 rounded-lg border border-gray-300 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                <div className="flex items-center justify-between p-6 border-b border-gray-300">
                     <div className="flex items-center space-x-2">
                         <LightBulbIcon className="w-6 h-6 text-yellow-400" />
-                        <h2 className="text-xl font-bold text-slate-100">Writer's Block Helper</h2>
+                        <h2 className="text-xl font-bold text-gray-900">Writer's Block Helper</h2>
                     </div>
-                    <button onClick={onClose} className="text-slate-400 hover:text-slate-200">
+                    <button onClick={onClose} className="text-gray-600 hover:text-gray-800">
                         <XMarkIcon className="w-6 h-6" />
                     </button>
                 </div>
 
                 <div className="p-6 space-y-6">
                     <div>
-                        <p className="text-slate-300 mb-4">
+                        <p className="text-gray-700 mb-4">
                             Stuck on "<strong>{chapter.title}</strong>"? Choose a prompt below or write your own to get AI-powered suggestions to overcome writer's block.
                         </p>
                     </div>
 
                     <div>
-                        <h3 className="text-lg font-semibold text-slate-200 mb-3">Quick Prompts</h3>
+                        <h3 className="text-lg font-semibold text-gray-800 mb-3">Quick Prompts</h3>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                             {writingPrompts.map((prompt, index) => (
                                 <button
@@ -88,7 +88,7 @@ export const WritersBlockModal: React.FC<WritersBlockModalProps> = ({
                                     className={`p-3 text-left rounded-lg border transition-colors ${
                                         selectedPrompt === prompt
                                             ? 'border-brand-primary bg-brand-primary/10 text-brand-primary'
-                                            : 'border-slate-600 hover:border-slate-500 text-slate-300 hover:text-slate-200'
+                                            : 'border-gray-300 hover:border-gray-400 text-gray-700 hover:text-gray-800'
                                     }`}
                                 >
                                     {prompt}
@@ -98,7 +98,7 @@ export const WritersBlockModal: React.FC<WritersBlockModalProps> = ({
                     </div>
 
                     <div>
-                        <h3 className="text-lg font-semibold text-slate-200 mb-3">Custom Prompt</h3>
+                        <h3 className="text-lg font-semibold text-gray-800 mb-3">Custom Prompt</h3>
                         <textarea
                             value={customPrompt}
                             onChange={(e) => {
@@ -106,15 +106,15 @@ export const WritersBlockModal: React.FC<WritersBlockModalProps> = ({
                                 setSelectedPrompt('');
                             }}
                             placeholder="Describe what you're struggling with or what kind of help you need..."
-                            className="w-full h-24 bg-slate-900 border border-slate-600 rounded-lg p-3 text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-primary"
+                            className="w-full h-24 bg-white border border-gray-300 rounded-lg p-3 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-primary"
                         />
                     </div>
 
                     {chapter.content && (
                         <div>
-                            <h3 className="text-lg font-semibold text-slate-200 mb-3">Current Chapter Preview</h3>
-                            <div className="bg-slate-900 border border-slate-600 rounded-lg p-3 max-h-32 overflow-y-auto">
-                                <p className="text-slate-400 text-sm">
+                            <h3 className="text-lg font-semibold text-gray-800 mb-3">Current Chapter Preview</h3>
+                            <div className="bg-white border border-gray-300 rounded-lg p-3 max-h-32 overflow-y-auto">
+                                <p className="text-gray-600 text-sm">
                                     {chapter.content.replace(/<[^>]*>/g, '').substring(0, 300)}
                                     {chapter.content.length > 300 ? '...' : ''}
                                 </p>
@@ -123,7 +123,7 @@ export const WritersBlockModal: React.FC<WritersBlockModalProps> = ({
                     )}
                 </div>
 
-                <div className="flex items-center justify-end space-x-3 p-6 border-t border-slate-700">
+                <div className="flex items-center justify-end space-x-3 p-6 border-t border-gray-300">
                     <Button variant="ghost" onClick={onClose}>
                         Cancel
                     </Button>

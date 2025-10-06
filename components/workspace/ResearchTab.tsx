@@ -71,20 +71,20 @@ const ResearchItemCard: React.FC<{
     const [showMoveMenu, setShowMoveMenu] = useState(false);
 
     return (
-        <Card className={`p-4 mb-4 transition-all border-2 ${selected ? 'border-brand-primary bg-slate-800/30' : 'border-transparent hover:shadow-lg'}`}>
+        <Card className={`p-4 mb-4 transition-all border-2 ${selected ? 'border-brand-primary bg-gray-100/30' : 'border-transparent hover:shadow-lg'}`}>
             <div className="flex items-start justify-between">
                 <div className="flex items-start gap-3 flex-1">
                     <input
                         type="checkbox"
                         checked={selected}
                         onChange={() => onSelect(item.id)}
-                        className="mt-1 rounded border-slate-600 bg-slate-800 text-brand-primary focus:ring-brand-primary"
+                        className="mt-1 rounded border-gray-300 bg-gray-100 text-brand-primary focus:ring-brand-primary"
                     />
 
                     <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
                             <ResearchTypeIcon type={item.type} />
-                            <h4 className="text-sm font-medium text-slate-200">{item.query}</h4>
+                            <h4 className="text-sm font-medium text-gray-800">{item.query}</h4>
                             <ConfidenceBadge confidence={item.confidence} />
                             <QualityScoreIndicator score={item.qualityScore} />
                             {item.isBookmarked && <StarIcon className="w-4 h-4 text-yellow-400" />}
@@ -94,9 +94,9 @@ const ResearchItemCard: React.FC<{
                             {item.verified && <CheckCircleIcon className="w-4 h-4 text-green-400" title="Verified" />}
                         </div>
 
-                        <p className="text-sm text-slate-300 mb-3">{item.summary}</p>
+                        <p className="text-sm text-gray-700 mb-3">{item.summary}</p>
 
-                        <div className="flex items-center justify-between text-xs text-slate-500 mb-3">
+                        <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
                             <span>{item.wordCount} words • {new Date(item.createdAt).toLocaleDateString()}</span>
                             {item.linkedChapterIds.length > 0 && (
                                 <span className="flex items-center gap-1">
@@ -108,9 +108,9 @@ const ResearchItemCard: React.FC<{
 
                         {item.tags.length > 0 && (
                             <div className="flex items-center gap-1 mb-3 flex-wrap">
-                                <TagIcon className="w-3 h-3 text-slate-500" />
+                                <TagIcon className="w-3 h-3 text-gray-500" />
                                 {item.tags.map(tag => (
-                                    <span key={tag} className="inline-flex items-center px-2 py-1 text-xs bg-slate-700 text-slate-300 rounded">
+                                    <span key={tag} className="inline-flex items-center px-2 py-1 text-xs bg-white text-gray-700 rounded">
                                         {tag}
                                     </span>
                                 ))}
@@ -118,16 +118,16 @@ const ResearchItemCard: React.FC<{
                         )}
 
                         {expanded && (
-                            <div className="mt-3 p-3 bg-slate-800/50 rounded-lg">
+                            <div className="mt-3 p-3 bg-gray-100/50 rounded-lg">
                                 <div className="prose prose-sm prose-invert max-w-none">
-                                    <p className="text-slate-300">{item.content}</p>
+                                    <p className="text-gray-700">{item.content}</p>
                                 </div>
 
                                 {item.sources.length > 0 && (
                                     <div className="mt-4">
-                                        <h5 className="text-xs font-medium text-slate-400 mb-2">Sources:</h5>
+                                        <h5 className="text-xs font-medium text-gray-600 mb-2">Sources:</h5>
                                         {item.sources.map(source => (
-                                            <div key={source.id} className="text-xs text-slate-400 mb-1 flex items-center justify-between">
+                                            <div key={source.id} className="text-xs text-gray-600 mb-1 flex items-center justify-between">
                                                 <span>• {source.title} ({source.credibility})</span>
                                                 {source.url && (
                                                     <a href={source.url} target="_blank" rel="noopener noreferrer"
@@ -142,9 +142,9 @@ const ResearchItemCard: React.FC<{
 
                                 {item.attachments && item.attachments.length > 0 && (
                                     <div className="mt-4">
-                                        <h5 className="text-xs font-medium text-slate-400 mb-2">Attachments:</h5>
+                                        <h5 className="text-xs font-medium text-gray-600 mb-2">Attachments:</h5>
                                         {item.attachments.map(attachment => (
-                                            <div key={attachment.id} className="text-xs text-slate-400 mb-1 flex items-center gap-2">
+                                            <div key={attachment.id} className="text-xs text-gray-600 mb-1 flex items-center gap-2">
                                                 <DocumentDuplicateIcon className="w-3 h-3" />
                                                 {attachment.name} ({(attachment.size! / 1024).toFixed(1)} KB)
                                             </div>
@@ -172,7 +172,7 @@ const ResearchItemCard: React.FC<{
                         variant="ghost"
                         size="sm"
                         onClick={() => onBookmark(item.id)}
-                        className={`${item.isBookmarked ? 'text-yellow-400' : 'text-slate-400'} hover:text-yellow-300`}
+                        className={`${item.isBookmarked ? 'text-yellow-400' : 'text-gray-600'} hover:text-yellow-300`}
                         title="Bookmark"
                     >
                         <StarIcon className="w-4 h-4" />
@@ -183,14 +183,14 @@ const ResearchItemCard: React.FC<{
                             variant="ghost"
                             size="sm"
                             onClick={() => setShowMoveMenu(!showMoveMenu)}
-                            className="text-slate-400 hover:text-slate-200"
+                            className="text-gray-600 hover:text-gray-800"
                             title="Move to folder"
                         >
                             <FolderIcon className="w-4 h-4" />
                         </Button>
 
                         {showMoveMenu && (
-                            <div className="absolute right-0 top-8 bg-slate-800 border border-slate-600 rounded-lg shadow-lg z-10 min-w-[200px]">
+                            <div className="absolute right-0 top-8 bg-gray-100 border border-gray-300 rounded-lg shadow-lg z-10 min-w-[200px]">
                                 <div className="p-2">
                                     <Button
                                         variant="ghost"
@@ -199,7 +199,7 @@ const ResearchItemCard: React.FC<{
                                             onMoveToFolder(item.id, '');
                                             setShowMoveMenu(false);
                                         }}
-                                        className="w-full text-left text-slate-300 hover:text-slate-100"
+                                        className="w-full text-left text-gray-700 hover:text-gray-900"
                                     >
                                         Move to Root
                                     </Button>
@@ -212,7 +212,7 @@ const ResearchItemCard: React.FC<{
                                                 onMoveToFolder(item.id, folder.id);
                                                 setShowMoveMenu(false);
                                             }}
-                                            className="w-full text-left text-slate-300 hover:text-slate-100 flex items-center gap-2"
+                                            className="w-full text-left text-gray-700 hover:text-gray-900 flex items-center gap-2"
                                         >
                                             <FolderIcon_Component type={folder.type} className="w-3 h-3" />
                                             {folder.name}
@@ -227,7 +227,7 @@ const ResearchItemCard: React.FC<{
                         variant="ghost"
                         size="sm"
                         onClick={() => setExpanded(!expanded)}
-                        className="text-slate-400 hover:text-slate-200"
+                        className="text-gray-600 hover:text-gray-800"
                     >
                         <EyeIcon className="w-4 h-4" />
                     </Button>
@@ -257,7 +257,7 @@ const FolderCard: React.FC<{
     return (
         <Card
             className={`p-4 mb-2 cursor-pointer transition-all ${
-                isActive ? 'border-brand-primary bg-slate-800/50' : 'hover:bg-slate-800/30'
+                isActive ? 'border-brand-primary bg-gray-100/50' : 'hover:bg-gray-100/30'
             }`}
             onClick={onSelect}
         >
@@ -267,10 +267,10 @@ const FolderCard: React.FC<{
                         className="w-4 h-4 rounded"
                         style={{ backgroundColor: folder.color }}
                     />
-                    <FolderIcon_Component type={folder.type} className="w-4 h-4 text-slate-400" />
+                    <FolderIcon_Component type={folder.type} className="w-4 h-4 text-gray-600" />
                     <div>
-                        <h4 className="text-sm font-medium text-slate-200">{folder.name}</h4>
-                        <p className="text-xs text-slate-500">{itemCount} items</p>
+                        <h4 className="text-sm font-medium text-gray-800">{folder.name}</h4>
+                        <p className="text-xs text-gray-500">{itemCount} items</p>
                     </div>
                 </div>
 
@@ -282,7 +282,7 @@ const FolderCard: React.FC<{
                             e.stopPropagation();
                             onEdit(folder);
                         }}
-                        className="text-slate-400 hover:text-slate-200"
+                        className="text-gray-600 hover:text-gray-800"
                     >
                         Edit
                     </Button>
@@ -329,8 +329,8 @@ export const ResearchTab: React.FC = () => {
     if (!activeProjectId || !project) {
         return (
             <div className="animate-fade-in max-w-7xl mx-auto p-8 text-center">
-                <h2 className="text-2xl font-bold text-slate-100 mb-2">Research Intelligence Hub</h2>
-                <p className="text-slate-400 mb-4">Please select a project to access research tools.</p>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Research Intelligence Hub</h2>
+                <p className="text-gray-600 mb-4">Please select a project to access research tools.</p>
             </div>
         );
     }
@@ -485,8 +485,8 @@ export const ResearchTab: React.FC = () => {
             <div className="mb-6">
                 <div className="flex items-center justify-between">
                     <div>
-                        <h2 className="text-2xl font-bold text-slate-100 mb-2">Research Intelligence Hub</h2>
-                        <p className="text-slate-400">
+                        <h2 className="text-2xl font-bold text-gray-900 mb-2">Research Intelligence Hub</h2>
+                        <p className="text-gray-600">
                             AI-powered research, fact-checking, and knowledge organization
                         </p>
                     </div>
@@ -502,12 +502,12 @@ export const ResearchTab: React.FC = () => {
                         </Button>
                         
                         {/* View Toggle */}
-                        <div className="flex items-center gap-1 bg-slate-800 rounded-lg p-1">
+                        <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
                             <Button
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => setResearchView('list')}
-                                className={researchView === 'list' ? 'bg-slate-700' : ''}
+                                className={researchView === 'list' ? 'bg-white' : ''}
                             >
                                 <ListIcon className="w-4 h-4" />
                             </Button>
@@ -515,7 +515,7 @@ export const ResearchTab: React.FC = () => {
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => setResearchView('grid')}
-                                className={researchView === 'grid' ? 'bg-slate-700' : ''}
+                                className={researchView === 'grid' ? 'bg-white' : ''}
                             >
                                 <GridIcon className="w-4 h-4" />
                             </Button>
@@ -523,7 +523,7 @@ export const ResearchTab: React.FC = () => {
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => setResearchView('timeline')}
-                                className={researchView === 'timeline' ? 'bg-slate-700' : ''}
+                                className={researchView === 'timeline' ? 'bg-white' : ''}
                             >
                                 <TimelineIcon className="w-4 h-4" />
                             </Button>
@@ -570,16 +570,16 @@ export const ResearchTab: React.FC = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                 {/* Traditional Research */}
                 <Card className="p-6">
-                    <h3 className="text-lg font-semibold text-slate-200 mb-4">AI Research</h3>
+                    <h3 className="text-lg font-semibold text-gray-800 mb-4">AI Research</h3>
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
-                            <label className="block text-sm font-medium text-slate-300 mb-2">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
                                 Research Type
                             </label>
                             <select
                                 value={selectedType}
                                 onChange={(e) => setSelectedType(e.target.value as ResearchType)}
-                                className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-primary"
+                                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-brand-primary"
                             >
                                 {Object.values(ResearchType).map(type => (
                                     <option key={type} value={type}>{type}</option>
@@ -588,7 +588,7 @@ export const ResearchTab: React.FC = () => {
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-slate-300 mb-2">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
                                 Research Query
                             </label>
                             <div className="flex gap-2">
@@ -623,10 +623,10 @@ export const ResearchTab: React.FC = () => {
 
                 {/* Web Content Summarization */}
                 <Card className="p-6">
-                    <h3 className="text-lg font-semibold text-slate-200 mb-4">Web Content Analysis</h3>
+                    <h3 className="text-lg font-semibold text-gray-800 mb-4">Web Content Analysis</h3>
                     <div className="space-y-4">
                         <div>
-                            <label className="block text-sm font-medium text-slate-300 mb-2">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
                                 URL to Summarize
                             </label>
                             <div className="flex gap-2">
@@ -657,7 +657,7 @@ export const ResearchTab: React.FC = () => {
                             </div>
                         </div>
 
-                        <div className="text-sm text-slate-400">
+                        <div className="text-sm text-gray-600">
                             Enter a URL to automatically extract and summarize web content for your research.
                         </div>
                     </div>
@@ -670,12 +670,12 @@ export const ResearchTab: React.FC = () => {
                 <div className="lg:col-span-1">
                     <Card className="p-4 mb-4">
                         <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-semibold text-slate-200">Folders</h3>
+                            <h3 className="text-lg font-semibold text-gray-800">Folders</h3>
                             <Button
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => setShowNewFolderModal(true)}
-                                className="text-slate-400 hover:text-slate-200"
+                                className="text-gray-600 hover:text-gray-800"
                             >
                                 <PlusIcon className="w-4 h-4" />
                             </Button>
@@ -714,8 +714,8 @@ export const ResearchTab: React.FC = () => {
 
                     {/* Quick Stats */}
                     <Card className="p-4">
-                        <h4 className="text-sm font-medium text-slate-300 mb-3">Research Stats</h4>
-                        <div className="space-y-2 text-xs text-slate-400">
+                        <h4 className="text-sm font-medium text-gray-700 mb-3">Research Stats</h4>
+                        <div className="space-y-2 text-xs text-gray-600">
                             <div className="flex justify-between">
                                 <span>Total Items:</span>
                                 <span>{project?.research.length || 0}</span>
@@ -755,14 +755,14 @@ export const ResearchTab: React.FC = () => {
 
                                 {selectedResearchItems.length > 0 && (
                                     <div className="flex items-center gap-2">
-                                        <span className="text-sm text-slate-400">
+                                        <span className="text-sm text-gray-600">
                                             {selectedResearchItems.length} selected
                                         </span>
                                         <Button
                                             variant="ghost"
                                             size="sm"
                                             onClick={() => setShowBulkActions(!showBulkActions)}
-                                            className="text-slate-400 hover:text-slate-200"
+                                            className="text-gray-600 hover:text-gray-800"
                                         >
                                             Actions
                                         </Button>
@@ -774,7 +774,7 @@ export const ResearchTab: React.FC = () => {
                                 variant="ghost"
                                 size="sm"
                                 onClick={handleSelectAll}
-                                className="text-slate-400 hover:text-slate-200"
+                                className="text-gray-600 hover:text-gray-800"
                             >
                                 {selectedResearchItems.length === filteredResearch.length && filteredResearch.length > 0
                                     ? 'Deselect All'
@@ -784,7 +784,7 @@ export const ResearchTab: React.FC = () => {
                         </div>
 
                         {showBulkActions && selectedResearchItems.length > 0 && (
-                            <div className="flex items-center gap-2 p-3 bg-slate-800/50 rounded-lg">
+                            <div className="flex items-center gap-2 p-3 bg-gray-100/50 rounded-lg">
                                 <Button
                                     onClick={handleBulkDelete}
                                     className="bg-red-600 hover:bg-red-700"
@@ -805,10 +805,10 @@ export const ResearchTab: React.FC = () => {
                     {filteredResearch.length === 0 ? (
                         <Card className="p-8 text-center">
                             <MagnifyingGlassIcon className="mx-auto h-12 w-12 text-slate-600 mb-4" />
-                            <h3 className="text-lg font-semibold text-slate-300 mb-2">
+                            <h3 className="text-lg font-semibold text-gray-700 mb-2">
                                 {searchTerm ? 'No matching research found' : 'No research yet'}
                             </h3>
-                            <p className="text-slate-400">
+                            <p className="text-gray-600">
                                 {searchTerm
                                     ? 'Try adjusting your search terms or filters.'
                                     : 'Start by entering a research query or URL above to gather information for your book.'
@@ -839,13 +839,13 @@ export const ResearchTab: React.FC = () => {
 
             {/* New Folder Modal */}
             {showNewFolderModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                <div className="fixed inset-0 bg-gray-900/30 flex items-center justify-center z-50">
                     <Card className="p-6 max-w-lg w-full mx-4 max-h-[80vh] overflow-y-auto">
-                        <h3 className="text-lg font-semibold text-slate-200 mb-4">Create New Folder</h3>
+                        <h3 className="text-lg font-semibold text-gray-800 mb-4">Create New Folder</h3>
 
                         <div className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-slate-300 mb-2">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Folder Name
                                 </label>
                                 <Input
@@ -857,13 +857,13 @@ export const ResearchTab: React.FC = () => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-slate-300 mb-2">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Folder Type
                                 </label>
                                 <select
                                     value={newFolderType}
                                     onChange={(e) => setNewFolderType(e.target.value as ResearchFolderType)}
-                                    className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-primary"
+                                    className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-brand-primary"
                                 >
                                     {Object.values(ResearchFolderType).map(type => (
                                         <option key={type} value={type}>{type}</option>
@@ -872,7 +872,7 @@ export const ResearchTab: React.FC = () => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-slate-300 mb-2">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Folder Color
                                 </label>
                                 <div className="flex items-center gap-3">
@@ -880,7 +880,7 @@ export const ResearchTab: React.FC = () => {
                                         type="color"
                                         value={newFolderColor}
                                         onChange={(e) => setNewFolderColor(e.target.value)}
-                                        className="w-10 h-10 rounded border border-slate-600 bg-slate-700 cursor-pointer"
+                                        className="w-10 h-10 rounded border border-gray-300 bg-white cursor-pointer"
                                     />
                                     <div className="flex gap-2">
                                         {['#6B7280', '#EF4444', '#F59E0B', '#10B981', '#3B82F6', '#8B5CF6', '#EC4899'].map(color => (
@@ -889,7 +889,7 @@ export const ResearchTab: React.FC = () => {
                                                 type="button"
                                                 onClick={() => setNewFolderColor(color)}
                                                 className={`w-6 h-6 rounded border-2 ${
-                                                    newFolderColor === color ? 'border-white' : 'border-slate-600'
+                                                    newFolderColor === color ? 'border-white' : 'border-gray-300'
                                                 }`}
                                                 style={{ backgroundColor: color }}
                                             />
@@ -899,7 +899,7 @@ export const ResearchTab: React.FC = () => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-slate-300 mb-2">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Tags
                                 </label>
                                 <div className="flex gap-2 mb-2">
@@ -924,13 +924,13 @@ export const ResearchTab: React.FC = () => {
                                         {newFolderTags.map(tag => (
                                             <span
                                                 key={tag}
-                                                className="inline-flex items-center px-2 py-1 text-xs bg-slate-700 text-slate-300 rounded"
+                                                className="inline-flex items-center px-2 py-1 text-xs bg-white text-gray-700 rounded"
                                             >
                                                 {tag}
                                                 <button
                                                     type="button"
                                                     onClick={() => handleRemoveTag(tag)}
-                                                    className="ml-1 text-slate-400 hover:text-slate-200"
+                                                    className="ml-1 text-gray-600 hover:text-gray-800"
                                                 >
                                                     ×
                                                 </button>
@@ -970,13 +970,13 @@ export const ResearchTab: React.FC = () => {
 
             {/* Edit Folder Modal */}
             {showEditFolderModal && editingFolder && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                <div className="fixed inset-0 bg-gray-900/30 flex items-center justify-center z-50">
                     <Card className="p-6 max-w-lg w-full mx-4 max-h-[80vh] overflow-y-auto">
-                        <h3 className="text-lg font-semibold text-slate-200 mb-4">Edit Folder</h3>
+                        <h3 className="text-lg font-semibold text-gray-800 mb-4">Edit Folder</h3>
 
                         <div className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-slate-300 mb-2">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Folder Name
                                 </label>
                                 <Input
@@ -988,13 +988,13 @@ export const ResearchTab: React.FC = () => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-slate-300 mb-2">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Folder Type
                                 </label>
                                 <select
                                     value={newFolderType}
                                     onChange={(e) => setNewFolderType(e.target.value as ResearchFolderType)}
-                                    className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-primary"
+                                    className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-brand-primary"
                                 >
                                     {Object.values(ResearchFolderType).map(type => (
                                         <option key={type} value={type}>{type}</option>
@@ -1003,7 +1003,7 @@ export const ResearchTab: React.FC = () => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-slate-300 mb-2">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Folder Color
                                 </label>
                                 <div className="flex items-center gap-3">
@@ -1011,7 +1011,7 @@ export const ResearchTab: React.FC = () => {
                                         type="color"
                                         value={newFolderColor}
                                         onChange={(e) => setNewFolderColor(e.target.value)}
-                                        className="w-10 h-10 rounded border border-slate-600 bg-slate-700 cursor-pointer"
+                                        className="w-10 h-10 rounded border border-gray-300 bg-white cursor-pointer"
                                     />
                                     <div className="flex gap-2">
                                         {['#6B7280', '#EF4444', '#F59E0B', '#10B981', '#3B82F6', '#8B5CF6', '#EC4899'].map(color => (
@@ -1020,7 +1020,7 @@ export const ResearchTab: React.FC = () => {
                                                 type="button"
                                                 onClick={() => setNewFolderColor(color)}
                                                 className={`w-6 h-6 rounded border-2 ${
-                                                    newFolderColor === color ? 'border-white' : 'border-slate-600'
+                                                    newFolderColor === color ? 'border-white' : 'border-gray-300'
                                                 }`}
                                                 style={{ backgroundColor: color }}
                                             />
@@ -1030,7 +1030,7 @@ export const ResearchTab: React.FC = () => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-slate-300 mb-2">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Tags
                                 </label>
                                 <div className="flex gap-2 mb-2">
@@ -1055,13 +1055,13 @@ export const ResearchTab: React.FC = () => {
                                         {newFolderTags.map(tag => (
                                             <span
                                                 key={tag}
-                                                className="inline-flex items-center px-2 py-1 text-xs bg-slate-700 text-slate-300 rounded"
+                                                className="inline-flex items-center px-2 py-1 text-xs bg-white text-gray-700 rounded"
                                             >
                                                 {tag}
                                                 <button
                                                     type="button"
                                                     onClick={() => handleRemoveTag(tag)}
-                                                    className="ml-1 text-slate-400 hover:text-slate-200"
+                                                    className="ml-1 text-gray-600 hover:text-gray-800"
                                                 >
                                                     ×
                                                 </button>
@@ -1071,9 +1071,9 @@ export const ResearchTab: React.FC = () => {
                                 )}
                             </div>
 
-                            <div className="bg-slate-800/50 p-3 rounded-lg">
-                                <h5 className="text-sm font-medium text-slate-300 mb-2">Folder Statistics</h5>
-                                <div className="text-xs text-slate-400 space-y-1">
+                            <div className="bg-gray-100/50 p-3 rounded-lg">
+                                <h5 className="text-sm font-medium text-gray-700 mb-2">Folder Statistics</h5>
+                                <div className="text-xs text-gray-600 space-y-1">
                                     <div className="flex justify-between">
                                         <span>Created:</span>
                                         <span>{new Date(editingFolder.createdAt).toLocaleDateString()}</span>

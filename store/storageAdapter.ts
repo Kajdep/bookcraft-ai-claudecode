@@ -31,9 +31,27 @@ export const storageAdapter: StateStorage = {
                 // (we'll migrate this to IndexedDB in a future iteration)
                 const analyticsData = localStorage.getItem('bookcraft-analytics');
                 
+                // Migrate projects to ensure all required arrays exist
+                const migratedProjects = projects.map(project => ({
+                    ...project,
+                    // Ensure materials array exists (migration for existing projects)
+                    materials: Array.isArray(project.materials) ? project.materials : [],
+                    materialFolders: Array.isArray(project.materialFolders) ? project.materialFolders : [],
+                    // Ensure other arrays exist
+                    research: Array.isArray(project.research) ? project.research : [],
+                    factChecks: Array.isArray(project.factChecks) ? project.factChecks : [],
+                    researchQueries: Array.isArray(project.researchQueries) ? project.researchQueries : [],
+                    researchTags: Array.isArray(project.researchTags) ? project.researchTags : [],
+                    researchFolders: Array.isArray(project.researchFolders) ? project.researchFolders : [],
+                    citations: Array.isArray(project.citations) ? project.citations : [],
+                    thematicTags: Array.isArray(project.thematicTags) ? project.thematicTags : [],
+                    researchTimelines: Array.isArray(project.researchTimelines) ? project.researchTimelines : [],
+                    researchMindMaps: Array.isArray(project.researchMindMaps) ? project.researchMindMaps : [],
+                }));
+                
                 // Reconstruct the state object
                 const state = {
-                    projects: projects.reduce((acc, project) => {
+                    projects: migratedProjects.reduce((acc, project) => {
                         acc[project.id] = project;
                         return acc;
                     }, {} as Record<string, Project>),

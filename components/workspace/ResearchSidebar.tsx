@@ -45,19 +45,19 @@ const CompactResearchItem: React.FC<{
     const [expanded, setExpanded] = useState(false);
 
     return (
-        <div className="border-b border-slate-700/30 last:border-b-0">
-            <div className="p-3 hover:bg-slate-800/30 transition-colors">
+        <div className="border-b border-gray-300/30 last:border-b-0">
+            <div className="p-3 hover:bg-gray-100/30 transition-colors">
                 <div className="flex items-start justify-between mb-2">
                     <div className="flex items-center gap-2 flex-1 min-w-0">
                         <ResearchTypeIcon type={item.type} />
-                        <h4 className="text-xs font-medium text-slate-200 truncate">{item.query}</h4>
+                        <h4 className="text-xs font-medium text-gray-800 truncate">{item.query}</h4>
                     </div>
                     <div className="flex items-center gap-1 ml-2">
                         <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => setExpanded(!expanded)}
-                            className="p-1 text-slate-400 hover:text-slate-200"
+                            className="p-1 text-gray-600 hover:text-gray-800"
                         >
                             {expanded ? <ChevronDownIcon className="w-3 h-3" /> : <ChevronRightIcon className="w-3 h-3" />}
                         </Button>
@@ -76,27 +76,27 @@ const CompactResearchItem: React.FC<{
                     </Button>
                 </div>
 
-                <p className="text-xs text-slate-300 line-clamp-2 mb-2">{item.summary}</p>
+                <p className="text-xs text-gray-700 line-clamp-2 mb-2">{item.summary}</p>
 
                 {item.tags.length > 0 && (
                     <div className="flex items-center gap-1 mb-2">
-                        <TagIcon className="w-2 h-2 text-slate-500" />
+                        <TagIcon className="w-2 h-2 text-gray-500" />
                         <div className="flex flex-wrap gap-1">
                             {item.tags.slice(0, 2).map(tag => (
-                                <span key={tag} className="inline-flex items-center px-1 py-0.5 text-xs bg-slate-700 text-slate-400 rounded">
+                                <span key={tag} className="inline-flex items-center px-1 py-0.5 text-xs bg-white text-gray-600 rounded">
                                     {tag}
                                 </span>
                             ))}
                             {item.tags.length > 2 && (
-                                <span className="text-xs text-slate-500">+{item.tags.length - 2}</span>
+                                <span className="text-xs text-gray-500">+{item.tags.length - 2}</span>
                             )}
                         </div>
                     </div>
                 )}
 
                 {expanded && (
-                    <div className="mt-3 p-2 bg-slate-800/50 rounded text-xs">
-                        <div className="text-slate-300 mb-2">
+                    <div className="mt-3 p-2 bg-gray-100/50 rounded text-xs">
+                        <div className="text-gray-700 mb-2">
                             <p className="line-clamp-4">{item.content}</p>
                         </div>
 
@@ -113,7 +113,7 @@ const CompactResearchItem: React.FC<{
                                 size="sm"
                                 variant={item.isBookmarked ? "primary" : "ghost"}
                                 onClick={() => onBookmarkToggle(item.id)}
-                                className={`text-xs py-1 px-2 ${item.isBookmarked ? 'text-yellow-300' : 'text-slate-400 hover:text-yellow-300'}`}
+                                className={`text-xs py-1 px-2 ${item.isBookmarked ? 'text-yellow-300' : 'text-gray-600 hover:text-yellow-300'}`}
                                 title={item.isBookmarked ? "Remove bookmark" : "Bookmark this research"}
                             >
                                 <BookmarkIcon className="w-3 h-3 mr-1" />
@@ -123,7 +123,7 @@ const CompactResearchItem: React.FC<{
                                 size="sm"
                                 variant="ghost"
                                 onClick={() => onAddToBibliography(item)}
-                                className="text-xs py-1 px-2 text-slate-400 hover:text-blue-300"
+                                className="text-xs py-1 px-2 text-gray-600 hover:text-blue-300"
                                 title="Add to bibliography"
                             >
                                 <PlusIcon className="w-3 h-3 mr-1" />
@@ -132,10 +132,10 @@ const CompactResearchItem: React.FC<{
                         </div>
 
                         {item.sources.length > 0 && (
-                            <div className="mt-2 pt-2 border-t border-slate-700/30">
-                                <h6 className="text-xs font-medium text-slate-400 mb-1">Sources:</h6>
+                            <div className="mt-2 pt-2 border-t border-gray-300/30">
+                                <h6 className="text-xs font-medium text-gray-600 mb-1">Sources:</h6>
                                 {item.sources.slice(0, 2).map(source => (
-                                    <div key={source.id} className="text-xs text-slate-500 truncate">
+                                    <div key={source.id} className="text-xs text-gray-500 truncate">
                                         • {source.title}
                                     </div>
                                 ))}
@@ -217,27 +217,27 @@ export const ResearchSidebar: React.FC<ResearchSidebarProps> = ({ isOpen, onClos
     if (!isOpen) return null;
 
     return (
-        <div className="fixed right-0 top-0 h-full w-80 bg-slate-900/95 backdrop-blur-sm border-l border-slate-700/50 z-40 flex flex-col">
+        <div className="fixed right-0 top-0 h-full w-80 bg-white/95 backdrop-blur-sm border-l border-gray-300/50 z-40 flex flex-col">
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-slate-700/50">
-                <h3 className="text-lg font-semibold text-slate-200">Research</h3>
+            <div className="flex items-center justify-between p-4 border-b border-gray-300/50">
+                <h3 className="text-lg font-semibold text-gray-800">Research</h3>
                 <Button
                     variant="ghost"
                     size="sm"
                     onClick={onClose}
-                    className="text-slate-400 hover:text-slate-200"
+                    className="text-gray-600 hover:text-gray-800"
                 >
                     <XMarkIcon className="w-5 h-5" />
                 </Button>
             </div>
 
             {/* Research Form */}
-            <div className="p-4 border-b border-slate-700/30">
+            <div className="p-4 border-b border-gray-300/30">
                 <form onSubmit={handleSubmit} className="space-y-3">
                     <select
                         value={selectedType}
                         onChange={(e) => setSelectedType(e.target.value as ResearchType)}
-                        className="w-full px-2 py-1 text-xs bg-slate-700 border border-slate-600 rounded text-slate-200 focus:outline-none focus:ring-1 focus:ring-brand-primary"
+                        className="w-full px-2 py-1 text-xs bg-white border border-gray-300 rounded text-gray-800 focus:outline-none focus:ring-1 focus:ring-brand-primary"
                     >
                         {Object.values(ResearchType).map(type => (
                             <option key={type} value={type}>{type}</option>
@@ -273,7 +273,7 @@ export const ResearchSidebar: React.FC<ResearchSidebarProps> = ({ isOpen, onClos
                         size="sm"
                         variant={showBookmarksOnly ? "primary" : "ghost"}
                         onClick={() => setShowBookmarksOnly(!showBookmarksOnly)}
-                        className={`text-xs py-1 px-2 ${showBookmarksOnly ? 'text-yellow-300' : 'text-slate-400 hover:text-yellow-300'}`}
+                        className={`text-xs py-1 px-2 ${showBookmarksOnly ? 'text-yellow-300' : 'text-gray-600 hover:text-yellow-300'}`}
                     >
                         <BookmarkIcon className="w-3 h-3 mr-1" />
                         Bookmarks Only
@@ -282,7 +282,7 @@ export const ResearchSidebar: React.FC<ResearchSidebarProps> = ({ isOpen, onClos
                         size="sm"
                         variant={showBibliographyView ? "primary" : "ghost"}
                         onClick={() => setShowBibliographyView(!showBibliographyView)}
-                        className={`text-xs py-1 px-2 ${showBibliographyView ? 'text-blue-300' : 'text-slate-400 hover:text-blue-300'}`}
+                        className={`text-xs py-1 px-2 ${showBibliographyView ? 'text-blue-300' : 'text-gray-600 hover:text-blue-300'}`}
                     >
                         <DocumentTextIcon className="w-3 h-3 mr-1" />
                         Bibliography
@@ -291,7 +291,7 @@ export const ResearchSidebar: React.FC<ResearchSidebarProps> = ({ isOpen, onClos
             </div>
 
             {/* Search Bar */}
-            <div className="p-4 border-b border-slate-700/30">
+            <div className="p-4 border-b border-gray-300/30">
                 <Input
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -310,7 +310,7 @@ export const ResearchSidebar: React.FC<ResearchSidebarProps> = ({ isOpen, onClos
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => setSelectedItem(null)}
-                                className="text-slate-400 hover:text-slate-200"
+                                className="text-gray-600 hover:text-gray-800"
                             >
                                 ← Back
                             </Button>
@@ -319,26 +319,26 @@ export const ResearchSidebar: React.FC<ResearchSidebarProps> = ({ isOpen, onClos
 
                         <div className="space-y-3">
                             <div>
-                                <h4 className="text-sm font-medium text-slate-200 mb-2">{selectedItem.query}</h4>
-                                <p className="text-xs text-slate-300 mb-3">{selectedItem.summary}</p>
+                                <h4 className="text-sm font-medium text-gray-800 mb-2">{selectedItem.query}</h4>
+                                <p className="text-xs text-gray-700 mb-3">{selectedItem.summary}</p>
                             </div>
 
-                            <div className="p-3 bg-slate-800/50 rounded text-xs">
-                                <div className="text-slate-300 whitespace-pre-wrap">
+                            <div className="p-3 bg-gray-100/50 rounded text-xs">
+                                <div className="text-gray-700 whitespace-pre-wrap">
                                     {selectedItem.content}
                                 </div>
                             </div>
 
                             {selectedItem.sources.length > 0 && (
                                 <div>
-                                    <h5 className="text-xs font-medium text-slate-400 mb-2">Sources:</h5>
+                                    <h5 className="text-xs font-medium text-gray-600 mb-2">Sources:</h5>
                                     {selectedItem.sources.map(source => (
-                                        <div key={source.id} className="text-xs text-slate-400 mb-1 p-2 bg-slate-800/30 rounded">
+                                        <div key={source.id} className="text-xs text-gray-600 mb-1 p-2 bg-gray-100/30 rounded">
                                             <div className="font-medium">{source.title}</div>
                                             {source.url && (
-                                                <div className="text-slate-500 truncate">{source.url}</div>
+                                                <div className="text-gray-500 truncate">{source.url}</div>
                                             )}
-                                            <div className="text-slate-500">Credibility: {source.credibility}</div>
+                                            <div className="text-gray-500">Credibility: {source.credibility}</div>
                                         </div>
                                     ))}
                                 </div>
@@ -346,10 +346,10 @@ export const ResearchSidebar: React.FC<ResearchSidebarProps> = ({ isOpen, onClos
 
                             {selectedItem.tags.length > 0 && (
                                 <div>
-                                    <h5 className="text-xs font-medium text-slate-400 mb-2">Tags:</h5>
+                                    <h5 className="text-xs font-medium text-gray-600 mb-2">Tags:</h5>
                                     <div className="flex flex-wrap gap-1">
                                         {selectedItem.tags.map(tag => (
-                                            <span key={tag} className="inline-flex items-center px-2 py-1 text-xs bg-slate-700 text-slate-300 rounded">
+                                            <span key={tag} className="inline-flex items-center px-2 py-1 text-xs bg-white text-gray-700 rounded">
                                                 {tag}
                                             </span>
                                         ))}
@@ -361,17 +361,17 @@ export const ResearchSidebar: React.FC<ResearchSidebarProps> = ({ isOpen, onClos
                 ) : (
                     /* Research List */
                     <div>
-                        <div className="px-4 py-2 text-xs text-slate-400 bg-slate-800/30">
+                        <div className="px-4 py-2 text-xs text-gray-600 bg-gray-100/30">
                             {chapterId ? 'Chapter Research' : 'All Research'} ({chapterResearch.length})
                         </div>
 
                         {chapterResearch.length === 0 ? (
                             <div className="p-6 text-center">
                                 <MagnifyingGlassIcon className="mx-auto h-8 w-8 text-slate-600 mb-3" />
-                                <h4 className="text-sm font-medium text-slate-300 mb-2">
+                                <h4 className="text-sm font-medium text-gray-700 mb-2">
                                     {searchTerm ? 'No matching research' : 'No research yet'}
                                 </h4>
-                                <p className="text-xs text-slate-400">
+                                <p className="text-xs text-gray-600">
                                     {searchTerm
                                         ? 'Try different search terms.'
                                         : 'Start researching to build your knowledge base.'

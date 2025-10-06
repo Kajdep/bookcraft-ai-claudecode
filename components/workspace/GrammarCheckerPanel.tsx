@@ -12,11 +12,11 @@ interface GrammarCheckerPanelProps {
  */
 export const GrammarCheckerPanel: React.FC<GrammarCheckerPanelProps> = ({ text, onTextCorrection, className = '' }) => {
     return (
-        <div className={`bg-slate-800/50 border border-slate-700/50 rounded-lg p-4 flex flex-col ${className}`}>
-            <h3 className="text-slate-200 font-bold mb-3">Grammar Checker</h3>
-            <div className="flex-grow overflow-y-auto text-sm text-slate-400">
+        <div className={`bg-gray-100/50 border border-gray-300/50 rounded-lg p-4 flex flex-col ${className}`}>
+            <h3 className="text-gray-800 font-bold mb-3">Grammar Checker</h3>
+            <div className="flex-grow overflow-y-auto text-sm text-gray-600">
                 <div className="text-center py-8">
-                    <p className="text-slate-500 italic mb-2">Grammar checking feature coming soon!</p>
+                    <p className="text-gray-500 italic mb-2">Grammar checking feature coming soon!</p>
                     <p className="text-xs text-slate-600">
                         This will integrate with grammar checking services to help improve your writing.
                     </p>

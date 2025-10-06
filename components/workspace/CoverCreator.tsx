@@ -628,13 +628,13 @@ export const CoverCreator: React.FC = () => {
     };
 
     return (
-        <div className="bg-slate-800/50 rounded-lg border border-slate-700/50 p-6">
+        <div className="bg-gray-100/50 rounded-lg border border-gray-300/50 p-6">
             <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
                     <PaintBrushIcon className="w-6 h-6 text-purple-400" />
                     <div>
-                        <h2 className="text-xl font-bold text-slate-200">Cover Creator</h2>
-                        <p className="text-sm text-slate-400">Design professional book covers with AI generation or manual creation tools</p>
+                        <h2 className="text-xl font-bold text-gray-800">Cover Creator</h2>
+                        <p className="text-sm text-gray-600">Design professional book covers with AI generation or manual creation tools</p>
                     </div>
                 </div>
             </div>
@@ -642,18 +642,18 @@ export const CoverCreator: React.FC = () => {
             <div className="space-y-6">
                 {/* Cover Type Selection */}
                 <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-3">Cover Type</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-3">Cover Type</label>
                     <div className="grid grid-cols-2 gap-3">
                         <button
                             onClick={() => setCoverType('front')}
                             className={`p-4 rounded-lg border-2 transition-all text-left ${
                                 coverType === 'front'
                                     ? 'border-purple-500 bg-purple-500/20 text-purple-200'
-                                    : 'border-slate-600 bg-slate-700/50 text-slate-300 hover:border-slate-500'
+                                    : 'border-gray-300 bg-white/50 text-gray-700 hover:border-gray-400'
                             }`}
                         >
                             <div className="font-semibold mb-1">Front Cover</div>
-                            <div className="text-xs text-slate-400">
+                            <div className="text-xs text-gray-600">
                                 Main cover with title and imagery
                             </div>
                         </button>
@@ -662,11 +662,11 @@ export const CoverCreator: React.FC = () => {
                             className={`p-4 rounded-lg border-2 transition-all text-left ${
                                 coverType === 'back'
                                     ? 'border-purple-500 bg-purple-500/20 text-purple-200'
-                                    : 'border-slate-600 bg-slate-700/50 text-slate-300 hover:border-slate-500'
+                                    : 'border-gray-300 bg-white/50 text-gray-700 hover:border-gray-400'
                             }`}
                         >
                             <div className="font-semibold mb-1">Back Cover</div>
-                            <div className="text-xs text-slate-400">
+                            <div className="text-xs text-gray-600">
                                 Book blurb, bio, and details
                             </div>
                         </button>
@@ -675,7 +675,7 @@ export const CoverCreator: React.FC = () => {
 
                 {/* Book Format Selection */}
                 <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-3">Book Format</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-3">Book Format</label>
                     <div className="grid grid-cols-3 gap-3">
                         {Object.entries(COVER_DIMENSIONS).map(([format, info]) => (
                             <button
@@ -684,27 +684,27 @@ export const CoverCreator: React.FC = () => {
                                 className={`p-4 rounded-lg border-2 transition-all text-left ${
                                     bookFormat === format
                                         ? 'border-purple-500 bg-purple-500/20 text-purple-200'
-                                        : 'border-slate-600 bg-slate-700/50 text-slate-300 hover:border-slate-500'
+                                        : 'border-gray-300 bg-white/50 text-gray-700 hover:border-gray-400'
                                 }`}
                             >
                                 <div className="font-semibold capitalize mb-1">{format}</div>
-                                <div className="text-xs text-slate-400">
+                                <div className="text-xs text-gray-600">
                                     {info.width}×{info.height}px
                                 </div>
-                                <div className="text-xs text-slate-500 mt-1">
+                                <div className="text-xs text-gray-500 mt-1">
                                     {format === 'ebook' ? 'Digital' : format === 'paperback' ? 'Print' : 'Premium'}
                                 </div>
                             </button>
                         ))}
                     </div>
-                    <p className="text-xs text-slate-400 mt-2">{dimensions.description}</p>
+                    <p className="text-xs text-gray-600 mt-2">{dimensions.description}</p>
                 </div>
 
                 {/* Book Information */}
                 {coverType === 'front' ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label htmlFor="cover-title" className="block text-sm font-medium text-slate-300 mb-2">
+                            <label htmlFor="cover-title" className="block text-sm font-medium text-gray-700 mb-2">
                                 Book Title *
                             </label>
                             <input
@@ -713,12 +713,12 @@ export const CoverCreator: React.FC = () => {
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
                                 placeholder="Enter book title"
-                                className="w-full bg-slate-700 border-slate-600 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 text-white placeholder-slate-400 p-3"
+                                className="w-full bg-white border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 text-gray-900 placeholder-gray-400 p-3"
                                 required
                             />
                         </div>
                         <div>
-                            <label htmlFor="cover-author" className="block text-sm font-medium text-slate-300 mb-2">
+                            <label htmlFor="cover-author" className="block text-sm font-medium text-gray-700 mb-2">
                                 Author Name
                             </label>
                             <input
@@ -727,11 +727,11 @@ export const CoverCreator: React.FC = () => {
                                 value={author}
                                 onChange={(e) => setAuthor(e.target.value)}
                                 placeholder="Author name"
-                                className="w-full bg-slate-700 border-slate-600 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 text-white placeholder-slate-400 p-3"
+                                className="w-full bg-white border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 text-gray-900 placeholder-gray-400 p-3"
                             />
                         </div>
                         <div className="md:col-span-2">
-                            <label htmlFor="cover-subtitle" className="block text-sm font-medium text-slate-300 mb-2">
+                            <label htmlFor="cover-subtitle" className="block text-sm font-medium text-gray-700 mb-2">
                                 Subtitle (Optional)
                             </label>
                             <input
@@ -740,14 +740,14 @@ export const CoverCreator: React.FC = () => {
                                 value={subtitle}
                                 onChange={(e) => setSubtitle(e.target.value)}
                                 placeholder="Book subtitle"
-                                className="w-full bg-slate-700 border-slate-600 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 text-white placeholder-slate-400 p-3"
+                                className="w-full bg-white border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 text-gray-900 placeholder-gray-400 p-3"
                             />
                         </div>
                     </div>
                 ) : (
                     <div className="space-y-4">
                         <div>
-                            <label htmlFor="book-blurb" className="block text-sm font-medium text-slate-300 mb-2">
+                            <label htmlFor="book-blurb" className="block text-sm font-medium text-gray-700 mb-2">
                                 Book Blurb / Description *
                             </label>
                             <textarea
@@ -756,12 +756,12 @@ export const CoverCreator: React.FC = () => {
                                 onChange={(e) => setBlurb(e.target.value)}
                                 placeholder="Enter the book description or blurb that will appear on the back cover..."
                                 rows={4}
-                                className="w-full bg-slate-700 border-slate-600 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 text-white placeholder-slate-400 p-3 resize-none"
+                                className="w-full bg-white border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 text-gray-900 placeholder-gray-400 p-3 resize-none"
                                 required
                             />
                         </div>
                         <div>
-                            <label htmlFor="author-bio" className="block text-sm font-medium text-slate-300 mb-2">
+                            <label htmlFor="author-bio" className="block text-sm font-medium text-gray-700 mb-2">
                                 Author Bio
                             </label>
                             <textarea
@@ -770,12 +770,12 @@ export const CoverCreator: React.FC = () => {
                                 onChange={(e) => setAuthorBio(e.target.value)}
                                 placeholder="Brief author biography..."
                                 rows={3}
-                                className="w-full bg-slate-700 border-slate-600 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 text-white placeholder-slate-400 p-3 resize-none"
+                                className="w-full bg-white border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 text-gray-900 placeholder-gray-400 p-3 resize-none"
                             />
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label htmlFor="isbn" className="block text-sm font-medium text-slate-300 mb-2">
+                                <label htmlFor="isbn" className="block text-sm font-medium text-gray-700 mb-2">
                                     ISBN
                                 </label>
                                 <input
@@ -784,11 +784,11 @@ export const CoverCreator: React.FC = () => {
                                     value={isbn}
                                     onChange={(e) => setIsbn(e.target.value)}
                                     placeholder="ISBN-13: 978-0-00-000000-0"
-                                    className="w-full bg-slate-700 border-slate-600 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 text-white placeholder-slate-400 p-3"
+                                    className="w-full bg-white border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 text-gray-900 placeholder-gray-400 p-3"
                                 />
                             </div>
                             <div>
-                                <label htmlFor="price" className="block text-sm font-medium text-slate-300 mb-2">
+                                <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-2">
                                     Price
                                 </label>
                                 <input
@@ -797,7 +797,7 @@ export const CoverCreator: React.FC = () => {
                                     value={price}
                                     onChange={(e) => setPrice(e.target.value)}
                                     placeholder="$9.99"
-                                    className="w-full bg-slate-700 border-slate-600 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 text-white placeholder-slate-400 p-3"
+                                    className="w-full bg-white border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 text-gray-900 placeholder-gray-400 p-3"
                                 />
                             </div>
                         </div>
@@ -807,14 +807,14 @@ export const CoverCreator: React.FC = () => {
                 {/* Cover Style Selection */}
                 <div>
                     <div className="flex items-center justify-between mb-3">
-                        <label className="block text-sm font-medium text-slate-300">Cover Style</label>
+                        <label className="block text-sm font-medium text-gray-700">Cover Style</label>
                         <button
                             onClick={() => {
                                 const styleColors = COVER_STYLES[coverStyle].colors;
                                 setBackgroundColor(styleColors[0]);
                                 setTextColor(styleColors[1] || '#FFFFFF');
                             }}
-                            className="text-xs bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded"
+                            className="text-xs bg-purple-600 hover:bg-purple-700 text-gray-900 px-3 py-1 rounded"
                         >
                             Apply Style Colors
                         </button>
@@ -827,16 +827,16 @@ export const CoverCreator: React.FC = () => {
                                 className={`p-3 rounded-lg border-2 transition-all text-left ${
                                     coverStyle === style
                                         ? 'border-purple-500 bg-purple-500/20 text-purple-200'
-                                        : 'border-slate-600 bg-slate-700/50 text-slate-300 hover:border-slate-500'
+                                        : 'border-gray-300 bg-white/50 text-gray-700 hover:border-gray-400'
                                 }`}
                             >
                                 <div className="font-semibold mb-1">{info.name}</div>
-                                <div className="text-xs text-slate-400 mb-2">{info.description}</div>
+                                <div className="text-xs text-gray-600 mb-2">{info.description}</div>
                                 <div className="flex gap-1">
                                     {info.colors.slice(0, 4).map((color, idx) => (
                                         <div
                                             key={idx}
-                                            className="w-3 h-3 rounded-full border border-slate-500"
+                                            className="w-3 h-3 rounded-full border border-gray-400"
                                             style={{ backgroundColor: color }}
                                         />
                                     ))}
@@ -849,7 +849,7 @@ export const CoverCreator: React.FC = () => {
                 {/* Color Customization */}
                 <div className="grid grid-cols-2 gap-4">
                     <div>
-                        <label htmlFor="bg-color" className="block text-sm font-medium text-slate-300 mb-2">
+                        <label htmlFor="bg-color" className="block text-sm font-medium text-gray-700 mb-2">
                             Background Color
                         </label>
                         <div className="flex gap-2">
@@ -858,19 +858,19 @@ export const CoverCreator: React.FC = () => {
                                 id="bg-color"
                                 value={backgroundColor}
                                 onChange={(e) => setBackgroundColor(e.target.value)}
-                                className="w-12 h-10 rounded border-slate-600 bg-slate-700"
+                                className="w-12 h-10 rounded border-gray-300 bg-white"
                             />
                             <input
                                 type="text"
                                 value={backgroundColor}
                                 onChange={(e) => setBackgroundColor(e.target.value)}
-                                className="flex-1 bg-slate-700 border-slate-600 rounded-md text-white placeholder-slate-400 px-3 py-2"
+                                className="flex-1 bg-white border-gray-300 rounded-md text-gray-900 placeholder-gray-400 px-3 py-2"
                                 placeholder="#667eea"
                             />
                         </div>
                     </div>
                     <div>
-                        <label htmlFor="text-color" className="block text-sm font-medium text-slate-300 mb-2">
+                        <label htmlFor="text-color" className="block text-sm font-medium text-gray-700 mb-2">
                             Text Color
                         </label>
                         <div className="flex gap-2">
@@ -879,13 +879,13 @@ export const CoverCreator: React.FC = () => {
                                 id="text-color"
                                 value={textColor}
                                 onChange={(e) => setTextColor(e.target.value)}
-                                className="w-12 h-10 rounded border-slate-600 bg-slate-700"
+                                className="w-12 h-10 rounded border-gray-300 bg-white"
                             />
                             <input
                                 type="text"
                                 value={textColor}
                                 onChange={(e) => setTextColor(e.target.value)}
-                                className="flex-1 bg-slate-700 border-slate-600 rounded-md text-white placeholder-slate-400 px-3 py-2"
+                                className="flex-1 bg-white border-gray-300 rounded-md text-gray-900 placeholder-gray-400 px-3 py-2"
                                 placeholder="#FFFFFF"
                             />
                         </div>
@@ -893,10 +893,10 @@ export const CoverCreator: React.FC = () => {
                 </div>
                 
                 {/* Advanced Options Toggle */}
-                <div className="border-t border-slate-700 pt-6">
+                <div className="border-t border-gray-300 pt-6">
                     <button
                         onClick={() => setShowAdvanced(!showAdvanced)}
-                        className="flex items-center gap-2 text-sm text-slate-300 hover:text-slate-200 mb-4"
+                        className="flex items-center gap-2 text-sm text-gray-700 hover:text-gray-800 mb-4"
                     >
                         <AdjustmentsHorizontalIcon className="w-4 h-4" />
                         Advanced Design Options
@@ -904,10 +904,10 @@ export const CoverCreator: React.FC = () => {
                     </button>
                     
                     {showAdvanced && (
-                        <div className="space-y-4 bg-slate-800/30 p-4 rounded-lg border border-slate-700">
+                        <div className="space-y-4 bg-gray-100/30 p-4 rounded-lg border border-gray-300">
                             {/* Typography Selection */}
                             <div>
-                                <label className="block text-sm font-medium text-slate-300 mb-3">Typography Style</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-3">Typography Style</label>
                                 <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                                     {Object.entries(TYPOGRAPHY_STYLES).map(([style, info]) => (
                                         <button
@@ -916,11 +916,11 @@ export const CoverCreator: React.FC = () => {
                                             className={`p-3 rounded-lg border text-left transition-all text-sm ${
                                                 advancedOptions.typography === style
                                                     ? 'border-purple-500 bg-purple-500/20 text-purple-200'
-                                                    : 'border-slate-600 bg-slate-700/50 text-slate-300 hover:border-slate-500'
+                                                    : 'border-gray-300 bg-white/50 text-gray-700 hover:border-gray-400'
                                             }`}
                                         >
                                             <div className="font-semibold mb-1">{info.name}</div>
-                                            <div className="text-xs text-slate-400">{info.description}</div>
+                                            <div className="text-xs text-gray-600">{info.description}</div>
                                         </button>
                                     ))}
                                 </div>
@@ -928,7 +928,7 @@ export const CoverCreator: React.FC = () => {
                             
                             {/* Layout Selection */}
                             <div>
-                                <label className="block text-sm font-medium text-slate-300 mb-3">Layout Type</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-3">Layout Type</label>
                                 <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                                     {Object.entries(LAYOUT_TYPES).map(([layout, info]) => (
                                         <button
@@ -937,11 +937,11 @@ export const CoverCreator: React.FC = () => {
                                             className={`p-3 rounded-lg border text-left transition-all text-sm ${
                                                 advancedOptions.layout === layout
                                                     ? 'border-purple-500 bg-purple-500/20 text-purple-200'
-                                                    : 'border-slate-600 bg-slate-700/50 text-slate-300 hover:border-slate-500'
+                                                    : 'border-gray-300 bg-white/50 text-gray-700 hover:border-gray-400'
                                             }`}
                                         >
                                             <div className="font-semibold mb-1">{info.name}</div>
-                                            <div className="text-xs text-slate-400">{info.description}</div>
+                                            <div className="text-xs text-gray-600">{info.description}</div>
                                         </button>
                                     ))}
                                 </div>
@@ -950,47 +950,47 @@ export const CoverCreator: React.FC = () => {
                             {/* Design Elements */}
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-300 mb-2">Design Elements</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Design Elements</label>
                                     <div className="space-y-2">
                                         <label className="flex items-center cursor-pointer">
                                             <input
                                                 type="checkbox"
                                                 checked={advancedOptions.includeGradient}
                                                 onChange={(e) => setAdvancedOptions(prev => ({ ...prev, includeGradient: e.target.checked }))}
-                                                className="mr-2 rounded border-slate-600 bg-slate-700"
+                                                className="mr-2 rounded border-gray-300 bg-white"
                                             />
-                                            <span className="text-sm text-slate-300">Gradient Background</span>
+                                            <span className="text-sm text-gray-700">Gradient Background</span>
                                         </label>
                                         <label className="flex items-center cursor-pointer">
                                             <input
                                                 type="checkbox"
                                                 checked={advancedOptions.includePattern}
                                                 onChange={(e) => setAdvancedOptions(prev => ({ ...prev, includePattern: e.target.checked }))}
-                                                className="mr-2 rounded border-slate-600 bg-slate-700"
+                                                className="mr-2 rounded border-gray-300 bg-white"
                                             />
-                                            <span className="text-sm text-slate-300">Decorative Pattern</span>
+                                            <span className="text-sm text-gray-700">Decorative Pattern</span>
                                         </label>
                                         <label className="flex items-center cursor-pointer">
                                             <input
                                                 type="checkbox"
                                                 checked={advancedOptions.textShadow}
                                                 onChange={(e) => setAdvancedOptions(prev => ({ ...prev, textShadow: e.target.checked }))}
-                                                className="mr-2 rounded border-slate-600 bg-slate-700"
+                                                className="mr-2 rounded border-gray-300 bg-white"
                                             />
-                                            <span className="text-sm text-slate-300">Text Shadow</span>
+                                            <span className="text-sm text-gray-700">Text Shadow</span>
                                         </label>
                                     </div>
                                 </div>
                                 
                                 <div>
-                                    <label htmlFor="border-style" className="block text-sm font-medium text-slate-300 mb-2">
+                                    <label htmlFor="border-style" className="block text-sm font-medium text-gray-700 mb-2">
                                         Border Style
                                     </label>
                                     <select
                                         id="border-style"
                                         value={advancedOptions.borderStyle}
                                         onChange={(e) => setAdvancedOptions(prev => ({ ...prev, borderStyle: e.target.value as any }))}
-                                        className="w-full bg-slate-700 border-slate-600 rounded-md text-white p-2"
+                                        className="w-full bg-white border-gray-300 rounded-md text-gray-900 p-2"
                                     >
                                         <option value="none">No Border</option>
                                         <option value="simple">Simple Border</option>
@@ -1005,7 +1005,7 @@ export const CoverCreator: React.FC = () => {
 
                 {/* Custom AI Prompt */}
                 <div>
-                    <label htmlFor="custom-prompt" className="block text-sm font-medium text-slate-300 mb-2">
+                    <label htmlFor="custom-prompt" className="block text-sm font-medium text-gray-700 mb-2">
                         Custom AI Prompt (Optional)
                     </label>
                     <textarea
@@ -1014,7 +1014,7 @@ export const CoverCreator: React.FC = () => {
                         onChange={(e) => setCustomPrompt(e.target.value)}
                         placeholder="Describe specific elements you want on your cover (e.g., 'Include a mysterious forest silhouette with golden lighting')"
                         rows={3}
-                        className="w-full bg-slate-700 border-slate-600 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 text-white placeholder-slate-400 p-3 resize-none"
+                        className="w-full bg-white border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 text-gray-900 placeholder-gray-400 p-3 resize-none"
                     />
                 </div>
 
@@ -1085,10 +1085,10 @@ export const CoverCreator: React.FC = () => {
 
                 {/* Preview Section */}
                 {showPreview && generatedCover && (
-                    <div className="border-t border-slate-700 pt-6">
+                    <div className="border-t border-gray-300 pt-6">
                         <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-semibold text-slate-200">Cover Preview</h3>
-                            <div className="text-sm text-slate-400">
+                            <h3 className="text-lg font-semibold text-gray-800">Cover Preview</h3>
+                            <div className="text-sm text-gray-600">
                                 {dimensions.width}×{dimensions.height}px • {bookFormat} format
                             </div>
                         </div>
@@ -1098,7 +1098,7 @@ export const CoverCreator: React.FC = () => {
                                 <img 
                                     src={generatedCover} 
                                     alt="Generated book cover"
-                                    className="border border-slate-600 rounded-lg shadow-lg"
+                                    className="border border-gray-300 rounded-lg shadow-lg"
                                     style={{
                                         width: Math.min(300, dimensions.width * 0.2),
                                         height: Math.min(450, dimensions.height * 0.2),
@@ -1106,13 +1106,13 @@ export const CoverCreator: React.FC = () => {
                                 />
                                 
                                 {/* Format indicator */}
-                                <div className="absolute -top-2 -right-2 bg-purple-600 text-white text-xs px-2 py-1 rounded-full capitalize">
+                                <div className="absolute -top-2 -right-2 bg-purple-600 text-gray-900 text-xs px-2 py-1 rounded-full capitalize">
                                     {bookFormat}
                                 </div>
                             </div>
                         </div>
                         
-                        <div className="text-center mt-4 text-sm text-slate-400">
+                        <div className="text-center mt-4 text-sm text-gray-600">
                             Preview scaled for display • Actual size: {dimensions.width}×{dimensions.height}px
                         </div>
                     </div>

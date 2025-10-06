@@ -199,7 +199,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
         <Modal isOpen={isOpen} onClose={onClose} title="Settings" size="large">
             <div className="flex h-[600px]">
                 {/* Sidebar with tabs */}
-                <div className="w-48 border-r border-slate-700 pr-4">
+                <div className="w-48 border-r border-gray-300 pr-4">
                     <nav className="space-y-1">
                         {tabs.map((tab) => {
                             const Icon = tab.icon;
@@ -209,8 +209,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                     onClick={() => setActiveTab(tab.id)}
                                     className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
                                         activeTab === tab.id
-                                            ? 'bg-brand-primary text-white'
-                                            : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+                                            ? 'bg-brand-primary text-gray-900'
+                                            : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
                                     }`}
                                 >
                                     <Icon size={18} />
@@ -228,18 +228,18 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                         {activeTab === 'api' && (
                             <>
                                 <div>
-                                    <h3 className="text-lg font-semibold text-slate-100 mb-2">API Configuration</h3>
-                                    <p className="text-sm text-slate-400 mb-6">
+                                    <h3 className="text-lg font-semibold text-gray-900 mb-2">API Configuration</h3>
+                                    <p className="text-sm text-gray-600 mb-6">
                                         Configure your own API keys and endpoints for AI services. This gives you full control over costs and usage.
                                     </p>
                                 </div>
 
                                 {/* OpenRouter Configuration */}
                                 <div className="space-y-4">
-                                    <h4 className="text-md font-medium text-slate-200">OpenRouter (Text Generation)</h4>
+                                    <h4 className="text-md font-medium text-gray-800">OpenRouter (Text Generation)</h4>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-300 mb-2">
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
                                             API Key *
                                         </label>
                                         <div className="relative">
@@ -253,18 +253,18 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                             <button
                                                 type="button"
                                                 onClick={() => setShowOpenRouterKey(!showOpenRouterKey)}
-                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200"
+                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-800"
                                             >
                                                 {showOpenRouterKey ? <EyeOff size={16} /> : <Eye size={16} />}
                                             </button>
                                         </div>
-                                        <p className="text-xs text-slate-500 mt-1">
+                                        <p className="text-xs text-gray-500 mt-1">
                                             Get your API key from <a href="https://openrouter.ai/keys" target="_blank" rel="noopener noreferrer" className="text-brand-primary hover:underline">OpenRouter</a>
                                         </p>
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-300 mb-2">
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
                                             Endpoint URL
                                         </label>
                                         <Input
@@ -278,10 +278,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
 
                                 {/* Gemini Configuration */}
                                 <div className="space-y-4">
-                                    <h4 className="text-md font-medium text-slate-200">Google Gemini (Image Generation)</h4>
+                                    <h4 className="text-md font-medium text-gray-800">Google Gemini (Image Generation)</h4>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-300 mb-2">
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
                                             API Key *
                                         </label>
                                         <div className="relative">
@@ -295,18 +295,18 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                             <button
                                                 type="button"
                                                 onClick={() => setShowGeminiKey(!showGeminiKey)}
-                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200"
+                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-800"
                                             >
                                                 {showGeminiKey ? <EyeOff size={16} /> : <Eye size={16} />}
                                             </button>
                                         </div>
-                                        <p className="text-xs text-slate-500 mt-1">
+                                        <p className="text-xs text-gray-500 mt-1">
                                             Get your API key from <a href="https://makersuite.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-brand-primary hover:underline">Google AI Studio</a>
                                         </p>
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-300 mb-2">
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
                                             Endpoint URL
                                         </label>
                                         <Input
@@ -324,15 +324,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                         {activeTab === 'models' && (
                             <>
                                 <div>
-                                    <h3 className="text-lg font-semibold text-slate-100 mb-2">AI Model Selection</h3>
-                                    <p className="text-sm text-slate-400 mb-6">
+                                    <h3 className="text-lg font-semibold text-gray-900 mb-2">AI Model Selection</h3>
+                                    <p className="text-sm text-gray-600 mb-6">
                                         Choose the AI model for text generation and content creation.
                                     </p>
                                 </div>
 
                                 <div className="space-y-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-300 mb-2">
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
                                             Default AI Model
                                         </label>
                                         <Select
@@ -341,17 +341,17 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                             options={openRouterModels}
                                             placeholder="Select a model..."
                                         />
-                                        <p className="text-xs text-slate-500 mt-1">
+                                        <p className="text-xs text-gray-500 mt-1">
                                             Choose the AI model for text generation. Free models are marked accordingly.
                                         </p>
                                     </div>
 
-                                    <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700">
+                                    <div className="bg-gray-100/50 rounded-lg p-4 border border-gray-300">
                                         <div className="flex items-start space-x-3">
                                             <Info className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
-                                            <div className="text-sm text-slate-300">
+                                            <div className="text-sm text-gray-700">
                                                 <p className="font-medium mb-1">Model Selection Tips</p>
-                                                <ul className="list-disc list-inside space-y-1 text-slate-400">
+                                                <ul className="list-disc list-inside space-y-1 text-gray-600">
                                                     <li>Free models are great for testing and light usage</li>
                                                     <li>Claude models excel at creative writing and complex reasoning</li>
                                                     <li>GPT-4o offers excellent balance of quality and speed</li>
@@ -368,14 +368,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                         {activeTab === 'storage' && (
                             <>
                                 <div>
-                                    <h3 className="text-lg font-semibold text-slate-100 mb-2">Storage & Sync</h3>
-                                    <p className="text-sm text-slate-400 mb-6">
+                                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Storage & Sync</h3>
+                                    <p className="text-sm text-gray-600 mb-6">
                                         Monitor your storage usage and manage cloud synchronization.
                                     </p>
                                 </div>
 
                                 {/* Sync Status */}
-                                <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700">
+                                <div className="bg-gray-100/50 rounded-lg p-4 border border-gray-300">
                                     <div className="flex items-center justify-between mb-4">
                                         <div className="flex items-center space-x-3">
                                             {storageMode === 'offline' ? (
@@ -384,10 +384,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                                 <Wifi className="w-5 h-5 text-green-400" />
                                             )}
                                             <div>
-                                                <p className="text-sm font-medium text-slate-200">
+                                                <p className="text-sm font-medium text-gray-800">
                                                     {storageMode === 'offline' ? 'Offline Mode' : storageMode === 'online' ? 'Online Mode' : 'Hybrid Mode'}
                                                 </p>
-                                                <p className="text-xs text-slate-400">
+                                                <p className="text-xs text-gray-600">
                                                     {lastSyncTime ? `Last synced: ${new Date(lastSyncTime).toLocaleString()}` : 'Never synced'}
                                                 </p>
                                             </div>
@@ -415,56 +415,56 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                 {loadingStats ? (
                                     <div className="text-center py-8">
                                         <RefreshCw className="w-8 h-8 animate-spin text-brand-primary mx-auto mb-2" />
-                                        <p className="text-sm text-slate-400">Loading storage statistics...</p>
+                                        <p className="text-sm text-gray-600">Loading storage statistics...</p>
                                     </div>
                                 ) : storageStats ? (
                                     <div className="space-y-4">
                                         {/* Local Storage */}
-                                        <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700">
+                                        <div className="bg-gray-100/50 rounded-lg p-4 border border-gray-300">
                                             <div className="flex items-center justify-between mb-2">
                                                 <div className="flex items-center space-x-2">
                                                     <Database className="w-4 h-4 text-blue-400" />
-                                                    <h4 className="text-sm font-medium text-slate-200">Local Storage</h4>
+                                                    <h4 className="text-sm font-medium text-gray-800">Local Storage</h4>
                                                 </div>
-                                                <span className="text-sm text-slate-400">
+                                                <span className="text-sm text-gray-600">
                                                     {formatBytes(storageStats.localUsed)} / {formatBytes(storageStats.localUsed + storageStats.localAvailable)}
                                                 </span>
                                             </div>
-                                            <div className="w-full bg-slate-700 rounded-full h-2">
+                                            <div className="w-full bg-white rounded-full h-2">
                                                 <div
                                                     className="bg-blue-500 h-2 rounded-full transition-all"
                                                     style={{ width: `${getStoragePercentage(storageStats.localUsed, storageStats.localUsed + storageStats.localAvailable)}%` }}
                                                 />
                                             </div>
-                                            <p className="text-xs text-slate-500 mt-2">
+                                            <p className="text-xs text-gray-500 mt-2">
                                                 {getStoragePercentage(storageStats.localUsed, storageStats.localUsed + storageStats.localAvailable)}% used
                                             </p>
                                         </div>
 
                                         {/* Cloud Storage */}
-                                        <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700">
+                                        <div className="bg-gray-100/50 rounded-lg p-4 border border-gray-300">
                                             <div className="flex items-center justify-between mb-2">
                                                 <div className="flex items-center space-x-2">
                                                     <Cloud className="w-4 h-4 text-green-400" />
-                                                    <h4 className="text-sm font-medium text-slate-200">Cloud Storage</h4>
+                                                    <h4 className="text-sm font-medium text-gray-800">Cloud Storage</h4>
                                                 </div>
-                                                <span className="text-sm text-slate-400">
+                                                <span className="text-sm text-gray-600">
                                                     {formatBytes(storageStats.cloudUsed)} / {formatBytes(storageStats.cloudAvailable)}
                                                 </span>
                                             </div>
-                                            <div className="w-full bg-slate-700 rounded-full h-2">
+                                            <div className="w-full bg-white rounded-full h-2">
                                                 <div
                                                     className="bg-green-500 h-2 rounded-full transition-all"
                                                     style={{ width: `${getStoragePercentage(storageStats.cloudUsed, storageStats.cloudAvailable)}%` }}
                                                 />
                                             </div>
-                                            <p className="text-xs text-slate-500 mt-2">
+                                            <p className="text-xs text-gray-500 mt-2">
                                                 {getStoragePercentage(storageStats.cloudUsed, storageStats.cloudAvailable)}% used • Supabase Free Tier
                                             </p>
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="text-center py-8 text-slate-400">
+                                    <div className="text-center py-8 text-gray-600">
                                         <p>Unable to load storage statistics</p>
                                     </div>
                                 )}
@@ -475,8 +475,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                         {activeTab === 'editor' && (
                             <>
                                 <div>
-                                    <h3 className="text-lg font-semibold text-slate-100 mb-2">Editor Preferences</h3>
-                                    <p className="text-sm text-slate-400 mb-6">
+                                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Editor Preferences</h3>
+                                    <p className="text-sm text-gray-600 mb-6">
                                         Customize your writing environment and autosave behavior.
                                     </p>
                                 </div>
@@ -484,10 +484,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                 <div className="space-y-6">
                                     {/* Font Settings */}
                                     <div className="space-y-4">
-                                        <h4 className="text-md font-medium text-slate-200">Appearance</h4>
+                                        <h4 className="text-md font-medium text-gray-800">Appearance</h4>
                                         
                                         <div>
-                                            <label className="block text-sm font-medium text-slate-300 mb-2">
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
                                                 Font Size: {fontSize}px
                                             </label>
                                             <input
@@ -501,7 +501,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                         </div>
 
                                         <div>
-                                            <label className="block text-sm font-medium text-slate-300 mb-2">
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
                                                 Font Family
                                             </label>
                                             <Select
@@ -518,21 +518,21 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
 
                                     {/* Autosave Settings */}
                                     <div className="space-y-4">
-                                        <h4 className="text-md font-medium text-slate-200">Autosave</h4>
+                                        <h4 className="text-md font-medium text-gray-800">Autosave</h4>
                                         
                                         <label className="flex items-center space-x-3 cursor-pointer">
                                             <input
                                                 type="checkbox"
                                                 checked={autoSave}
                                                 onChange={(e) => setAutoSave(e.target.checked)}
-                                                className="w-4 h-4 text-brand-primary bg-slate-700 border-slate-600 rounded focus:ring-brand-primary"
+                                                className="w-4 h-4 text-brand-primary bg-white border-gray-300 rounded focus:ring-brand-primary"
                                             />
-                                            <span className="text-sm text-slate-300">Enable autosave</span>
+                                            <span className="text-sm text-gray-700">Enable autosave</span>
                                         </label>
 
                                         {autoSave && (
                                             <div>
-                                                <label className="block text-sm font-medium text-slate-300 mb-2">
+                                                <label className="block text-sm font-medium text-gray-700 mb-2">
                                                     Autosave Interval: {autoSaveInterval / 1000}s
                                                 </label>
                                                 <input
@@ -550,16 +550,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
 
                                     {/* Other Settings */}
                                     <div className="space-y-4">
-                                        <h4 className="text-md font-medium text-slate-200">Other</h4>
+                                        <h4 className="text-md font-medium text-gray-800">Other</h4>
                                         
                                         <label className="flex items-center space-x-3 cursor-pointer">
                                             <input
                                                 type="checkbox"
                                                 checked={spellCheck}
                                                 onChange={(e) => setSpellCheck(e.target.checked)}
-                                                className="w-4 h-4 text-brand-primary bg-slate-700 border-slate-600 rounded focus:ring-brand-primary"
+                                                className="w-4 h-4 text-brand-primary bg-white border-gray-300 rounded focus:ring-brand-primary"
                                             />
-                                            <span className="text-sm text-slate-300">Enable spell check</span>
+                                            <span className="text-sm text-gray-700">Enable spell check</span>
                                         </label>
                                     </div>
                                 </div>
@@ -570,15 +570,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                         {activeTab === 'export' && (
                             <>
                                 <div>
-                                    <h3 className="text-lg font-semibold text-slate-100 mb-2">Export Settings</h3>
-                                    <p className="text-sm text-slate-400 mb-6">
+                                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Export Settings</h3>
+                                    <p className="text-sm text-gray-600 mb-6">
                                         Configure default export options for your manuscripts.
                                     </p>
                                 </div>
 
                                 <div className="space-y-6">
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-300 mb-2">
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
                                             Default Export Format
                                         </label>
                                         <Select
@@ -600,9 +600,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                                 type="checkbox"
                                                 checked={includeMetadata}
                                                 onChange={(e) => setIncludeMetadata(e.target.checked)}
-                                                className="w-4 h-4 text-brand-primary bg-slate-700 border-slate-600 rounded focus:ring-brand-primary"
+                                                className="w-4 h-4 text-brand-primary bg-white border-gray-300 rounded focus:ring-brand-primary"
                                             />
-                                            <span className="text-sm text-slate-300">Include metadata (author, title, date)</span>
+                                            <span className="text-sm text-gray-700">Include metadata (author, title, date)</span>
                                         </label>
 
                                         <label className="flex items-center space-x-3 cursor-pointer">
@@ -610,9 +610,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                                 type="checkbox"
                                                 checked={includeImages}
                                                 onChange={(e) => setIncludeImages(e.target.checked)}
-                                                className="w-4 h-4 text-brand-primary bg-slate-700 border-slate-600 rounded focus:ring-brand-primary"
+                                                className="w-4 h-4 text-brand-primary bg-white border-gray-300 rounded focus:ring-brand-primary"
                                             />
-                                            <span className="text-sm text-slate-300">Include images and diagrams</span>
+                                            <span className="text-sm text-gray-700">Include images and diagrams</span>
                                         </label>
                                     </div>
                                 </div>
@@ -623,8 +623,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                         {activeTab === 'advanced' && (
                             <>
                                 <div>
-                                    <h3 className="text-lg font-semibold text-slate-100 mb-2">Advanced Settings</h3>
-                                    <p className="text-sm text-slate-400 mb-6">
+                                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Advanced Settings</h3>
+                                    <p className="text-sm text-gray-600 mb-6">
                                         Advanced options for debugging and telemetry.
                                     </p>
                                 </div>
@@ -646,11 +646,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                                 type="checkbox"
                                                 checked={debugMode}
                                                 onChange={(e) => setDebugMode(e.target.checked)}
-                                                className="w-4 h-4 text-brand-primary bg-slate-700 border-slate-600 rounded focus:ring-brand-primary"
+                                                className="w-4 h-4 text-brand-primary bg-white border-gray-300 rounded focus:ring-brand-primary"
                                             />
                                             <div>
-                                                <div className="text-sm text-slate-300">Debug Mode</div>
-                                                <div className="text-xs text-slate-500">Show detailed logging in the console</div>
+                                                <div className="text-sm text-gray-700">Debug Mode</div>
+                                                <div className="text-xs text-gray-500">Show detailed logging in the console</div>
                                             </div>
                                         </label>
 
@@ -659,11 +659,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                                 type="checkbox"
                                                 checked={telemetry}
                                                 onChange={(e) => setTelemetry(e.target.checked)}
-                                                className="w-4 h-4 text-brand-primary bg-slate-700 border-slate-600 rounded focus:ring-brand-primary"
+                                                className="w-4 h-4 text-brand-primary bg-white border-gray-300 rounded focus:ring-brand-primary"
                                             />
                                             <div>
-                                                <div className="text-sm text-slate-300">Anonymous Telemetry</div>
-                                                <div className="text-xs text-slate-500">Help improve BookCraft AI by sharing anonymous usage data</div>
+                                                <div className="text-sm text-gray-700">Anonymous Telemetry</div>
+                                                <div className="text-xs text-gray-500">Help improve BookCraft AI by sharing anonymous usage data</div>
                                             </div>
                                         </label>
                                     </div>
@@ -675,7 +675,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
             </div>
 
             {/* Footer with action buttons */}
-            <div className="border-t border-slate-700 pt-4 mt-6 flex justify-between">
+            <div className="border-t border-gray-300 pt-4 mt-6 flex justify-between">
                 <Button
                     variant="secondary"
                     onClick={handleReset}

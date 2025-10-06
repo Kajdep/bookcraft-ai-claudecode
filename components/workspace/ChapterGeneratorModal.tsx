@@ -158,35 +158,35 @@ export const ChapterGeneratorModal: React.FC<ChapterGeneratorModalProps> = ({ is
         <Modal isOpen={isOpen} onClose={handleClose} title={`Generate Content for: ${chapter.title}`}>
             <form onSubmit={handleSubmit} className="space-y-4">
                  <div>
-                    <label htmlFor="chapter-prompt" className="block text-sm font-medium text-slate-300 mb-1">Chapter Outline / Key Points</label>
+                    <label htmlFor="chapter-prompt" className="block text-sm font-medium text-gray-700 mb-1">Chapter Outline / Key Points</label>
                     <textarea
                         id="chapter-prompt"
                         value={prompt}
                         onChange={(e) => setPrompt(e.target.value)}
                         placeholder={`e.g., "The protagonist discovers a hidden clue in the old book..."`}
                         rows={4}
-                        className="w-full bg-slate-700 border-slate-600 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary sm:text-sm p-2 text-white placeholder-slate-400"
+                        className="w-full bg-white border-gray-300 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary sm:text-sm p-2 text-gray-900 placeholder-gray-400"
                         required
                     />
                  </div>
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                         <label htmlFor="word-count" className="block text-sm font-medium text-slate-300 mb-1">Target Word Count (Optional)</label>
+                         <label htmlFor="word-count" className="block text-sm font-medium text-gray-700 mb-1">Target Word Count (Optional)</label>
                          <input
                             type="text"
                             id="word-count"
                             value={wordCount}
                             onChange={(e) => setWordCount(e.target.value)}
                             placeholder="e.g., 1500"
-                            className="w-full bg-slate-700 border-slate-600 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary sm:text-sm p-2 text-white placeholder-slate-400"
+                            className="w-full bg-white border-gray-300 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary sm:text-sm p-2 text-gray-900 placeholder-gray-400"
                          />
                     </div>
                  </div>
                  
                  {/* Research Integration Section */}
-                 <div className="border-t border-slate-600 pt-4">
+                 <div className="border-t border-gray-300 pt-4">
                     <div className="flex items-center justify-between mb-2">
-                        <label className="block text-sm font-medium text-slate-300">Reference Research (Optional)</label>
+                        <label className="block text-sm font-medium text-gray-700">Reference Research (Optional)</label>
                         <Button 
                             type="button" 
                             variant="secondary" 
@@ -201,15 +201,15 @@ export const ChapterGeneratorModal: React.FC<ChapterGeneratorModalProps> = ({ is
                     
                     {selectedResearch.length > 0 && (
                         <div className="mb-3">
-                            <div className="text-xs text-slate-400 mb-2">Selected research items will provide context for generation:</div>
+                            <div className="text-xs text-gray-600 mb-2">Selected research items will provide context for generation:</div>
                             <div className="space-y-1 max-h-20 overflow-y-auto">
                                 {selectedResearch.map(item => (
-                                    <div key={item.id} className="flex items-center justify-between text-xs bg-slate-800 p-2 rounded">
-                                        <span className="text-slate-300 truncate">{item.query}</span>
+                                    <div key={item.id} className="flex items-center justify-between text-xs bg-gray-100 p-2 rounded">
+                                        <span className="text-gray-700 truncate">{item.query}</span>
                                         <button 
                                             type="button"
                                             onClick={() => toggleResearchItem(item.id)}
-                                            className="text-slate-400 hover:text-red-400 ml-2"
+                                            className="text-gray-600 hover:text-red-400 ml-2"
                                         >
                                             ✕
                                         </button>
@@ -220,21 +220,21 @@ export const ChapterGeneratorModal: React.FC<ChapterGeneratorModalProps> = ({ is
                     )}
                     
                     {showResearchSelector && availableResearch.length > 0 && (
-                        <div className="mb-4 p-3 bg-slate-800 rounded-md border border-slate-700">
-                            <div className="text-sm text-slate-300 mb-2">Choose research to reference:</div>
+                        <div className="mb-4 p-3 bg-gray-100 rounded-md border border-gray-300">
+                            <div className="text-sm text-gray-700 mb-2">Choose research to reference:</div>
                             <div className="space-y-2 max-h-40 overflow-y-auto">
                                 {availableResearch.map(item => (
-                                    <label key={item.id} className="flex items-start space-x-2 cursor-pointer hover:bg-slate-700 p-2 rounded">
+                                    <label key={item.id} className="flex items-start space-x-2 cursor-pointer hover:bg-white p-2 rounded">
                                         <input
                                             type="checkbox"
                                             checked={selectedResearchItems.includes(item.id)}
                                             onChange={() => toggleResearchItem(item.id)}
-                                            className="mt-1 rounded border-slate-600 bg-slate-700 text-brand-primary focus:ring-brand-primary"
+                                            className="mt-1 rounded border-gray-300 bg-white text-brand-primary focus:ring-brand-primary"
                                         />
                                         <div className="flex-1">
-                                            <div className="text-sm text-slate-200 font-medium">{item.query}</div>
-                                            <div className="text-xs text-slate-400 line-clamp-2">{item.summary}</div>
-                                            <div className="text-xs text-slate-500 mt-1">
+                                            <div className="text-sm text-gray-800 font-medium">{item.query}</div>
+                                            <div className="text-xs text-gray-600 line-clamp-2">{item.summary}</div>
+                                            <div className="text-xs text-gray-500 mt-1">
                                                 {item.type} • {item.confidence} confidence
                                             </div>
                                         </div>
@@ -246,9 +246,9 @@ export const ChapterGeneratorModal: React.FC<ChapterGeneratorModalProps> = ({ is
                  </div>
                  
                  {/* Plot Integration Section */}
-                 <div className="border-t border-slate-600 pt-4">
+                 <div className="border-t border-gray-300 pt-4">
                     <div className="flex items-center justify-between mb-2">
-                        <label className="block text-sm font-medium text-slate-300">Reference Plot Points (Optional)</label>
+                        <label className="block text-sm font-medium text-gray-700">Reference Plot Points (Optional)</label>
                         <Button 
                             type="button" 
                             variant="secondary" 
@@ -263,17 +263,17 @@ export const ChapterGeneratorModal: React.FC<ChapterGeneratorModalProps> = ({ is
                     
                     {selectedPlotPointsData.length > 0 && (
                         <div className="mb-3">
-                            <div className="text-xs text-slate-400 mb-2">Selected plot points will guide the chapter narrative:</div>
+                            <div className="text-xs text-gray-600 mb-2">Selected plot points will guide the chapter narrative:</div>
                             <div className="space-y-1 max-h-20 overflow-y-auto">
                                 {selectedPlotPointsData.map(point => (
-                                    <div key={point.id} className="flex items-center justify-between text-xs bg-slate-800 p-2 rounded">
-                                        <span className="text-slate-300 truncate">
+                                    <div key={point.id} className="flex items-center justify-between text-xs bg-gray-100 p-2 rounded">
+                                        <span className="text-gray-700 truncate">
                                             {point.order + 1}. {point.title}
                                         </span>
                                         <button 
                                             type="button"
                                             onClick={() => togglePlotPoint(point.id)}
-                                            className="text-slate-400 hover:text-red-400 ml-2"
+                                            className="text-gray-600 hover:text-red-400 ml-2"
                                         >
                                             ✕
                                         </button>
@@ -284,22 +284,22 @@ export const ChapterGeneratorModal: React.FC<ChapterGeneratorModalProps> = ({ is
                     )}
                     
                     {showPlotSelector && availablePlotPoints.length > 0 && (
-                        <div className="mb-4 p-3 bg-slate-800 rounded-md border border-slate-700">
-                            <div className="text-sm text-slate-300 mb-2">Choose plot points to reference:</div>
+                        <div className="mb-4 p-3 bg-gray-100 rounded-md border border-gray-300">
+                            <div className="text-sm text-gray-700 mb-2">Choose plot points to reference:</div>
                             <div className="space-y-2 max-h-40 overflow-y-auto">
                                 {availablePlotPoints.map(point => (
-                                    <label key={point.id} className="flex items-start space-x-2 cursor-pointer hover:bg-slate-700 p-2 rounded">
+                                    <label key={point.id} className="flex items-start space-x-2 cursor-pointer hover:bg-white p-2 rounded">
                                         <input
                                             type="checkbox"
                                             checked={selectedPlotPoints.includes(point.id)}
                                             onChange={() => togglePlotPoint(point.id)}
-                                            className="mt-1 rounded border-slate-600 bg-slate-700 text-brand-primary focus:ring-brand-primary"
+                                            className="mt-1 rounded border-gray-300 bg-white text-brand-primary focus:ring-brand-primary"
                                         />
                                         <div className="flex-1">
-                                            <div className="text-sm text-slate-200 font-medium">
+                                            <div className="text-sm text-gray-800 font-medium">
                                                 {point.order + 1}. {point.title}
                                             </div>
-                                            <div className="text-xs text-slate-400 line-clamp-3">{point.description}</div>
+                                            <div className="text-xs text-gray-600 line-clamp-3">{point.description}</div>
                                         </div>
                                     </label>
                                 ))}
@@ -309,14 +309,14 @@ export const ChapterGeneratorModal: React.FC<ChapterGeneratorModalProps> = ({ is
                  </div>
                  
                  <div>
-                    <label htmlFor="style-prompt" className="block text-sm font-medium text-slate-300 mb-1">Additional Instructions (Style, Tone, etc.)</label>
+                    <label htmlFor="style-prompt" className="block text-sm font-medium text-gray-700 mb-1">Additional Instructions (Style, Tone, etc.)</label>
                     <textarea
                         id="style-prompt"
                         value={style}
                         onChange={(e) => setStyle(e.target.value)}
                         placeholder={`e.g., "Write in a fast-paced, suspenseful tone."`}
                         rows={2}
-                        className="w-full bg-slate-700 border-slate-600 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary sm:text-sm p-2 text-white placeholder-slate-400"
+                        className="w-full bg-white border-gray-300 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary sm:text-sm p-2 text-gray-900 placeholder-gray-400"
                     />
                  </div>
                  <div className="flex justify-end space-x-3 pt-2">

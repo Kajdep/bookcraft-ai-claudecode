@@ -299,51 +299,51 @@ export const KDPCalculator: React.FC = () => {
 
             {/* Current Size Analysis */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <div className="bg-slate-900/50 p-4 rounded-lg">
+                <div className="bg-white/50 p-4 rounded-lg">
                     <h4 className="font-semibold text-brand-primary mb-3 flex items-center">
                         <InformationCircleIcon className="h-4 w-4 mr-2" />
                         Current Size Analysis
                     </h4>
                     <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
-                            <span className="text-slate-400">Size:</span>
+                            <span className="text-gray-600">Size:</span>
                             <span className="font-mono">{dimensions.name}</span>
                         </div>
                         <div className="flex justify-between">
-                            <span className="text-slate-400">Genre Fit:</span>
+                            <span className="text-gray-600">Genre Fit:</span>
                             <span className={dimensions.genre.includes(selectedGenre) ? 'text-green-400' : 'text-amber-400'}>
                                 {dimensions.genre.includes(selectedGenre) ? 'Perfect' : 'Consider alternatives'}
                             </span>
                         </div>
                         <div className="flex justify-between">
-                            <span className="text-slate-400">KDP Recommended:</span>
-                            <span className={dimensions.recommended ? 'text-green-400' : 'text-slate-400'}>
+                            <span className="text-gray-600">KDP Recommended:</span>
+                            <span className={dimensions.recommended ? 'text-green-400' : 'text-gray-600'}>
                                 {dimensions.recommended ? 'Yes' : 'Standard'}
                             </span>
                         </div>
                         <div className="flex justify-between">
-                            <span className="text-slate-400">Page Range:</span>
+                            <span className="text-gray-600">Page Range:</span>
                             <span className="font-mono">{dimensions.minPages}-{dimensions.maxPages}</span>
                         </div>
                     </div>
-                    <p className="text-xs text-slate-500 mt-3">{dimensions.description}</p>
+                    <p className="text-xs text-gray-500 mt-3">{dimensions.description}</p>
                 </div>
 
-                <div className="bg-slate-900/50 p-4 rounded-lg">
+                <div className="bg-white/50 p-4 rounded-lg">
                     <h4 className="font-semibold text-brand-primary mb-3">Spine Analysis</h4>
                     <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
-                            <span className="text-slate-400">Calculated Width:</span>
+                            <span className="text-gray-600">Calculated Width:</span>
                             <span className="font-mono">{spineWidth.toFixed(3)}"</span>
                         </div>
                         <div className="flex justify-between">
-                            <span className="text-slate-400">Text Recommended:</span>
+                            <span className="text-gray-600">Text Recommended:</span>
                             <span className={spineWidth >= SPINE_TEXT_MIN_WIDTH ? 'text-green-400' : 'text-amber-400'}>
                                 {spineWidth >= SPINE_TEXT_MIN_WIDTH ? 'Yes' : 'Avoid text'}
                             </span>
                         </div>
                         <div className="flex justify-between">
-                            <span className="text-slate-400">Min Text Size:</span>
+                            <span className="text-gray-600">Min Text Size:</span>
                             <span className="font-mono">
                                 {spineWidth >= SPINE_TEXT_MIN_WIDTH ? '9pt' : 'N/A'}
                             </span>
@@ -353,7 +353,7 @@ export const KDPCalculator: React.FC = () => {
             </div>
 
             {/* Recommended Sizes for Genre */}
-            <div className="bg-slate-900/50 p-4 rounded-lg">
+            <div className="bg-white/50 p-4 rounded-lg">
                 <h4 className="font-semibold text-brand-primary mb-3">Recommended Sizes for {selectedGenre?.charAt(0).toUpperCase() + selectedGenre?.slice(1)}</h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                     {(recommendedSizes || []).map(size => (
@@ -363,11 +363,11 @@ export const KDPCalculator: React.FC = () => {
                             className={`p-3 rounded border text-left text-sm transition-colors ${
                                 paperSize === size.key
                                     ? 'border-brand-primary bg-brand-primary/10 text-brand-primary'
-                                    : 'border-slate-600 hover:border-slate-500 text-slate-300'
+                                    : 'border-gray-300 hover:border-gray-400 text-gray-700'
                             }`}
                         >
                             <div className="font-medium">{size.name}</div>
-                            <div className="text-xs text-slate-400 mt-1">{size.description}</div>
+                            <div className="text-xs text-gray-600 mt-1">{size.description}</div>
                         </button>
                     ))}
                 </div>
@@ -396,39 +396,39 @@ export const KDPCalculator: React.FC = () => {
     const renderMarginsTab = () => (
         <div className="space-y-6">
             <div className="grid grid-cols-2 gap-4">
-                <div className="bg-slate-900/50 p-4 rounded-lg">
+                <div className="bg-white/50 p-4 rounded-lg">
                     <h4 className="font-semibold text-brand-primary mb-3 flex items-center">
                         <DocumentIcon className="h-4 w-4 mr-2" />
                         Page Margins (Inches)
                     </h4>
                     <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
-                            <span className="text-slate-400">Top:</span>
+                            <span className="text-gray-600">Top:</span>
                             <span className="font-mono">{margins.top}"</span>
                         </div>
                         <div className="flex justify-between">
-                            <span className="text-slate-400">Bottom:</span>
+                            <span className="text-gray-600">Bottom:</span>
                             <span className="font-mono">{margins.bottom}"</span>
                         </div>
                         <div className="flex justify-between">
-                            <span className="text-slate-400">Outside:</span>
+                            <span className="text-gray-600">Outside:</span>
                             <span className="font-mono">{margins.outside}"</span>
                         </div>
                         <div className="flex justify-between">
-                            <span className="text-slate-400">Inside (Gutter):</span>
+                            <span className="text-gray-600">Inside (Gutter):</span>
                             <span className="font-mono">{margins.inside}"</span>
                         </div>
                     </div>
                 </div>
-                <div className="bg-slate-900/50 p-4 rounded-lg">
+                <div className="bg-white/50 p-4 rounded-lg">
                     <h4 className="font-semibold text-brand-primary mb-3">Text Area</h4>
                     <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
-                            <span className="text-slate-400">Width:</span>
+                            <span className="text-gray-600">Width:</span>
                             <span className="font-mono">{(dimensions.width - margins.outside - margins.inside).toFixed(2)}"</span>
                         </div>
                         <div className="flex justify-between">
-                            <span className="text-slate-400">Height:</span>
+                            <span className="text-gray-600">Height:</span>
                             <span className="font-mono">{(dimensions.height - margins.top - margins.bottom).toFixed(2)}"</span>
                         </div>
                     </div>
@@ -449,43 +449,43 @@ export const KDPCalculator: React.FC = () => {
     const renderCoverTab = () => (
         <div className="space-y-6">
             <div className="grid grid-cols-2 gap-4">
-                <div className="bg-slate-900/50 p-4 rounded-lg">
+                <div className="bg-white/50 p-4 rounded-lg">
                     <h4 className="font-semibold text-brand-primary mb-3 flex items-center">
                         <PrinterIcon className="h-4 w-4 mr-2" />
                         Full Cover Dimensions
                     </h4>
                     <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
-                            <span className="text-slate-400">Total Width:</span>
+                            <span className="text-gray-600">Total Width:</span>
                             <span className="font-mono">{coverDimensions.width.toFixed(3)}"</span>
                         </div>
                         <div className="flex justify-between">
-                            <span className="text-slate-400">Total Height:</span>
+                            <span className="text-gray-600">Total Height:</span>
                             <span className="font-mono">{coverDimensions.height.toFixed(3)}"</span>
                         </div>
                         <div className="flex justify-between">
-                            <span className="text-slate-400">Spine Width:</span>
+                            <span className="text-gray-600">Spine Width:</span>
                             <span className="font-mono">{spineWidth.toFixed(3)}"</span>
                         </div>
                         <div className="flex justify-between">
-                            <span className="text-slate-400">Bleed:</span>
+                            <span className="text-gray-600">Bleed:</span>
                             <span className="font-mono">{BLEED_SIZE}"</span>
                         </div>
                     </div>
                 </div>
-                <div className="bg-slate-900/50 p-4 rounded-lg">
+                <div className="bg-white/50 p-4 rounded-lg">
                     <h4 className="font-semibold text-brand-primary mb-3">Print Resolution</h4>
                     <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
-                            <span className="text-slate-400">Required DPI:</span>
+                            <span className="text-gray-600">Required DPI:</span>
                             <span className="font-mono">300</span>
                         </div>
                         <div className="flex justify-between">
-                            <span className="text-slate-400">Pixels Width:</span>
+                            <span className="text-gray-600">Pixels Width:</span>
                             <span className="font-mono">{Math.round(coverDimensions.width * 300)}px</span>
                         </div>
                         <div className="flex justify-between">
-                            <span className="text-slate-400">Pixels Height:</span>
+                            <span className="text-gray-600">Pixels Height:</span>
                             <span className="font-mono">{Math.round(coverDimensions.height * 300)}px</span>
                         </div>
                     </div>
@@ -494,7 +494,7 @@ export const KDPCalculator: React.FC = () => {
             <Button 
                 variant="ghost" 
                 onClick={() => copyToClipboard(`Cover Dimensions: ${coverDimensions.width.toFixed(3)}" × ${coverDimensions.height.toFixed(3)}" (${Math.round(coverDimensions.width * 300)}px × ${Math.round(coverDimensions.height * 300)}px at 300 DPI)`)}
-                className="w-full border border-slate-600/50"
+                className="w-full border border-gray-300/50"
             >
                 <ClipboardDocumentCheckIcon className="h-4 w-4 mr-2" />
                 Copy Cover Specifications
@@ -504,19 +504,19 @@ export const KDPCalculator: React.FC = () => {
 
     const renderSpineTab = () => (
         <div className="space-y-6">
-            <div className="bg-slate-900/50 p-4 rounded-lg">
+            <div className="bg-white/50 p-4 rounded-lg">
                 <h4 className="font-semibold text-brand-primary mb-3">Spine Specifications</h4>
                 <div className="space-y-3">
                     <div className="flex justify-between items-center">
-                        <span className="text-slate-400">Calculated Spine Width:</span>
+                        <span className="text-gray-600">Calculated Spine Width:</span>
                         <span className="font-mono text-lg">{spineWidth.toFixed(3)}"</span>
                     </div>
                     <div className="flex justify-between items-center">
-                        <span className="text-slate-400">Pages:</span>
+                        <span className="text-gray-600">Pages:</span>
                         <span className="font-mono">{pageCount}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                        <span className="text-slate-400">Paper Type:</span>
+                        <span className="text-gray-600">Paper Type:</span>
                         <span className="capitalize">{paperType}</span>
                     </div>
                 </div>
@@ -536,31 +536,31 @@ export const KDPCalculator: React.FC = () => {
     const renderRoyaltyTab = () => (
         <div className="space-y-6">
             <div className="grid grid-cols-2 gap-4">
-                <div className="bg-slate-900/50 p-4 rounded-lg">
+                <div className="bg-white/50 p-4 rounded-lg">
                     <h4 className="font-semibold text-brand-primary mb-3 flex items-center">
                         <CurrencyDollarIcon className="h-4 w-4 mr-2" />
                         Cost Breakdown
                     </h4>
                     <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
-                            <span className="text-slate-400">List Price:</span>
+                            <span className="text-gray-600">List Price:</span>
                             <span className="font-mono">${listPrice.toFixed(2)}</span>
                         </div>
                         <div className="flex justify-between">
-                            <span className="text-slate-400">Print Cost:</span>
+                            <span className="text-gray-600">Print Cost:</span>
                             <span className="font-mono">${royalty.printCost.toFixed(2)}</span>
                         </div>
-                        <div className="flex justify-between border-t border-slate-600 pt-2">
-                            <span className="text-slate-400">Your Royalty:</span>
+                        <div className="flex justify-between border-t border-gray-300 pt-2">
+                            <span className="text-gray-600">Your Royalty:</span>
                             <span className="font-mono text-green-400">${royalty.royalty.toFixed(2)}</span>
                         </div>
                     </div>
                 </div>
-                <div className="bg-slate-900/50 p-4 rounded-lg">
+                <div className="bg-white/50 p-4 rounded-lg">
                     <h4 className="font-semibold text-brand-primary mb-3">Royalty Rate</h4>
                     <div className="text-center">
                         <div className="text-3xl font-bold text-green-400">{royalty.royaltyRate}%</div>
-                        <p className="text-xs text-slate-400 mt-1">Expanded Distribution</p>
+                        <p className="text-xs text-gray-600 mt-1">Expanded Distribution</p>
                     </div>
                 </div>
             </div>
@@ -577,17 +577,17 @@ export const KDPCalculator: React.FC = () => {
     );
 
     return (
-        <div className="bg-slate-800/50 rounded-lg border border-slate-700/50 p-6">
+        <div className="bg-gray-100/50 rounded-lg border border-gray-300/50 p-6">
             <div className="mb-6">
                 <div className="flex items-center mb-4">
                     <CalculatorIcon className="h-6 w-6 text-brand-primary mr-2" />
                     <h2 className="text-2xl font-bold">KDP Calculator</h2>
                 </div>
-                <p className="text-slate-400">Calculate margins, cover dimensions, spine width, and royalties for Amazon KDP publishing.</p>
+                <p className="text-gray-600">Calculate margins, cover dimensions, spine width, and royalties for Amazon KDP publishing.</p>
             </div>
 
             {/* Configuration Panel */}
-            <div className="bg-slate-900/50 rounded-lg p-4 mb-6">
+            <div className="bg-white/50 rounded-lg p-4 mb-6">
                 <h3 className="font-semibold mb-4">Book Specifications</h3>
                 <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
                     <div>
@@ -647,7 +647,7 @@ export const KDPCalculator: React.FC = () => {
                                     ? 'border-red-400/50' : ''
                             }`}
                         />
-                        <p className="text-xs text-slate-500 mt-1">
+                        <p className="text-xs text-gray-500 mt-1">
                             Range: {dimensions.minPages}-{dimensions.maxPages}
                         </p>
                     </div>
@@ -686,7 +686,7 @@ export const KDPCalculator: React.FC = () => {
                                 (listPrice < 0.01 || listPrice > 999.99) ? 'border-red-400/50' : ''
                             }`}
                         />
-                        <p className="text-xs text-slate-500 mt-1">
+                        <p className="text-xs text-gray-500 mt-1">
                             Profit: ${royalty.royalty.toFixed(2)} ({royalty.profitMargin.toFixed(1)}%)
                         </p>
                     </div>
@@ -695,7 +695,7 @@ export const KDPCalculator: React.FC = () => {
 
             {/* Tabs */}
             <div className="mb-6">
-                <div className="flex flex-wrap border-b border-slate-600">
+                <div className="flex flex-wrap border-b border-gray-300">
                     {[
                         { id: 'guidelines', label: 'KDP Guidelines', icon: InformationCircleIcon },
                         { id: 'margins', label: 'Page Margins', icon: DocumentIcon },
@@ -709,7 +709,7 @@ export const KDPCalculator: React.FC = () => {
                             className={`px-4 py-2 text-sm font-medium flex items-center ${
                                 activeTab === id
                                     ? 'text-brand-primary border-b-2 border-brand-primary'
-                                    : 'text-slate-400 hover:text-slate-200'
+                                    : 'text-gray-600 hover:text-gray-800'
                             } ${
                                 id === 'guidelines' && validationErrors.length > 0 
                                     ? 'relative after:content-[""] after:absolute after:top-1 after:right-1 after:w-2 after:h-2 after:bg-red-400 after:rounded-full'
@@ -719,7 +719,7 @@ export const KDPCalculator: React.FC = () => {
                             <Icon className="h-4 w-4 mr-1" />
                             {label}
                             {id === 'guidelines' && validationErrors.length > 0 && (
-                                <span className="ml-2 px-1.5 py-0.5 text-xs bg-red-600 text-white rounded-full">
+                                <span className="ml-2 px-1.5 py-0.5 text-xs bg-red-600 text-gray-900 rounded-full">
                                     {validationErrors.length}
                                 </span>
                             )}

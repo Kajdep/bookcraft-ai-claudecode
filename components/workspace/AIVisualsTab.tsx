@@ -46,7 +46,7 @@ export const AIVisualsTab: React.FC<AIVisualsTabProps> = ({ project }) => {
                     <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
                         <div className="text-center sm:text-left">
                             <h3 className="text-xl font-bold">AI Content Analysis</h3>
-                            <p className="text-slate-400 mt-1">Let Gemini analyze your manuscript to find the best opportunities for visuals.</p>
+                            <p className="text-gray-600 mt-1">Let Gemini analyze your manuscript to find the best opportunities for visuals.</p>
                         </div>
                         <Button onClick={startAnalysis} isLoading={isLoading} disabled={isLoading}>
                             <SparklesIcon className="w-5 h-5 mr-2"/>
@@ -56,7 +56,7 @@ export const AIVisualsTab: React.FC<AIVisualsTabProps> = ({ project }) => {
                 </Card>
 
                 {isLoading && (
-                    <Card className="bg-slate-800/50">
+                    <Card className="bg-gray-100/50">
                         <LoadingState
                             type="analysis"
                             message={analysisMessages[messageIndex]}
@@ -76,10 +76,10 @@ export const AIVisualsTab: React.FC<AIVisualsTabProps> = ({ project }) => {
                 )}
 
                  {!isLoading && project.recommendations.length === 0 && (project.status === 'Review' || project.status === 'Done') && (
-                    <div className="text-center py-16 border-2 border-dashed border-slate-700 rounded-lg bg-slate-800/20">
+                    <div className="text-center py-16 border-2 border-dashed border-gray-300 rounded-lg bg-gray-100/20">
                         <SparklesIcon className="mx-auto h-12 w-12 text-slate-600" />
-                        <h3 className="mt-4 text-xl font-semibold text-slate-300">Analysis Complete</h3>
-                        <p className="mt-2 text-slate-400">Gemini couldn't find any new visual recommendations at this time.</p>
+                        <h3 className="mt-4 text-xl font-semibold text-gray-700">Analysis Complete</h3>
+                        <p className="mt-2 text-gray-600">Gemini couldn't find any new visual recommendations at this time.</p>
                     </div>
                  )}
             </div>

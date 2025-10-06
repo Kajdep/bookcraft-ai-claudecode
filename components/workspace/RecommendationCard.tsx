@@ -26,28 +26,28 @@ export const RecommendationCard: React.FC<RecommendationCardProps> = ({ rec }) =
         <Card className="flex flex-col transition-shadow hover:shadow-brand-primary/20">
             <div className="p-5 flex-grow">
                 <div className="flex items-center space-x-3 mb-3">
-                    <div className="flex-shrink-0 bg-slate-700/50 p-2 rounded-full">
+                    <div className="flex-shrink-0 bg-white/50 p-2 rounded-full">
                         <VisualIcon type={rec.type} className="h-6 w-6 text-brand-primary" />
                     </div>
-                    <h4 className="font-bold text-lg text-slate-100">{rec.type}</h4>
+                    <h4 className="font-bold text-lg text-gray-900">{rec.type}</h4>
                 </div>
-                <p className="text-sm text-slate-300 mb-4">{rec.reasoning}</p>
-                <div className="text-xs p-3 bg-slate-900/50 rounded-md border border-slate-700 font-mono text-slate-400 italic">
+                <p className="text-sm text-gray-700 mb-4">{rec.reasoning}</p>
+                <div className="text-xs p-3 bg-white/50 rounded-md border border-gray-300 font-mono text-gray-600 italic">
                     <p>"{rec.context}"</p>
-                    <p className="text-right text-slate-500 not-italic mt-2">- Est. Page {rec.pageNumber}</p>
+                    <p className="text-right text-gray-500 not-italic mt-2">- Est. Page {rec.pageNumber}</p>
                 </div>
                 
                 {/* Visual Type Selection */}
-                <div className="mt-4 p-3 bg-slate-800/50 rounded-lg border border-slate-700/50">
-                    <label className="text-xs font-semibold text-slate-400 mb-2 block">Generate As:</label>
+                <div className="mt-4 p-3 bg-gray-100/50 rounded-lg border border-gray-300/50">
+                    <label className="text-xs font-semibold text-gray-600 mb-2 block">Generate As:</label>
                     <div className="flex gap-2">
                         <button
                             onClick={() => setGenerationMode('diagram')}
                             disabled={isGenerating}
                             className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                                 generationMode === 'diagram'
-                                    ? 'bg-brand-primary text-white'
-                                    : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'
+                                    ? 'bg-brand-primary text-gray-900'
+                                    : 'bg-white/50 text-gray-700 hover:bg-white'
                             } ${isGenerating ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                         >
                             <ChartBarIcon className="w-4 h-4" />
@@ -58,22 +58,22 @@ export const RecommendationCard: React.FC<RecommendationCardProps> = ({ rec }) =
                             disabled={isGenerating}
                             className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                                 generationMode === 'image'
-                                    ? 'bg-brand-primary text-white'
-                                    : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'
+                                    ? 'bg-brand-primary text-gray-900'
+                                    : 'bg-white/50 text-gray-700 hover:bg-white'
                             } ${isGenerating ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                         >
                             <PhotoIcon className="w-4 h-4" />
                             <span>AI Image</span>
                         </button>
                     </div>
-                    <p className="text-xs text-slate-500 mt-2">
+                    <p className="text-xs text-gray-500 mt-2">
                         {generationMode === 'diagram' 
                             ? 'Generate an interactive Mermaid diagram' 
                             : 'Generate an AI-powered image using Gemini'}
                     </p>
                 </div>
             </div>
-            <div className="p-3 bg-slate-900/50 border-t border-slate-700/50 flex justify-end space-x-2">
+            <div className="p-3 bg-white/50 border-t border-gray-300/50 flex justify-end space-x-2">
                 <Button variant="danger" onClick={() => rejectRecommendation(rec.id)} disabled={isGenerating}>
                     <XMarkIcon className="w-5 h-5"/>
                 </Button>

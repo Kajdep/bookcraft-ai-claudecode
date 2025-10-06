@@ -53,17 +53,17 @@ const TimelineComponent: React.FC<TimelineComponentProps> = ({ timeline, onUpdat
   return (
     <div className="timeline-component">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-slate-200">{timeline.title}</h3>
-        <span className="text-sm text-slate-400">{sortedEvents.length} events</span>
+        <h3 className="text-lg font-semibold text-gray-800">{timeline.title}</h3>
+        <span className="text-sm text-gray-600">{sortedEvents.length} events</span>
       </div>
 
       {timeline.description && (
-        <p className="text-sm text-slate-400 mb-4">{timeline.description}</p>
+        <p className="text-sm text-gray-600 mb-4">{timeline.description}</p>
       )}
 
       <div className="relative">
         {/* Timeline line */}
-        <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-slate-600"></div>
+        <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-gray-200"></div>
 
         {/* Events */}
         <div className="space-y-6">
@@ -72,17 +72,17 @@ const TimelineComponent: React.FC<TimelineComponentProps> = ({ timeline, onUpdat
               {/* Timeline dot */}
               <div className={`relative z-10 w-3 h-3 rounded-full ${getImportanceColor(event.importance)} flex-shrink-0 mt-2`}>
                 {event.verified && (
-                  <CheckCircleIcon className="absolute -top-1 -right-1 w-4 h-4 text-green-400 bg-slate-900 rounded-full" />
+                  <CheckCircleIcon className="absolute -top-1 -right-1 w-4 h-4 text-green-400 bg-white rounded-full" />
                 )}
               </div>
 
               {/* Event card */}
-              <Card className="flex-1 p-4 hover:bg-slate-800/50 cursor-pointer transition-colors" onClick={() => setSelectedEvent(event)}>
+              <Card className="flex-1 p-4 hover:bg-gray-100/50 cursor-pointer transition-colors" onClick={() => setSelectedEvent(event)}>
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <h4 className="text-sm font-medium text-slate-200 mb-1">{event.title}</h4>
-                    <p className="text-xs text-slate-400 mb-2">{event.description}</p>
-                    <div className="flex items-center gap-3 text-xs text-slate-500">
+                    <h4 className="text-sm font-medium text-gray-800 mb-1">{event.title}</h4>
+                    <p className="text-xs text-gray-600 mb-2">{event.description}</p>
+                    <div className="flex items-center gap-3 text-xs text-gray-500">
                       <span className="flex items-center gap-1">
                         <CalendarIcon className="w-3 h-3" />
                         {new Date(event.date).toLocaleDateString()}
@@ -111,15 +111,15 @@ const TimelineComponent: React.FC<TimelineComponentProps> = ({ timeline, onUpdat
 
       {/* Event Detail Modal */}
       {selectedEvent && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-gray-900/30 flex items-center justify-center z-50">
           <Card className="p-6 max-w-lg w-full mx-4">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-slate-200">Event Details</h3>
+              <h3 className="text-lg font-semibold text-gray-800">Event Details</h3>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setSelectedEvent(null)}
-                className="text-slate-400 hover:text-slate-200"
+                className="text-gray-600 hover:text-gray-800"
               >
                 ×
               </Button>
@@ -127,22 +127,22 @@ const TimelineComponent: React.FC<TimelineComponentProps> = ({ timeline, onUpdat
 
             <div className="space-y-4">
               <div>
-                <h4 className="text-sm font-medium text-slate-300 mb-1">Title</h4>
-                <p className="text-slate-200">{selectedEvent.title}</p>
+                <h4 className="text-sm font-medium text-gray-700 mb-1">Title</h4>
+                <p className="text-gray-800">{selectedEvent.title}</p>
               </div>
 
               <div>
-                <h4 className="text-sm font-medium text-slate-300 mb-1">Description</h4>
-                <p className="text-slate-300">{selectedEvent.description}</p>
+                <h4 className="text-sm font-medium text-gray-700 mb-1">Description</h4>
+                <p className="text-gray-700">{selectedEvent.description}</p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <h4 className="text-sm font-medium text-slate-300 mb-1">Date</h4>
-                  <p className="text-slate-300">{new Date(selectedEvent.date).toLocaleDateString()}</p>
+                  <h4 className="text-sm font-medium text-gray-700 mb-1">Date</h4>
+                  <p className="text-gray-700">{new Date(selectedEvent.date).toLocaleDateString()}</p>
                 </div>
                 <div>
-                  <h4 className="text-sm font-medium text-slate-300 mb-1">Importance</h4>
+                  <h4 className="text-sm font-medium text-gray-700 mb-1">Importance</h4>
                   <span className={`px-2 py-1 rounded text-xs ${
                     selectedEvent.importance === 'High' ? 'bg-red-900/20 text-red-300' :
                     selectedEvent.importance === 'Medium' ? 'bg-yellow-900/20 text-yellow-300' :
@@ -154,7 +154,7 @@ const TimelineComponent: React.FC<TimelineComponentProps> = ({ timeline, onUpdat
               </div>
 
               <div>
-                <h4 className="text-sm font-medium text-slate-300 mb-1">Status</h4>
+                <h4 className="text-sm font-medium text-gray-700 mb-1">Status</h4>
                 <div className="flex items-center gap-2">
                   {selectedEvent.verified ? (
                     <span className="text-green-400 flex items-center gap-1">
@@ -204,19 +204,19 @@ const MindMapComponent: React.FC<MindMapComponentProps> = ({ mindMap, onUpdate, 
     <div className="mind-map-component">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-lg font-semibold text-slate-200">{mindMap.title}</h3>
-          <p className="text-sm text-slate-400">Central Topic: {mindMap.centralTopic}</p>
+          <h3 className="text-lg font-semibold text-gray-800">{mindMap.title}</h3>
+          <p className="text-sm text-gray-600">Central Topic: {mindMap.centralTopic}</p>
         </div>
-        <span className="text-sm text-slate-400">{mindMap.nodes.length} nodes</span>
+        <span className="text-sm text-gray-600">{mindMap.nodes.length} nodes</span>
       </div>
 
-      <Card className="p-4 bg-slate-800">
+      <Card className="p-4 bg-gray-100">
         <svg
           ref={svgRef}
           width="100%"
           height="400"
           viewBox={`${viewBox.x} ${viewBox.y} ${viewBox.width} ${viewBox.height}`}
-          className="border border-slate-600 rounded"
+          className="border border-gray-300 rounded"
         >
           {/* Connections */}
           {mindMap.connections.map(connection => {
@@ -287,7 +287,7 @@ const MindMapComponent: React.FC<MindMapComponentProps> = ({ mindMap, onUpdate, 
         </svg>
 
         {/* Legend */}
-        <div className="mt-4 flex items-center gap-6 text-xs text-slate-400">
+        <div className="mt-4 flex items-center gap-6 text-xs text-gray-600">
           <div className="flex items-center gap-1">
             <div className="w-3 h-3 rounded-full bg-blue-500"></div>
             <span>Central</span>
@@ -309,15 +309,15 @@ const MindMapComponent: React.FC<MindMapComponentProps> = ({ mindMap, onUpdate, 
 
       {/* Node Detail Modal */}
       {selectedNode && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-gray-900/30 flex items-center justify-center z-50">
           <Card className="p-6 max-w-md w-full mx-4">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-slate-200">Node Details</h3>
+              <h3 className="text-lg font-semibold text-gray-800">Node Details</h3>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setSelectedNode(null)}
-                className="text-slate-400 hover:text-slate-200"
+                className="text-gray-600 hover:text-gray-800"
               >
                 ×
               </Button>
@@ -325,13 +325,13 @@ const MindMapComponent: React.FC<MindMapComponentProps> = ({ mindMap, onUpdate, 
 
             <div className="space-y-4">
               <div>
-                <h4 className="text-sm font-medium text-slate-300 mb-1">Label</h4>
-                <p className="text-slate-200">{selectedNode.label}</p>
+                <h4 className="text-sm font-medium text-gray-700 mb-1">Label</h4>
+                <p className="text-gray-800">{selectedNode.label}</p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <h4 className="text-sm font-medium text-slate-300 mb-1">Type</h4>
+                  <h4 className="text-sm font-medium text-gray-700 mb-1">Type</h4>
                   <span className={`px-2 py-1 rounded text-xs capitalize ${
                     selectedNode.type === 'central' ? 'bg-blue-900/20 text-blue-300' :
                     selectedNode.type === 'main' ? 'bg-green-900/20 text-green-300' :
@@ -342,14 +342,14 @@ const MindMapComponent: React.FC<MindMapComponentProps> = ({ mindMap, onUpdate, 
                   </span>
                 </div>
                 <div>
-                  <h4 className="text-sm font-medium text-slate-300 mb-1">Position</h4>
-                  <p className="text-slate-300 text-sm">({selectedNode.x}, {selectedNode.y})</p>
+                  <h4 className="text-sm font-medium text-gray-700 mb-1">Position</h4>
+                  <p className="text-gray-700 text-sm">({selectedNode.x}, {selectedNode.y})</p>
                 </div>
               </div>
 
               {selectedNode.researchItemId && (
                 <div>
-                  <h4 className="text-sm font-medium text-slate-300 mb-1">Linked Research</h4>
+                  <h4 className="text-sm font-medium text-gray-700 mb-1">Linked Research</h4>
                   <p className="text-blue-400 text-sm">Research Item ID: {selectedNode.researchItemId}</p>
                 </div>
               )}
@@ -417,19 +417,19 @@ export const VisualOrganizationTools: React.FC<VisualOrganizationToolsProps> = (
   return (
     <div className={`visual-organization-tools ${className}`}>
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-slate-100 mb-2">Visual Organization Tools</h2>
-        <p className="text-slate-400">
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Visual Organization Tools</h2>
+        <p className="text-gray-600">
           Create timelines and mind maps to visualize your research patterns and themes
         </p>
       </div>
 
       {/* Tab Navigation */}
-      <div className="flex items-center gap-1 bg-slate-800 rounded-lg p-1 mb-6">
+      <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1 mb-6">
         <Button
           variant="ghost"
           size="sm"
           onClick={() => setActiveTab('timelines')}
-          className={`${activeTab === 'timelines' ? 'bg-slate-700 text-slate-200' : 'text-slate-400'}`}
+          className={`${activeTab === 'timelines' ? 'bg-white text-gray-800' : 'text-gray-600'}`}
         >
           <ClockIcon className="w-4 h-4 mr-2" />
           Timelines
@@ -438,7 +438,7 @@ export const VisualOrganizationTools: React.FC<VisualOrganizationToolsProps> = (
           variant="ghost"
           size="sm"
           onClick={() => setActiveTab('mindmaps')}
-          className={`${activeTab === 'mindmaps' ? 'bg-slate-700 text-slate-200' : 'text-slate-400'}`}
+          className={`${activeTab === 'mindmaps' ? 'bg-white text-gray-800' : 'text-gray-600'}`}
         >
           <ShareIcon className="w-4 h-4 mr-2" />
           Mind Maps
@@ -447,7 +447,7 @@ export const VisualOrganizationTools: React.FC<VisualOrganizationToolsProps> = (
           variant="ghost"
           size="sm"
           onClick={() => setActiveTab('themes')}
-          className={`${activeTab === 'themes' ? 'bg-slate-700 text-slate-200' : 'text-slate-400'}`}
+          className={`${activeTab === 'themes' ? 'bg-white text-gray-800' : 'text-gray-600'}`}
         >
           <TagIcon className="w-4 h-4 mr-2" />
           Themes
@@ -459,7 +459,7 @@ export const VisualOrganizationTools: React.FC<VisualOrganizationToolsProps> = (
         <div>
           {/* Create Timeline */}
           <Card className="p-6 mb-6">
-            <h3 className="text-lg font-semibold text-slate-200 mb-4">Create Timeline</h3>
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Create Timeline</h3>
             <div className="flex gap-4">
               <Input
                 value={newTimelineTheme}
@@ -475,22 +475,22 @@ export const VisualOrganizationTools: React.FC<VisualOrganizationToolsProps> = (
                 Create Timeline
               </Button>
             </div>
-            <p className="text-sm text-slate-400 mt-2">
+            <p className="text-sm text-gray-600 mt-2">
               Enter a theme and we'll create a chronological timeline from your research
             </p>
           </Card>
 
           {/* Existing Timelines */}
           <div>
-            <h3 className="text-lg font-semibold text-slate-200 mb-4">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">
               Existing Timelines ({project?.researchTimelines.length || 0})
             </h3>
 
             {!project?.researchTimelines.length ? (
               <Card className="p-8 text-center">
                 <ClockIcon className="mx-auto h-12 w-12 text-slate-600 mb-4" />
-                <h4 className="text-lg font-semibold text-slate-300 mb-2">No timelines yet</h4>
-                <p className="text-slate-400">Create your first timeline to visualize research chronologically</p>
+                <h4 className="text-lg font-semibold text-gray-700 mb-2">No timelines yet</h4>
+                <p className="text-gray-600">Create your first timeline to visualize research chronologically</p>
               </Card>
             ) : (
               <div className="space-y-6">
@@ -510,7 +510,7 @@ export const VisualOrganizationTools: React.FC<VisualOrganizationToolsProps> = (
         <div>
           {/* Create Mind Map */}
           <Card className="p-6 mb-6">
-            <h3 className="text-lg font-semibold text-slate-200 mb-4">Create Mind Map</h3>
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Create Mind Map</h3>
             <div className="space-y-4">
               <Input
                 value={newMindMapTopic}
@@ -520,13 +520,13 @@ export const VisualOrganizationTools: React.FC<VisualOrganizationToolsProps> = (
               />
 
               <div>
-                <h4 className="text-sm font-medium text-slate-300 mb-2">Select Research Items</h4>
-                <div className="max-h-48 overflow-y-auto border border-slate-600 rounded-lg">
+                <h4 className="text-sm font-medium text-gray-700 mb-2">Select Research Items</h4>
+                <div className="max-h-48 overflow-y-auto border border-gray-300 rounded-lg">
                   {project?.research.map(item => (
                     <div
                       key={item.id}
-                      className={`p-3 border-b border-slate-600 last:border-b-0 cursor-pointer transition-colors ${
-                        selectedItems.includes(item.id) ? 'bg-slate-700' : 'hover:bg-slate-800/50'
+                      className={`p-3 border-b border-gray-300 last:border-b-0 cursor-pointer transition-colors ${
+                        selectedItems.includes(item.id) ? 'bg-white' : 'hover:bg-gray-100/50'
                       }`}
                       onClick={() => toggleItemSelection(item.id)}
                     >
@@ -535,17 +535,17 @@ export const VisualOrganizationTools: React.FC<VisualOrganizationToolsProps> = (
                           type="checkbox"
                           checked={selectedItems.includes(item.id)}
                           onChange={() => toggleItemSelection(item.id)}
-                          className="rounded border-slate-600 bg-slate-800 text-brand-primary"
+                          className="rounded border-gray-300 bg-gray-100 text-brand-primary"
                         />
                         <div className="flex-1 min-w-0">
-                          <h5 className="text-sm font-medium text-slate-200 truncate">{item.query}</h5>
-                          <p className="text-xs text-slate-400 truncate">{item.summary}</p>
+                          <h5 className="text-sm font-medium text-gray-800 truncate">{item.query}</h5>
+                          <p className="text-xs text-gray-600 truncate">{item.summary}</p>
                         </div>
                       </div>
                     </div>
                   ))}
                 </div>
-                <p className="text-sm text-slate-400 mt-2">
+                <p className="text-sm text-gray-600 mt-2">
                   Selected: {selectedItems.length} items
                 </p>
               </div>
@@ -563,15 +563,15 @@ export const VisualOrganizationTools: React.FC<VisualOrganizationToolsProps> = (
 
           {/* Existing Mind Maps */}
           <div>
-            <h3 className="text-lg font-semibold text-slate-200 mb-4">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">
               Existing Mind Maps ({project?.researchMindMaps.length || 0})
             </h3>
 
             {!project?.researchMindMaps.length ? (
               <Card className="p-8 text-center">
                 <ShareIcon className="mx-auto h-12 w-12 text-slate-600 mb-4" />
-                <h4 className="text-lg font-semibold text-slate-300 mb-2">No mind maps yet</h4>
-                <p className="text-slate-400">Create your first mind map to visualize research connections</p>
+                <h4 className="text-lg font-semibold text-gray-700 mb-2">No mind maps yet</h4>
+                <p className="text-gray-600">Create your first mind map to visualize research connections</p>
               </Card>
             ) : (
               <div className="space-y-6">
@@ -591,8 +591,8 @@ export const VisualOrganizationTools: React.FC<VisualOrganizationToolsProps> = (
         <div>
           {/* Analyze Themes */}
           <Card className="p-6 mb-6">
-            <h3 className="text-lg font-semibold text-slate-200 mb-4">Theme Analysis</h3>
-            <p className="text-sm text-slate-400 mb-4">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Theme Analysis</h3>
+            <p className="text-sm text-gray-600 mb-4">
               Analyze your research to identify recurring themes and patterns using AI
             </p>
             <Button
@@ -616,15 +616,15 @@ export const VisualOrganizationTools: React.FC<VisualOrganizationToolsProps> = (
 
           {/* Discovered Themes */}
           <div>
-            <h3 className="text-lg font-semibold text-slate-200 mb-4">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">
               Discovered Themes ({project?.thematicTags.length || 0})
             </h3>
 
             {!project?.thematicTags.length ? (
               <Card className="p-8 text-center">
                 <TagIcon className="mx-auto h-12 w-12 text-slate-600 mb-4" />
-                <h4 className="text-lg font-semibold text-slate-300 mb-2">No themes analyzed yet</h4>
-                <p className="text-slate-400">Run theme analysis to discover patterns in your research</p>
+                <h4 className="text-lg font-semibold text-gray-700 mb-2">No themes analyzed yet</h4>
+                <p className="text-gray-600">Run theme analysis to discover patterns in your research</p>
               </Card>
             ) : (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -636,12 +636,12 @@ export const VisualOrganizationTools: React.FC<VisualOrganizationToolsProps> = (
                         style={{ backgroundColor: theme.color }}
                       />
                       <div className="flex-1">
-                        <h4 className="text-sm font-medium text-slate-200 mb-1">{theme.name}</h4>
+                        <h4 className="text-sm font-medium text-gray-800 mb-1">{theme.name}</h4>
                         {theme.description && (
-                          <p className="text-xs text-slate-400 mb-2">{theme.description}</p>
+                          <p className="text-xs text-gray-600 mb-2">{theme.description}</p>
                         )}
                         <div className="flex items-center gap-2 mb-2">
-                          <span className="text-xs text-slate-500">Frequency: {theme.frequency}</span>
+                          <span className="text-xs text-gray-500">Frequency: {theme.frequency}</span>
                           {theme.sentiment && (
                             <span className={`text-xs px-2 py-1 rounded ${
                               theme.sentiment === 'Positive' ? 'bg-green-900/20 text-green-300' :
@@ -655,19 +655,19 @@ export const VisualOrganizationTools: React.FC<VisualOrganizationToolsProps> = (
                         {theme.themes.length > 0 && (
                           <div className="flex flex-wrap gap-1">
                             {theme.themes.slice(0, 3).map(keyword => (
-                              <span key={keyword} className="text-xs bg-slate-700 text-slate-300 px-2 py-1 rounded">
+                              <span key={keyword} className="text-xs bg-white text-gray-700 px-2 py-1 rounded">
                                 {keyword}
                               </span>
                             ))}
                             {theme.themes.length > 3 && (
-                              <span className="text-xs text-slate-500">+{theme.themes.length - 3} more</span>
+                              <span className="text-xs text-gray-500">+{theme.themes.length - 3} more</span>
                             )}
                           </div>
                         )}
                       </div>
                     </div>
 
-                    <div className="mt-3 pt-3 border-t border-slate-600">
+                    <div className="mt-3 pt-3 border-t border-gray-300">
                       <Button
                         variant="outline"
                         size="sm"

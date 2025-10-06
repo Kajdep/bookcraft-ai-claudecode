@@ -71,20 +71,20 @@ const ToolbarButton: React.FC<ToolbarButtonProps> = ({
   const getButtonClass = (active: boolean, isDisabled: boolean) =>
     `p-2 rounded transition-colors ${
       isDisabled
-        ? 'text-slate-500 cursor-not-allowed'
+        ? 'text-gray-500 cursor-not-allowed'
         : active
-        ? 'bg-brand-primary text-white'
-        : 'hover:bg-slate-600 text-slate-300'
+        ? 'bg-brand-primary text-gray-900'
+        : 'hover:bg-gray-300 text-gray-700'
     }`;
 
   const tooltipContent = (
     <div className="text-center">
       <div className="font-medium">{tooltip.title}</div>
       {tooltip.description && (
-        <div className="text-xs text-slate-300 mt-1">{tooltip.description}</div>
+        <div className="text-xs text-gray-700 mt-1">{tooltip.description}</div>
       )}
       {tooltip.shortcut && (
-        <div className="text-xs text-slate-400 mt-1 font-mono bg-slate-800 px-1.5 py-0.5 rounded border border-slate-600">
+        <div className="text-xs text-gray-600 mt-1 font-mono bg-gray-100 px-1.5 py-0.5 rounded border border-gray-300">
           {tooltip.shortcut}
         </div>
       )}
@@ -365,7 +365,7 @@ export const LexicalToolbar: React.FC = () => {
   return (
     <>
       <HistoryStatePlugin onHistoryStateChange={handleHistoryStateChange} />
-      <div className="p-3 border-b border-slate-700/50 flex items-center gap-1 bg-slate-800 rounded-t-lg flex-wrap">
+      <div className="p-3 border-b border-gray-300/50 flex items-center gap-1 bg-gray-100 rounded-t-lg flex-wrap">
       {/* Text Formatting */}
       <div className="flex items-center gap-1">
         <ToolbarButton
@@ -409,7 +409,7 @@ export const LexicalToolbar: React.FC = () => {
         />
       </div>
 
-      <div className="w-px h-6 bg-slate-600 mx-2"></div>
+      <div className="w-px h-6 bg-gray-200 mx-2"></div>
 
       {/* Headings */}
       <div className="flex items-center gap-1">
@@ -451,7 +451,7 @@ export const LexicalToolbar: React.FC = () => {
         />
       </div>
 
-      <div className="w-px h-6 bg-slate-600 mx-2"></div>
+      <div className="w-px h-6 bg-gray-200 mx-2"></div>
 
       {/* Lists */}
       <div className="flex items-center gap-1">
@@ -475,7 +475,7 @@ export const LexicalToolbar: React.FC = () => {
         />
       </div>
 
-      <div className="w-px h-6 bg-slate-600 mx-2"></div>
+      <div className="w-px h-6 bg-gray-200 mx-2"></div>
 
       {/* Advanced */}
       <div className="flex items-center gap-1">
@@ -499,7 +499,7 @@ export const LexicalToolbar: React.FC = () => {
         />
       </div>
 
-      <div className="w-px h-6 bg-slate-600 mx-2"></div>
+      <div className="w-px h-6 bg-gray-200 mx-2"></div>
 
       {/* Actions */}
       <div className="flex items-center gap-1">

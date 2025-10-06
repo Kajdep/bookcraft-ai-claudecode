@@ -33,7 +33,7 @@ const loadingConfig = {
     general: {
         icon: CogIcon,
         defaultMessage: 'Loading...',
-        color: 'text-slate-400'
+        color: 'text-gray-600'
     }
 };
 
@@ -76,7 +76,7 @@ export const LoadingState: React.FC<LoadingStateProps> = ({
                 <Icon className={`${sizes.icon} ${config.color} animate-pulse`} />
                 <Spinner size={sizes.spinner} />
             </div>
-            <p className={`${sizes.text} text-slate-300 font-medium`}>
+            <p className={`${sizes.text} text-gray-700 font-medium`}>
                 {displayMessage}
             </p>
         </div>
@@ -90,14 +90,14 @@ export const InlineLoading: React.FC<{ message?: string; className?: string }> =
 }) => (
     <div className={`flex items-center space-x-2 ${className}`}>
         <Spinner size="sm" />
-        <span className="text-sm text-slate-400">{message}</span>
+        <span className="text-sm text-gray-600">{message}</span>
     </div>
 );
 
 // Overlay loading component
 export const LoadingOverlay: React.FC<LoadingStateProps> = (props) => (
-    <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center z-50">
-        <div className="bg-slate-800 rounded-lg border border-slate-700 shadow-xl">
+    <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-50">
+        <div className="bg-gray-100 rounded-lg border border-gray-300 shadow-xl">
             <LoadingState {...props} />
         </div>
     </div>

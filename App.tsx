@@ -12,18 +12,18 @@ import { initializeStorage } from './store/storageAdapter';
 import { logger } from './services/logger';
 
 const Header: React.FC<{ onSettingsClick: () => void }> = ({ onSettingsClick }) => (
-    <header className="bg-slate-900/70 backdrop-blur-lg border-b border-slate-700/50 sticky top-0 z-50">
+    <header className="bg-white/90 backdrop-blur-lg border-b border-gray-200 sticky top-0 z-50 shadow-sm">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16">
                 <div className="flex items-center space-x-3">
                     <BookOpenIcon className="h-8 w-8 text-brand-primary" />
-                    <h1 className="text-2xl font-bold bg-gradient-to-r from-slate-100 to-slate-400 text-transparent bg-clip-text">
+                    <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 text-transparent bg-clip-text">
                         BookCraft <span className="text-brand-primary">AI</span>
                     </h1>
                 </div>
                 <button
                     onClick={onSettingsClick}
-                    className="p-2 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded-lg transition-colors"
+                    className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
                     title="Settings"
                 >
                     <Settings size={20} />
@@ -74,7 +74,7 @@ const App: React.FC = () => {
     return (
         <ErrorBoundary>
             <ToastProvider>
-                <div className="min-h-screen bg-slate-900 font-sans">
+                <div className="min-h-screen bg-gray-50 font-sans">
                     <Header onSettingsClick={() => setIsSettingsOpen(true)} />
                     <ErrorBoundary>
                         <MainLayout />

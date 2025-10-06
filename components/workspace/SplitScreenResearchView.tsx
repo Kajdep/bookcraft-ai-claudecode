@@ -71,18 +71,18 @@ const ResearchItemPreview: React.FC<{
   return (
     <Card
       className={`p-3 mb-2 cursor-pointer transition-all ${
-        isSelected ? 'border-brand-primary bg-slate-800/50' : 'hover:bg-slate-800/30'
+        isSelected ? 'border-brand-primary bg-gray-100/50' : 'hover:bg-gray-100/30'
       }`}
       onClick={onSelect}
     >
       <div className="flex items-start gap-2">
-        <ResearchTypeIcon type={item.type} className="w-4 h-4 text-slate-400 mt-1" />
+        <ResearchTypeIcon type={item.type} className="w-4 h-4 text-gray-600 mt-1" />
         <div className="flex-1 min-w-0">
-          <h4 className="text-sm font-medium text-slate-200 truncate">{item.query}</h4>
-          <p className="text-xs text-slate-400 line-clamp-2 mt-1">{item.summary}</p>
+          <h4 className="text-sm font-medium text-gray-800 truncate">{item.query}</h4>
+          <p className="text-xs text-gray-600 line-clamp-2 mt-1">{item.summary}</p>
           <div className="flex items-center gap-2 mt-2">
             <ConfidenceBadge confidence={item.confidence} />
-            <span className="text-xs text-slate-500">{item.wordCount} words</span>
+            <span className="text-xs text-gray-500">{item.wordCount} words</span>
           </div>
         </div>
       </div>
@@ -98,13 +98,13 @@ const ResearchDetailView: React.FC<{
   return (
     <div className="h-full flex flex-col">
       {/* Header */}
-      <div className="p-4 border-b border-slate-600">
+      <div className="p-4 border-b border-gray-300">
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <h3 className="text-lg font-semibold text-slate-200 mb-2">{item.query}</h3>
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">{item.query}</h3>
             <div className="flex items-center gap-2 mb-2">
               <ResearchTypeIcon type={item.type} />
-              <span className="text-sm text-slate-400">{item.type}</span>
+              <span className="text-sm text-gray-600">{item.type}</span>
               <ConfidenceBadge confidence={item.confidence} />
             </div>
           </div>
@@ -112,7 +112,7 @@ const ResearchDetailView: React.FC<{
             variant="ghost"
             size="sm"
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-200"
+            className="text-gray-600 hover:text-gray-800"
           >
             <XMarkIcon className="w-4 h-4" />
           </Button>
@@ -143,16 +143,16 @@ const ResearchDetailView: React.FC<{
       <div className="flex-1 overflow-y-auto p-4">
         {/* Summary */}
         <div className="mb-4">
-          <h4 className="text-sm font-medium text-slate-300 mb-2">Summary</h4>
-          <p className="text-sm text-slate-300 bg-slate-800/50 p-3 rounded-lg">
+          <h4 className="text-sm font-medium text-gray-700 mb-2">Summary</h4>
+          <p className="text-sm text-gray-700 bg-gray-100/50 p-3 rounded-lg">
             {item.summary}
           </p>
         </div>
 
         {/* Full Content */}
         <div className="mb-4">
-          <h4 className="text-sm font-medium text-slate-300 mb-2">Content</h4>
-          <div className="text-sm text-slate-300 bg-slate-800/50 p-3 rounded-lg max-h-64 overflow-y-auto">
+          <h4 className="text-sm font-medium text-gray-700 mb-2">Content</h4>
+          <div className="text-sm text-gray-700 bg-gray-100/50 p-3 rounded-lg max-h-64 overflow-y-auto">
             <div className="prose prose-sm prose-invert max-w-none">
               {item.content.split('\n').map((paragraph, index) => (
                 <p key={index} className="mb-2 last:mb-0">{paragraph}</p>
@@ -164,10 +164,10 @@ const ResearchDetailView: React.FC<{
         {/* Tags */}
         {item.tags.length > 0 && (
           <div className="mb-4">
-            <h4 className="text-sm font-medium text-slate-300 mb-2">Tags</h4>
+            <h4 className="text-sm font-medium text-gray-700 mb-2">Tags</h4>
             <div className="flex flex-wrap gap-1">
               {item.tags.map(tag => (
-                <span key={tag} className="inline-flex items-center px-2 py-1 text-xs bg-slate-700 text-slate-300 rounded">
+                <span key={tag} className="inline-flex items-center px-2 py-1 text-xs bg-white text-gray-700 rounded">
                   <TagIcon className="w-3 h-3 mr-1" />
                   {tag}
                 </span>
@@ -179,11 +179,11 @@ const ResearchDetailView: React.FC<{
         {/* Sources */}
         {item.sources.length > 0 && (
           <div className="mb-4">
-            <h4 className="text-sm font-medium text-slate-300 mb-2">Sources</h4>
+            <h4 className="text-sm font-medium text-gray-700 mb-2">Sources</h4>
             <div className="space-y-2">
               {item.sources.map(source => (
-                <div key={source.id} className="text-xs text-slate-400 bg-slate-800/50 p-2 rounded">
-                  <div className="font-medium text-slate-300">{source.title}</div>
+                <div key={source.id} className="text-xs text-gray-600 bg-gray-100/50 p-2 rounded">
+                  <div className="font-medium text-gray-700">{source.title}</div>
                   {source.author && <div>Author: {source.author}</div>}
                   <div className="flex items-center justify-between mt-1">
                     <span>Credibility: {source.credibility}</span>
@@ -206,7 +206,7 @@ const ResearchDetailView: React.FC<{
         )}
 
         {/* Metadata */}
-        <div className="text-xs text-slate-500 space-y-1">
+        <div className="text-xs text-gray-500 space-y-1">
           <div>Created: {new Date(item.createdAt).toLocaleString()}</div>
           <div>Last Updated: {new Date(item.lastUpdated).toLocaleString()}</div>
           <div>Word Count: {item.wordCount}</div>
@@ -322,14 +322,14 @@ export const SplitScreenResearchView: React.FC<SplitScreenResearchViewProps> = (
         style={{ width: editorWidth }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 bg-slate-800 border-b border-slate-600">
-          <h2 className="text-lg font-semibold text-slate-200">{chapterTitle}</h2>
+        <div className="flex items-center justify-between p-4 bg-gray-100 border-b border-gray-300">
+          <h2 className="text-lg font-semibold text-gray-800">{chapterTitle}</h2>
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
               size="sm"
               onClick={togglePanel}
-              className={`${panelState.isVisible ? 'text-brand-primary' : 'text-slate-400'} hover:text-slate-200`}
+              className={`${panelState.isVisible ? 'text-brand-primary' : 'text-gray-600'} hover:text-gray-800`}
             >
               {panelState.isVisible ? (
                 <EyeSlashIcon className="w-4 h-4 mr-1" />
@@ -357,7 +357,7 @@ export const SplitScreenResearchView: React.FC<SplitScreenResearchViewProps> = (
       {panelState.isVisible && (
         <div
           ref={resizeRef}
-          className="w-1 bg-slate-600 cursor-col-resize hover:bg-slate-500 transition-colors"
+          className="w-1 bg-gray-200 cursor-col-resize hover:bg-gray-300 transition-colors"
           onMouseDown={() => setIsDragging(true)}
         />
       )}
@@ -365,14 +365,14 @@ export const SplitScreenResearchView: React.FC<SplitScreenResearchViewProps> = (
       {/* Research Panel */}
       {panelState.isVisible && (
         <div
-          className="flex flex-col bg-slate-900 border-l border-slate-600"
+          className="flex flex-col bg-white border-l border-gray-300"
           style={{ width: panelWidth }}
         >
           {/* Panel Header */}
-          <div className="p-4 border-b border-slate-600">
+          <div className="p-4 border-b border-gray-300">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-slate-200">Research</h3>
-              <span className="text-sm text-slate-400">{filteredResearch.length} items</span>
+              <h3 className="text-lg font-semibold text-gray-800">Research</h3>
+              <span className="text-sm text-gray-600">{filteredResearch.length} items</span>
             </div>
 
             {/* Search and Filters */}
@@ -391,7 +391,7 @@ export const SplitScreenResearchView: React.FC<SplitScreenResearchViewProps> = (
                     ...prev,
                     filterType: e.target.value as ResearchType || undefined
                   }))}
-                  className="px-2 py-1 text-xs bg-slate-700 border border-slate-600 rounded text-slate-200"
+                  className="px-2 py-1 text-xs bg-white border border-gray-300 rounded text-gray-800"
                 >
                   <option value="">All Types</option>
                   {Object.values(ResearchType).map(type => (
@@ -405,7 +405,7 @@ export const SplitScreenResearchView: React.FC<SplitScreenResearchViewProps> = (
                     ...prev,
                     filterConfidence: e.target.value as ResearchConfidence || undefined
                   }))}
-                  className="px-2 py-1 text-xs bg-slate-700 border border-slate-600 rounded text-slate-200"
+                  className="px-2 py-1 text-xs bg-white border border-gray-300 rounded text-gray-800"
                 >
                   <option value="">All Confidence</option>
                   {Object.values(ResearchConfidence).map(conf => (
@@ -429,8 +429,8 @@ export const SplitScreenResearchView: React.FC<SplitScreenResearchViewProps> = (
                 {filteredResearch.length === 0 ? (
                   <div className="text-center py-8">
                     <MagnifyingGlassIcon className="mx-auto h-12 w-12 text-slate-600 mb-4" />
-                    <h4 className="text-lg font-semibold text-slate-300 mb-2">No research found</h4>
-                    <p className="text-slate-400 text-sm">
+                    <h4 className="text-lg font-semibold text-gray-700 mb-2">No research found</h4>
+                    <p className="text-gray-600 text-sm">
                       {panelState.searchTerm || panelState.filterType || panelState.filterConfidence
                         ? 'Try adjusting your search or filters.'
                         : 'Start researching to see items here.'

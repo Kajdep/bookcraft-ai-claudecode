@@ -98,14 +98,14 @@ export const MergeContentModal: React.FC<MergeContentModalProps> = ({ isOpen, on
         <Modal isOpen={isOpen} onClose={onClose} title="Generated Content Ready">
             <div className="space-y-4">
                 <div>
-                    <h4 className="font-semibold text-slate-200 mb-2">AI Generated Content:</h4>
+                    <h4 className="font-semibold text-gray-800 mb-2">AI Generated Content:</h4>
                     <div className="relative">
                         <div
-                            className="prose prose-invert prose-sm max-w-none max-h-60 overflow-y-auto p-3 bg-slate-700/50 rounded-md border border-slate-600 text-white"
+                            className="prose prose-invert prose-sm max-w-none max-h-60 overflow-y-auto p-3 bg-white/50 rounded-md border border-gray-300 text-gray-900"
                             dangerouslySetInnerHTML={{ __html: currentGeneratedContent }}
                         />
                         {isRegenerating && (
-                            <div className="absolute inset-0 bg-slate-700/80 flex items-center justify-center rounded-md">
+                            <div className="absolute inset-0 bg-white/80 flex items-center justify-center rounded-md">
                                 <Spinner />
                             </div>
                         )}
@@ -113,7 +113,7 @@ export const MergeContentModal: React.FC<MergeContentModalProps> = ({ isOpen, on
                 </div>
 
                 <div className="space-y-2 pt-2">
-                    <label htmlFor="refine-prompt" className="block text-sm font-medium text-slate-300">
+                    <label htmlFor="refine-prompt" className="block text-sm font-medium text-gray-700">
                         Need changes? Tell the AI what to do:
                     </label>
                     <div className="flex gap-2">
@@ -124,7 +124,7 @@ export const MergeContentModal: React.FC<MergeContentModalProps> = ({ isOpen, on
                             onChange={(e) => setRefinementPrompt(e.target.value)}
                             onKeyDown={(e) => { if(e.key === 'Enter') handleRegenerate()}}
                             placeholder="e.g., Make it more formal, add a joke..."
-                            className="flex-grow bg-slate-700 border-slate-600 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary sm:text-sm p-2 text-white placeholder-slate-400"
+                            className="flex-grow bg-white border-gray-300 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary sm:text-sm p-2 text-gray-900 placeholder-gray-400"
                             disabled={isRegenerating || isCombining}
                         />
                         <Button onClick={handleRegenerate} isLoading={isRegenerating} disabled={isRegenerating || isCombining || !refinementPrompt.trim()}>
@@ -134,7 +134,7 @@ export const MergeContentModal: React.FC<MergeContentModalProps> = ({ isOpen, on
                 </div>
 
                 <div className="pt-4">
-                    <p className="text-slate-300 font-semibold mb-3">How would you like to use this content?</p>
+                    <p className="text-gray-700 font-semibold mb-3">How would you like to use this content?</p>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <Button variant="secondary" onClick={handleReplace} disabled={isCombining || isRegenerating}>Replace Existing</Button>
                         <Button variant="secondary" onClick={handleAppend} disabled={isCombining || isRegenerating}>Append to End</Button>

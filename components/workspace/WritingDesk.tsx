@@ -42,12 +42,12 @@ export const WritingDesk: React.FC = () => {
     };
 
     const ViewToggle: React.FC = () => (
-        <div className="flex items-center gap-2 p-1 bg-slate-800/50 rounded-lg border border-slate-700/50">
+        <div className="flex items-center gap-2 p-1 bg-gray-100/50 rounded-lg border border-gray-300/50">
             <Button
                 variant={'secondary'}
                 size="sm"
                 onClick={() => setViewMode('list')}
-                className={`!shadow-none ${viewMode === 'list' ? 'bg-slate-600' : 'bg-transparent hover:bg-slate-700'}`}
+                className={`!shadow-none ${viewMode === 'list' ? 'bg-gray-200' : 'bg-transparent hover:bg-white'}`}
             >
                 <Bars3Icon className="w-5 h-5" />
                 <span className="ml-2 hidden sm:inline">List</span>
@@ -56,7 +56,7 @@ export const WritingDesk: React.FC = () => {
                 variant={'secondary'}
                 size="sm"
                 onClick={() => setViewMode('kanban')}
-                className={`!shadow-none ${viewMode === 'kanban' ? 'bg-slate-600' : 'bg-transparent hover:bg-slate-700'}`}
+                className={`!shadow-none ${viewMode === 'kanban' ? 'bg-gray-200' : 'bg-transparent hover:bg-white'}`}
             >
                 <MapIcon className="w-5 h-5" />
                 <span className="ml-2 hidden sm:inline">Kanban</span>
@@ -143,19 +143,19 @@ export const WritingDesk: React.FC = () => {
                 <main className="lg:col-span-8 xl:col-span-9 h-full">
                     {activeChapterId ? (
                         <ErrorBoundary fallback={
-                            <div className="h-full flex flex-col items-center justify-center text-center p-6 bg-slate-800/50 rounded-lg border border-slate-700/50">
-                                <h3 className="text-xl font-semibold text-slate-300 mb-2">Editor Error</h3>
-                                <p className="text-slate-400 mb-4">The chapter editor encountered an issue. Try refreshing the page.</p>
+                            <div className="h-full flex flex-col items-center justify-center text-center p-6 bg-gray-100/50 rounded-lg border border-gray-300/50">
+                                <h3 className="text-xl font-semibold text-gray-700 mb-2">Editor Error</h3>
+                                <p className="text-gray-600 mb-4">The chapter editor encountered an issue. Try refreshing the page.</p>
                                 <Button onClick={() => window.location.reload()}>Refresh</Button>
                             </div>
                         }>
                             <ChapterEditorView chapterId={activeChapterId} />
                         </ErrorBoundary>
                     ) : (
-                        <div className="h-full flex flex-col items-center justify-center text-center p-6 bg-slate-800/50 rounded-lg border border-slate-700/50">
+                        <div className="h-full flex flex-col items-center justify-center text-center p-6 bg-gray-100/50 rounded-lg border border-gray-300/50">
                             <ArrowLeftIcon className="mx-auto h-12 w-12 text-slate-600" />
-                            <h3 className="mt-4 text-xl font-semibold text-slate-300">Select a Chapter</h3>
-                            <p className="mt-2 text-slate-400">Choose a chapter from the list to start editing.</p>
+                            <h3 className="mt-4 text-xl font-semibold text-gray-700">Select a Chapter</h3>
+                            <p className="mt-2 text-gray-600">Choose a chapter from the list to start editing.</p>
                         </div>
                     )}
                 </main>

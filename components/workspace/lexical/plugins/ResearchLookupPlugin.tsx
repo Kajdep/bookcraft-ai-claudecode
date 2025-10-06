@@ -208,7 +208,7 @@ export const ResearchLookupPlugin: React.FC<ResearchLookupPluginProps> = ({
   return (
     <div
       ref={modalRef}
-      className="fixed z-50 bg-slate-800 border border-slate-600 rounded-lg shadow-xl max-w-md w-96"
+      className="fixed z-50 bg-gray-100 border border-gray-300 rounded-lg shadow-xl max-w-md w-96"
       style={{
         left: `${modalState.position.x}px`,
         top: `${modalState.position.y}px`,
@@ -218,7 +218,7 @@ export const ResearchLookupPlugin: React.FC<ResearchLookupPluginProps> = ({
       <div className="p-4">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-slate-200 flex items-center gap-2">
+          <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
             <MagnifyingGlassIcon className="w-5 h-5" />
             Research Lookup
           </h3>
@@ -226,7 +226,7 @@ export const ResearchLookupPlugin: React.FC<ResearchLookupPluginProps> = ({
             variant="ghost"
             size="sm"
             onClick={closeModal}
-            className="text-slate-400 hover:text-slate-200"
+            className="text-gray-600 hover:text-gray-800"
           >
             <XMarkIcon className="w-4 h-4" />
           </Button>
@@ -234,8 +234,8 @@ export const ResearchLookupPlugin: React.FC<ResearchLookupPluginProps> = ({
 
         {/* Selected Text Display */}
         {modalState.selectedText && (
-          <div className="mb-4 p-3 bg-slate-700/50 rounded-lg">
-            <p className="text-sm text-slate-300">
+          <div className="mb-4 p-3 bg-white/50 rounded-lg">
+            <p className="text-sm text-gray-700">
               <span className="font-medium">Selected text:</span> "{modalState.selectedText}"
             </p>
           </div>
@@ -243,7 +243,7 @@ export const ResearchLookupPlugin: React.FC<ResearchLookupPluginProps> = ({
 
         {/* Quick Research Input */}
         <div className="mb-4">
-          <label className="block text-sm font-medium text-slate-300 mb-2">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
             Research Query
           </label>
           <div className="flex gap-2">
@@ -275,7 +275,7 @@ export const ResearchLookupPlugin: React.FC<ResearchLookupPluginProps> = ({
 
         {/* Quick Actions */}
         <div className="mb-4">
-          <p className="text-sm font-medium text-slate-300 mb-2">Quick Actions:</p>
+          <p className="text-sm font-medium text-gray-700 mb-2">Quick Actions:</p>
           <div className="flex flex-wrap gap-2">
             <Button
               variant="outline"
@@ -307,21 +307,21 @@ export const ResearchLookupPlugin: React.FC<ResearchLookupPluginProps> = ({
         {/* Existing Research Suggestions */}
         {modalState.suggestions.length > 0 && (
           <div>
-            <p className="text-sm font-medium text-slate-300 mb-3">Related Research:</p>
+            <p className="text-sm font-medium text-gray-700 mb-3">Related Research:</p>
             <div className="space-y-2 max-h-48 overflow-y-auto">
               {modalState.suggestions.map((research) => (
-                <Card key={research.id} className="p-3 hover:bg-slate-700/50 cursor-pointer transition-colors">
+                <Card key={research.id} className="p-3 hover:bg-white/50 cursor-pointer transition-colors">
                   <div
                     onClick={() => insertResearchReference(research)}
                     className="space-y-2"
                   >
                     <div className="flex items-center gap-2">
                       <ResearchTypeIcon type={research.type} className="w-3 h-3" />
-                      <h4 className="text-sm font-medium text-slate-200 flex-1">{research.query}</h4>
+                      <h4 className="text-sm font-medium text-gray-800 flex-1">{research.query}</h4>
                       <ConfidenceBadge confidence={research.confidence} />
                     </div>
-                    <p className="text-xs text-slate-400 line-clamp-2">{research.summary}</p>
-                    <div className="flex items-center justify-between text-xs text-slate-500">
+                    <p className="text-xs text-gray-600 line-clamp-2">{research.summary}</p>
+                    <div className="flex items-center justify-between text-xs text-gray-500">
                       <span>{research.wordCount} words</span>
                       <span>{new Date(research.createdAt).toLocaleDateString()}</span>
                     </div>
@@ -333,8 +333,8 @@ export const ResearchLookupPlugin: React.FC<ResearchLookupPluginProps> = ({
         )}
 
         {/* Help Text */}
-        <div className="mt-4 pt-3 border-t border-slate-600">
-          <p className="text-xs text-slate-500">
+        <div className="mt-4 pt-3 border-t border-gray-300">
+          <p className="text-xs text-gray-500">
             <strong>Tip:</strong> Double-click text to research, Ctrl+Shift+R for lookup, or Ctrl+/ for command palette
           </p>
         </div>

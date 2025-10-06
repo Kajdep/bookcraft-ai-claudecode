@@ -249,7 +249,7 @@ export const LexicalEditor: React.FC<LexicalEditorProps> = ({
               />
             }
             placeholder={
-              <div className="absolute top-6 left-6 text-slate-400 pointer-events-none">
+              <div className="absolute top-6 left-6 text-gray-600 pointer-events-none">
                 {placeholder}
               </div>
             }

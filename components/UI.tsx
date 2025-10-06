@@ -12,7 +12,7 @@ export const Spinner: React.FC<{ size?: 'sm' | 'md' | 'lg' }> = ({ size = 'md' }
         lg: 'h-12 w-12',
     };
     return (
-        <div className={`animate-spin rounded-full border-2 border-slate-500 border-t-brand-primary ${sizeClasses[size]}`}></div>
+        <div className={`animate-spin rounded-full border-2 border-gray-400 border-t-brand-primary ${sizeClasses[size]}`}></div>
     );
 };
 
@@ -29,11 +29,11 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         // FIX: Removed sizing classes from baseClasses to be handled by size variants.
         const baseClasses = "inline-flex items-center justify-center rounded-md font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md";
         const variantClasses = {
-            primary: 'bg-brand-primary text-white hover:bg-brand-primary/90 focus-visible:ring-brand-primary focus-visible:shadow-[0_0_15px_1px_rgba(79,70,229,0.5)]',
-            secondary: 'bg-slate-700 text-slate-100 hover:bg-slate-600 focus-visible:ring-slate-500 focus-visible:shadow-[0_0_15px_1px_rgba(100,116,139,0.4)]',
-            danger: 'bg-red-600 text-white hover:bg-red-500 focus-visible:ring-red-500 focus-visible:shadow-[0_0_15px_1px_rgba(220,38,38,0.5)]',
-            success: 'bg-green-600 text-white hover:bg-green-500 focus-visible:ring-green-500 focus-visible:shadow-[0_0_15px_1px_rgba(22,163,74,0.5)]',
-            ghost: 'bg-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 focus-visible:ring-slate-500'
+            primary: 'bg-brand-primary text-gray-900 hover:bg-brand-primary/90 focus-visible:ring-brand-primary focus-visible:shadow-[0_0_15px_1px_rgba(79,70,229,0.5)]',
+            secondary: 'bg-white text-gray-900 hover:bg-gray-300 focus-visible:ring-slate-500 focus-visible:shadow-[0_0_15px_1px_rgba(100,116,139,0.4)]',
+            danger: 'bg-red-600 text-gray-900 hover:bg-red-500 focus-visible:ring-red-500 focus-visible:shadow-[0_0_15px_1px_rgba(220,38,38,0.5)]',
+            success: 'bg-green-600 text-gray-900 hover:bg-green-500 focus-visible:ring-green-500 focus-visible:shadow-[0_0_15px_1px_rgba(22,163,74,0.5)]',
+            ghost: 'bg-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-100/50 focus-visible:ring-slate-500'
         };
         // FIX: Define classes for different button sizes.
         const sizeClasses = {
@@ -61,7 +61,7 @@ Button.displayName = "Button";
 // FIX: Updated the Card component to accept and spread all standard div HTML attributes (like onClick).
 // This allows it to be used as a clickable element, which is required in the ChapterKanbanView.
 export const Card: React.FC<PropsWithChildren<React.HTMLAttributes<HTMLDivElement>>> = ({ children, className, ...props }) => (
-    <div className={`bg-slate-800/40 border border-slate-700/50 rounded-lg shadow-lg overflow-hidden ${className || ''}`} {...props}>
+    <div className={`bg-gray-100/40 border border-gray-300/50 rounded-lg shadow-lg overflow-hidden ${className || ''}`} {...props}>
         {children}
     </div>
 );
@@ -98,7 +98,7 @@ export const Modal: React.FC<PropsWithChildren<ModalProps>> = ({ isOpen, onClose
 
     return (
         <div 
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm" 
+            className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 backdrop-blur-sm" 
             aria-modal="true" 
             role="dialog"
             onClick={(e) => {
@@ -109,15 +109,15 @@ export const Modal: React.FC<PropsWithChildren<ModalProps>> = ({ isOpen, onClose
             }}
         >
             <div 
-                className="relative bg-slate-800 rounded-lg shadow-xl w-full max-w-lg m-4 border border-slate-700"
+                className="relative bg-gray-100 rounded-lg shadow-xl w-full max-w-lg m-4 border border-gray-300"
                 onClick={(e) => {
                     // Prevent backdrop click when clicking inside modal
                     e.stopPropagation();
                 }}
             >
-                <div className="flex items-center justify-between p-4 border-b border-slate-700">
-                    <h3 className="text-lg font-semibold text-slate-100">{title}</h3>
-                    <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors rounded-full p-1 hover:bg-slate-700">
+                <div className="flex items-center justify-between p-4 border-b border-gray-300">
+                    <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+                    <button onClick={onClose} className="text-gray-600 hover:text-gray-900 transition-colors rounded-full p-1 hover:bg-white">
                          <XMarkIcon className="h-6 w-6" />
                     </button>
                 </div>
@@ -148,7 +148,7 @@ export const ConfirmationModal: React.FC<PropsWithChildren<ConfirmationModalProp
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} title={title}>
-            <div className="text-slate-300">{children}</div>
+            <div className="text-gray-700">{children}</div>
             <div className="flex justify-end space-x-3 mt-6">
                 <Button variant="secondary" onClick={onClose}>{cancelText}</Button>
                 <Button variant="danger" onClick={handleConfirm}>{confirmText}</Button>
@@ -164,10 +164,10 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     ({ className = '', variant = 'default', ...props }, ref) => {
-        const baseClasses = "w-full px-3 py-2 text-sm rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900";
+        const baseClasses = "w-full px-3 py-2 text-sm rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white";
         const variantClasses = {
-            default: 'bg-slate-700 border-slate-600 text-slate-200 placeholder-slate-400 focus:border-brand-primary focus:ring-brand-primary',
-            error: 'bg-slate-700 border-red-500 text-slate-200 placeholder-slate-400 focus:border-red-400 focus:ring-red-400'
+            default: 'bg-white border-gray-300 text-gray-800 placeholder-gray-400 focus:border-brand-primary focus:ring-brand-primary',
+            error: 'bg-white border-red-500 text-gray-800 placeholder-gray-400 focus:border-red-400 focus:ring-red-400'
         };
 
         return (
@@ -319,7 +319,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
                     role="tooltip"
                     aria-live="polite"
                     className={`
-                        absolute z-50 px-3 py-2 text-xs font-medium text-white bg-slate-900 rounded-lg shadow-lg border border-slate-700
+                        absolute z-50 px-3 py-2 text-xs font-medium text-gray-900 bg-white rounded-lg shadow-lg border border-gray-300
                         max-w-xs sm:max-w-sm break-words tooltip-mobile
                         animate-in fade-in-0 zoom-in-95 duration-200
                         ${positionClasses[actualPosition]}
@@ -378,7 +378,7 @@ export const Badge: React.FC<BadgeProps> = ({
     const baseClasses = "inline-flex items-center font-medium rounded-full";
     
     const variantClasses = {
-        default: 'bg-slate-700 text-slate-200 border border-slate-600',
+        default: 'bg-white text-gray-800 border border-gray-300',
         success: 'bg-green-700/20 text-green-300 border border-green-600/50',
         warning: 'bg-yellow-700/20 text-yellow-300 border border-yellow-600/50',
         danger: 'bg-red-700/20 text-red-300 border border-red-600/50',
@@ -423,8 +423,8 @@ export const Select: React.FC<SelectProps> = ({
     className = '',
     disabled = false
 }) => {
-    const baseClasses = "w-full px-3 py-2 text-sm rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 cursor-pointer";
-    const variantClasses = "bg-slate-700 border-slate-600 text-slate-200 focus:border-brand-primary focus:ring-brand-primary";
+    const baseClasses = "w-full px-3 py-2 text-sm rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white cursor-pointer";
+    const variantClasses = "bg-white border-gray-300 text-gray-800 focus:border-brand-primary focus:ring-brand-primary";
 
     return (
         <select
@@ -454,10 +454,10 @@ interface TextAreaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement
 
 export const TextArea = React.forwardRef<HTMLTextAreaElement, TextAreaProps>(
     ({ className = '', variant = 'default', ...props }, ref) => {
-        const baseClasses = "w-full px-3 py-2 text-sm rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 resize-vertical";
+        const baseClasses = "w-full px-3 py-2 text-sm rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white resize-vertical";
         const variantClasses = {
-            default: 'bg-slate-700 border-slate-600 text-slate-200 placeholder-slate-400 focus:border-brand-primary focus:ring-brand-primary',
-            error: 'bg-slate-700 border-red-500 text-slate-200 placeholder-slate-400 focus:border-red-400 focus:ring-red-400'
+            default: 'bg-white border-gray-300 text-gray-800 placeholder-gray-400 focus:border-brand-primary focus:ring-brand-primary',
+            error: 'bg-white border-red-500 text-gray-800 placeholder-gray-400 focus:border-red-400 focus:ring-red-400'
         };
 
         return (

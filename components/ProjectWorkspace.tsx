@@ -19,7 +19,7 @@ const TabButton: React.FC<{ active: boolean; onClick: () => void; children: Reac
     <button
         onClick={onClick}
         className={`flex items-center w-full md:w-auto justify-center md:justify-start gap-3 px-4 py-2.5 text-sm font-semibold rounded-lg transition-colors ${
-            active ? 'bg-brand-primary text-white' : 'text-slate-300 hover:bg-slate-700/50'
+            active ? 'bg-brand-primary text-gray-900' : 'text-gray-700 hover:bg-white/50'
         }`}
     >
         {icon}
@@ -36,7 +36,7 @@ export const ProjectWorkspace: React.FC = () => {
     if (!project) {
         return (
             <div className="text-center">
-                <p className="text-slate-400">Project not found.</p>
+                <p className="text-gray-600">Project not found.</p>
                 <Button onClick={() => setActiveProject(null)} className="mt-4">
                     <ArrowLeftIcon className="w-5 h-5 mr-2"/>
                     Back to Dashboard
@@ -53,12 +53,12 @@ export const ProjectWorkspace: React.FC = () => {
                     Back to Dashboard
                 </Button>
                 <h2 className="text-4xl font-bold bg-gradient-to-r from-slate-100 to-slate-400 text-transparent bg-clip-text">{project.title}</h2>
-                <p className="text-slate-400 mt-1">{project.genre} - {project.visualStyle} Style</p>
+                <p className="text-gray-600 mt-1">{project.genre} - {project.visualStyle} Style</p>
             </header>
 
             <div className="flex flex-col lg:flex-row gap-6">
                 <aside className="lg:w-64 flex-shrink-0">
-                    <nav className="flex flex-row lg:flex-col gap-2 p-2 bg-slate-800/50 rounded-lg border border-slate-700/50">
+                    <nav className="flex flex-row lg:flex-col gap-2 p-2 bg-gray-100/50 rounded-lg border border-gray-300/50">
                         <TabButton active={activeTab === 'Writing'} onClick={() => setActiveTab('Writing')} icon={<ClipboardDocumentListIcon className="w-5 h-5"/>}>
                             Writing Studio
                         </TabButton>
@@ -95,9 +95,9 @@ export const ProjectWorkspace: React.FC = () => {
                     {activeTab === 'Research' && <ResearchTab />}
                     {activeTab === 'Material' && (
                         <ErrorBoundary fallback={
-                            <div className="p-8 text-center bg-slate-800/50 rounded-lg border border-slate-700/50">
-                                <h3 className="text-xl font-semibold text-slate-300 mb-2">Material Tab Error</h3>
-                                <p className="text-slate-400 mb-4">There was an issue loading the materials library. Try refreshing.</p>
+                            <div className="p-8 text-center bg-gray-100/50 rounded-lg border border-gray-300/50">
+                                <h3 className="text-xl font-semibold text-gray-700 mb-2">Material Tab Error</h3>
+                                <p className="text-gray-600 mb-4">There was an issue loading the materials library. Try refreshing.</p>
                                 <Button onClick={() => window.location.reload()}>Refresh</Button>
                             </div>
                         }>
@@ -106,9 +106,9 @@ export const ProjectWorkspace: React.FC = () => {
                     )}
                     {activeTab === 'Plot' && (
                         <ErrorBoundary fallback={
-                            <div className="p-8 text-center bg-slate-800/50 rounded-lg border border-slate-700/50">
-                                <h3 className="text-xl font-semibold text-slate-300 mb-2">Plot Tab Error</h3>
-                                <p className="text-slate-400 mb-4">There was an issue loading the plot management. Try refreshing.</p>
+                            <div className="p-8 text-center bg-gray-100/50 rounded-lg border border-gray-300/50">
+                                <h3 className="text-xl font-semibold text-gray-700 mb-2">Plot Tab Error</h3>
+                                <p className="text-gray-600 mb-4">There was an issue loading the plot management. Try refreshing.</p>
                                 <Button onClick={() => window.location.reload()}>Refresh</Button>
                             </div>
                         }>
@@ -117,9 +117,9 @@ export const ProjectWorkspace: React.FC = () => {
                     )}
                     {activeTab === 'Analytics' && (
                         <ErrorBoundary fallback={
-                            <div className="p-8 text-center bg-slate-800/50 rounded-lg border border-slate-700/50">
-                                <h3 className="text-xl font-semibold text-slate-300 mb-2">Analytics Tab Error</h3>
-                                <p className="text-slate-400 mb-4">There was an issue loading the analytics dashboard. Try refreshing.</p>
+                            <div className="p-8 text-center bg-gray-100/50 rounded-lg border border-gray-300/50">
+                                <h3 className="text-xl font-semibold text-gray-700 mb-2">Analytics Tab Error</h3>
+                                <p className="text-gray-600 mb-4">There was an issue loading the analytics dashboard. Try refreshing.</p>
                                 <Button onClick={() => window.location.reload()}>Refresh</Button>
                             </div>
                         }>
@@ -128,9 +128,9 @@ export const ProjectWorkspace: React.FC = () => {
                     )}
                     {activeTab === 'Cover Creator' && (
                         <ErrorBoundary fallback={
-                            <div className="p-8 text-center bg-slate-800/50 rounded-lg border border-slate-700/50">
-                                <h3 className="text-xl font-semibold text-slate-300 mb-2">Cover Creator Error</h3>
-                                <p className="text-slate-400 mb-4">There was an issue loading the cover creator. Try refreshing.</p>
+                            <div className="p-8 text-center bg-gray-100/50 rounded-lg border border-gray-300/50">
+                                <h3 className="text-xl font-semibold text-gray-700 mb-2">Cover Creator Error</h3>
+                                <p className="text-gray-600 mb-4">There was an issue loading the cover creator. Try refreshing.</p>
                                 <Button onClick={() => window.location.reload()}>Refresh</Button>
                             </div>
                         }>
@@ -139,9 +139,9 @@ export const ProjectWorkspace: React.FC = () => {
                     )}
                     {activeTab === 'KDP Calculator' && (
                         <ErrorBoundary fallback={
-                            <div className="p-8 text-center bg-slate-800/50 rounded-lg border border-slate-700/50">
-                                <h3 className="text-xl font-semibold text-slate-300 mb-2">KDP Calculator Error</h3>
-                                <p className="text-slate-400 mb-4">There was an issue loading the KDP calculator. Try refreshing.</p>
+                            <div className="p-8 text-center bg-gray-100/50 rounded-lg border border-gray-300/50">
+                                <h3 className="text-xl font-semibold text-gray-700 mb-2">KDP Calculator Error</h3>
+                                <p className="text-gray-600 mb-4">There was an issue loading the KDP calculator. Try refreshing.</p>
                                 <Button onClick={() => window.location.reload()}>Refresh</Button>
                             </div>
                         }>

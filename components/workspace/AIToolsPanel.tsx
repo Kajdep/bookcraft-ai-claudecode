@@ -217,7 +217,7 @@ export const AIToolsPanel: React.FC = () => {
             case 'research': return 'text-purple-400';
             case 'analysis': return 'text-yellow-400';
             case 'planning': return 'text-orange-400';
-            default: return 'text-slate-400';
+            default: return 'text-gray-600';
         }
     };
     
@@ -238,37 +238,37 @@ export const AIToolsPanel: React.FC = () => {
     
     return (
         <div className="fixed bottom-4 right-4 z-50">
-            <div className="bg-slate-800 border border-slate-700 rounded-lg shadow-lg max-w-sm">
+            <div className="bg-gray-100 border border-gray-300 rounded-lg shadow-lg max-w-sm">
                 {/* Header */}
                 <div 
-                    className="flex items-center justify-between p-3 cursor-pointer hover:bg-slate-700/50 rounded-t-lg transition-colors"
+                    className="flex items-center justify-between p-3 cursor-pointer hover:bg-white/50 rounded-t-lg transition-colors"
                     onClick={() => setIsExpanded(!isExpanded)}
                 >
                     <div className="flex items-center gap-2">
                         <SparklesIcon className="w-5 h-5 text-blue-400" />
-                        <span className="font-medium text-slate-200">AI Tools</span>
+                        <span className="font-medium text-gray-800">AI Tools</span>
                         {activeProcesses.length > 0 && (
-                            <div className="flex items-center gap-1 text-xs text-slate-400">
+                            <div className="flex items-center gap-1 text-xs text-gray-600">
                                 <Spinner size="sm" />
                                 <span>{activeProcesses.length}</span>
                             </div>
                         )}
                     </div>
                     {isExpanded ? (
-                        <ChevronDownIcon className="w-4 h-4 text-slate-400" />
+                        <ChevronDownIcon className="w-4 h-4 text-gray-600" />
                     ) : (
-                        <ChevronUpIcon className="w-4 h-4 text-slate-400" />
+                        <ChevronUpIcon className="w-4 h-4 text-gray-600" />
                     )}
                 </div>
                 
                 {/* Content */}
                 {isExpanded && (
-                    <div className="border-t border-slate-700">
+                    <div className="border-t border-gray-300">
                         {activeProcesses.length > 0 ? (
                             <div className="p-3 space-y-3 max-h-80 overflow-y-auto">
-                                <div className="text-xs text-slate-400 mb-2">Active AI Processes:</div>
+                                <div className="text-xs text-gray-600 mb-2">Active AI Processes:</div>
                                 {activeProcesses.map((process) => (
-                                    <div key={process.id} className="flex items-start gap-3 p-2 bg-slate-900/50 rounded-md">
+                                    <div key={process.id} className="flex items-start gap-3 p-2 bg-white/50 rounded-md">
                                         <div className="flex-shrink-0 mt-0.5">
                                             <div className={`${getTypeColor(process.type)} flex items-center gap-1`}>
                                                 {getTypeIcon(process.type)}
@@ -276,13 +276,13 @@ export const AIToolsPanel: React.FC = () => {
                                         </div>
                                         <div className="flex-grow min-w-0">
                                             <div className="flex items-center gap-2">
-                                                <span className="font-medium text-slate-200 text-sm truncate">
+                                                <span className="font-medium text-gray-800 text-sm truncate">
                                                     {process.name}
                                                 </span>
                                                 {process.status === 'active' && <Spinner size="xs" />}
                                                 {process.status === 'completed' && <CheckIcon className="w-3 h-3 text-green-400" />}
                                             </div>
-                                            <p className="text-xs text-slate-400 mt-1 line-clamp-2">
+                                            <p className="text-xs text-gray-600 mt-1 line-clamp-2">
                                                 {process.description}
                                             </p>
                                         </div>
@@ -292,8 +292,8 @@ export const AIToolsPanel: React.FC = () => {
                         ) : (
                             <div className="p-4 text-center">
                                 <CheckIcon className="w-8 h-8 text-green-400 mx-auto mb-2" />
-                                <p className="text-sm text-slate-400">No active AI processes</p>
-                                <p className="text-xs text-slate-500 mt-1">All AI tasks completed</p>
+                                <p className="text-sm text-gray-600">No active AI processes</p>
+                                <p className="text-xs text-gray-500 mt-1">All AI tasks completed</p>
                             </div>
                         )}
                     </div>

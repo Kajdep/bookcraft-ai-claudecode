@@ -87,18 +87,18 @@ const ToastItem: React.FC<ToastItemProps> = ({ toast, onRemove }) => {
                 isExiting ? 'translate-x-full opacity-0' : 'translate-x-0 opacity-100'
             }`}
         >
-            <div className={`bg-slate-800 border-l-4 ${getBorderColor()} rounded-lg shadow-lg p-4 mb-3 max-w-sm`}>
+            <div className={`bg-gray-100 border-l-4 ${getBorderColor()} rounded-lg shadow-lg p-4 mb-3 max-w-sm`}>
                 <div className="flex items-start space-x-3">
                     {getIcon()}
                     <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-slate-100">{toast.title}</p>
+                        <p className="text-sm font-medium text-gray-900">{toast.title}</p>
                         {toast.message && (
-                            <p className="text-sm text-slate-300 mt-1">{toast.message}</p>
+                            <p className="text-sm text-gray-700 mt-1">{toast.message}</p>
                         )}
                     </div>
                     <button
                         onClick={handleClose}
-                        className="text-slate-400 hover:text-slate-200 transition-colors"
+                        className="text-gray-600 hover:text-gray-800 transition-colors"
                     >
                         <XMarkIcon className="w-4 h-4" />
                     </button>

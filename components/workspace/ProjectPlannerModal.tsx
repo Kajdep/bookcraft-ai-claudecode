@@ -99,16 +99,16 @@ export const ProjectPlannerModal: React.FC<ProjectPlannerModalProps> = ({ isOpen
     return (
         <Modal isOpen={isOpen} onClose={handleClose} title="AI Project Planner">
             <div className="space-y-4">
-                <p className="text-slate-400">Describe your book, or upload a document, and the AI will help you create a chapter outline. e.g., "A 10-chapter outline for a sci-fi mystery."</p>
+                <p className="text-gray-600">Describe your book, or upload a document, and the AI will help you create a chapter outline. e.g., "A 10-chapter outline for a sci-fi mystery."</p>
                 <form onSubmit={handleSubmit} className="space-y-3">
                     <textarea
                         value={prompt}
                         onChange={(e) => setPrompt(e.target.value)}
                         placeholder="Your planning request..."
                         rows={3}
-                        className="w-full bg-slate-700 border-slate-600 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary sm:text-sm p-2 text-white placeholder-slate-400"
+                        className="w-full bg-white border-gray-300 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary sm:text-sm p-2 text-gray-900 placeholder-gray-400"
                     />
-                    {fileName && <p className="text-xs text-slate-400">Loaded from: {fileName}</p>}
+                    {fileName && <p className="text-xs text-gray-600">Loaded from: {fileName}</p>}
                     <div className="flex justify-end items-center gap-2">
                          {/* FIX: Replaced the incorrect `as="label"` pattern with a standard button that triggers a hidden file input. */}
                          <Button type="button" variant="secondary" className="cursor-pointer" onClick={handleUploadClick}>
@@ -132,21 +132,21 @@ export const ProjectPlannerModal: React.FC<ProjectPlannerModalProps> = ({ isOpen
                 {isLoading && (
                     <div className="flex flex-col items-center justify-center p-6">
                         <Spinner />
-                        <p className="mt-3 text-slate-300">AI is building your outline...</p>
+                        <p className="mt-3 text-gray-700">AI is building your outline...</p>
                     </div>
                 )}
                 
                 {chapterTitles.length > 0 && !isLoading && (
                     <div className="space-y-3 pt-4 animate-fade-in">
-                        <h4 className="font-semibold text-slate-200">Suggested Chapters:</h4>
-                        <ul className="space-y-2 bg-slate-900/50 p-3 rounded-md border border-slate-700 max-h-60 overflow-y-auto">
+                        <h4 className="font-semibold text-gray-800">Suggested Chapters:</h4>
+                        <ul className="space-y-2 bg-white/50 p-3 rounded-md border border-gray-300 max-h-60 overflow-y-auto">
                             {chapterTitles.map((title, index) => (
-                                <li key={index} className="flex items-center justify-between text-slate-300 p-2 bg-slate-800 rounded group">
+                                <li key={index} className="flex items-center justify-between text-gray-700 p-2 bg-gray-100 rounded group">
                                     <span className="flex-grow pr-2">{title}</span>
                                     <div className={`flex items-center space-x-1 transition-opacity ${regeneratingIndex === index ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
                                         <button 
                                             onClick={() => handleRegenerateTitle(index)} 
-                                            className="p-1 text-slate-400 hover:text-brand-primary rounded-full hover:bg-slate-700 disabled:opacity-50"
+                                            className="p-1 text-gray-600 hover:text-brand-primary rounded-full hover:bg-white disabled:opacity-50"
                                             disabled={regeneratingIndex !== null}
                                             aria-label="Regenerate title"
                                         >
@@ -154,7 +154,7 @@ export const ProjectPlannerModal: React.FC<ProjectPlannerModalProps> = ({ isOpen
                                         </button>
                                         <button 
                                             onClick={() => handleDeleteChapter(index)}
-                                            className="p-1 text-slate-400 hover:text-red-400 rounded-full hover:bg-slate-700 disabled:opacity-50"
+                                            className="p-1 text-gray-600 hover:text-red-400 rounded-full hover:bg-white disabled:opacity-50"
                                             disabled={regeneratingIndex !== null}
                                             aria-label="Delete title"
                                         >

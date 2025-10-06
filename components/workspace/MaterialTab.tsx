@@ -175,7 +175,7 @@ const MaterialCard: React.FC<MaterialCardProps> = ({
         <Card className="p-4 hover:shadow-lg transition-shadow">
             <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center space-x-2 flex-1">
-                    <div className="flex-shrink-0 text-slate-400">
+                    <div className="flex-shrink-0 text-gray-600">
                         {getTypeIcon(material.type)}
                     </div>
                     {isEditing ? (
@@ -186,7 +186,7 @@ const MaterialCard: React.FC<MaterialCardProps> = ({
                             placeholder="Material title..."
                         />
                     ) : (
-                        <h3 className="font-medium text-slate-200 flex-1 truncate">
+                        <h3 className="font-medium text-gray-800 flex-1 truncate">
                             {material.title}
                         </h3>
                     )}
@@ -194,8 +194,8 @@ const MaterialCard: React.FC<MaterialCardProps> = ({
                 <div className="flex items-center space-x-1 flex-shrink-0">
                     <button
                         onClick={() => onFavorite(material.id)}
-                        className={`p-1 rounded hover:bg-slate-700 ${
-                            material.isFavorite ? 'text-red-400' : 'text-slate-400'
+                        className={`p-1 rounded hover:bg-white ${
+                            material.isFavorite ? 'text-red-400' : 'text-gray-600'
                         }`}
                         title="Favorite"
                     >
@@ -203,8 +203,8 @@ const MaterialCard: React.FC<MaterialCardProps> = ({
                     </button>
                     <button
                         onClick={() => onBookmark(material.id)}
-                        className={`p-1 rounded hover:bg-slate-700 ${
-                            material.isBookmarked ? 'text-yellow-400' : 'text-slate-400'
+                        className={`p-1 rounded hover:bg-white ${
+                            material.isBookmarked ? 'text-yellow-400' : 'text-gray-600'
                         }`}
                         title="Bookmark"
                     >
@@ -212,14 +212,14 @@ const MaterialCard: React.FC<MaterialCardProps> = ({
                     </button>
                     <button
                         onClick={() => setIsEditing(!isEditing)}
-                        className="p-1 rounded hover:bg-slate-700 text-slate-400"
+                        className="p-1 rounded hover:bg-white text-gray-600"
                         title="Edit"
                     >
                         <PencilIcon className="w-4 h-4" />
                     </button>
                     <button
                         onClick={() => onDelete(material.id)}
-                        className="p-1 rounded hover:bg-slate-700 text-red-400"
+                        className="p-1 rounded hover:bg-white text-red-400"
                         title="Delete"
                     >
                         <TrashIcon className="w-4 h-4" />
@@ -231,11 +231,11 @@ const MaterialCard: React.FC<MaterialCardProps> = ({
                 <span className={`px-2 py-1 text-xs rounded-full ${getCategoryColor(material.category)}`}>
                     {material.category}
                 </span>
-                <span className="text-xs text-slate-400">
+                <span className="text-xs text-gray-600">
                     {material.createdAt.toLocaleDateString()}
                 </span>
                 {material.fileSize && (
-                    <span className="text-xs text-slate-400">
+                    <span className="text-xs text-gray-600">
                         {formatFileSize(material.fileSize)}
                     </span>
                 )}
@@ -258,13 +258,13 @@ const MaterialCard: React.FC<MaterialCardProps> = ({
                 <textarea
                     value={editDescription}
                     onChange={(e) => setEditDescription(e.target.value)}
-                    className="w-full p-2 bg-slate-700 border border-slate-600 rounded text-sm resize-none"
+                    className="w-full p-2 bg-white border border-gray-300 rounded text-sm resize-none"
                     rows={3}
                     placeholder="Description..."
                 />
             ) : (
                 material.description && (
-                    <p className="text-sm text-slate-400 mb-2 line-clamp-2">
+                    <p className="text-sm text-gray-600 mb-2 line-clamp-2">
                         {material.description}
                     </p>
                 )
@@ -272,7 +272,7 @@ const MaterialCard: React.FC<MaterialCardProps> = ({
 
             {/* Content preview for notes */}
             {material.type === MaterialType.Note && material.content && !isEditing && (
-                <p className="text-sm text-slate-300 mb-2 line-clamp-3 bg-slate-800/50 p-2 rounded">
+                <p className="text-sm text-gray-700 mb-2 line-clamp-3 bg-gray-100/50 p-2 rounded">
                     {material.content}
                 </p>
             )}
@@ -289,7 +289,7 @@ const MaterialCard: React.FC<MaterialCardProps> = ({
                 material.tags.length > 0 && (
                     <div className="flex flex-wrap gap-1 mb-2">
                         {material.tags.map((tag, index) => (
-                            <span key={index} className="px-2 py-1 text-xs bg-slate-700 text-slate-300 rounded">
+                            <span key={index} className="px-2 py-1 text-xs bg-white text-gray-700 rounded">
                                 {tag}
                             </span>
                         ))}
@@ -300,7 +300,7 @@ const MaterialCard: React.FC<MaterialCardProps> = ({
             {/* Linked chapters */}
             {material.linkedChapterIds.length > 0 && (
                 <div className="mb-2">
-                    <p className="text-xs text-slate-500 mb-1">Linked to:</p>
+                    <p className="text-xs text-gray-500 mb-1">Linked to:</p>
                     <div className="flex flex-wrap gap-1">
                         {material.linkedChapterIds.map((chapterId) => {
                             const chapter = chapters.find(c => c.id === chapterId);
@@ -315,7 +315,7 @@ const MaterialCard: React.FC<MaterialCardProps> = ({
             )}
 
             {/* Action buttons */}
-            <div className="flex items-center justify-between pt-2 border-t border-slate-700">
+            <div className="flex items-center justify-between pt-2 border-t border-gray-300">
                 {isEditing ? (
                     <div className="flex space-x-2">
                         <Button size="sm" onClick={handleSave}>
@@ -342,7 +342,7 @@ const MaterialCard: React.FC<MaterialCardProps> = ({
                     </div>
                 )}
                 
-                <div className="text-xs text-slate-500">
+                <div className="text-xs text-gray-500">
                     Modified: {material.lastModified.toLocaleDateString()}
                 </div>
             </div>
@@ -360,7 +360,7 @@ const AddMaterialModal: React.FC<AddMaterialModalProps> = ({ isOpen, onClose, on
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-gray-900/30 flex items-center justify-center z-50">
             <Card className="p-6 max-w-md w-full mx-4">
                 <h3 className="text-lg font-semibold mb-4">Add Material</h3>
                 <div className="space-y-3">
@@ -512,7 +512,7 @@ export const MaterialTab: React.FC = () => {
                         <PaperClipIcon className="w-6 h-6 mr-2 text-brand-primary" />
                         Project Materials
                     </h2>
-                    <p className="text-slate-400 mt-1">
+                    <p className="text-gray-600 mt-1">
                         Organize your notes, files, links, and reference materials.
                     </p>
                 </div>
@@ -525,26 +525,26 @@ export const MaterialTab: React.FC = () => {
             {/* Stats */}
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                 <Card className="p-4 text-center">
-                    <div className="text-2xl font-bold text-slate-200">{stats.total}</div>
-                    <div className="text-sm text-slate-400">Total Items</div>
+                    <div className="text-2xl font-bold text-gray-800">{stats.total}</div>
+                    <div className="text-sm text-gray-600">Total Items</div>
                 </Card>
                 <Card className="p-4 text-center">
                     <div className="text-2xl font-bold text-red-400">{stats.favorites}</div>
-                    <div className="text-sm text-slate-400">Favorites</div>
+                    <div className="text-sm text-gray-600">Favorites</div>
                 </Card>
                 <Card className="p-4 text-center">
                     <div className="text-2xl font-bold text-yellow-400">{stats.bookmarks}</div>
-                    <div className="text-sm text-slate-400">Bookmarked</div>
+                    <div className="text-sm text-gray-600">Bookmarked</div>
                 </Card>
                 <Card className="p-4 text-center">
                     <div className="text-2xl font-bold text-blue-400">{stats.notes}</div>
-                    <div className="text-sm text-slate-400">Notes</div>
+                    <div className="text-sm text-gray-600">Notes</div>
                 </Card>
                 <Card className="p-4 text-center">
                     <div className="text-2xl font-bold text-green-400">
                         {(stats.totalSize / (1024 * 1024)).toFixed(1)}MB
                     </div>
-                    <div className="text-sm text-slate-400" title="Files are stored locally using IndexedDB for better performance. Large files (>50MB) will prompt for external storage.">
+                    <div className="text-sm text-gray-600" title="Files are stored locally using IndexedDB for better performance. Large files (>50MB) will prompt for external storage.">
                         Storage Used
                     </div>
                 </Card>
@@ -603,7 +603,7 @@ export const MaterialTab: React.FC = () => {
                             <BookmarkIcon className="w-4 h-4 text-yellow-400" />
                         </label>
                     </div>
-                    <div className="flex items-center text-sm text-slate-400">
+                    <div className="flex items-center text-sm text-gray-600">
                         {filteredMaterials.length} of {materials.length} items
                     </div>
                 </div>
@@ -613,10 +613,10 @@ export const MaterialTab: React.FC = () => {
             {filteredMaterials.length === 0 ? (
                 <Card className="p-12 text-center">
                     <PaperClipIcon className="mx-auto h-12 w-12 text-slate-600 mb-4" />
-                    <h3 className="text-xl font-semibold text-slate-300 mb-2">
+                    <h3 className="text-xl font-semibold text-gray-700 mb-2">
                         {materials.length === 0 ? 'No Materials Yet' : 'No Matching Materials'}
                     </h3>
-                    <p className="text-slate-400 mb-6">
+                    <p className="text-gray-600 mb-6">
                         {materials.length === 0 
                             ? 'Start building your materials library by adding notes, files, or links.'
                             : 'Try adjusting your search or filter criteria.'
@@ -654,7 +654,7 @@ export const MaterialTab: React.FC = () => {
 
             {/* Add Note Form */}
             {showNoteForm && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                <div className="fixed inset-0 bg-gray-900/30 flex items-center justify-center z-50">
                     <Card className="p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
                         <h3 className="text-lg font-semibold mb-4">Create Note</h3>
                         <div className="space-y-4">
@@ -675,7 +675,7 @@ export const MaterialTab: React.FC = () => {
                                 placeholder="Write your note content here..."
                                 value={newNoteContent}
                                 onChange={(e) => setNewNoteContent(e.target.value)}
-                                className="w-full p-3 bg-slate-700 border border-slate-600 rounded resize-none"
+                                className="w-full p-3 bg-white border border-gray-300 rounded resize-none"
                                 rows={10}
                             />
                         </div>
@@ -696,7 +696,7 @@ export const MaterialTab: React.FC = () => {
 
             {/* Add Link Form */}
             {showLinkForm && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                <div className="fixed inset-0 bg-gray-900/30 flex items-center justify-center z-50">
                     <Card className="p-6 max-w-md w-full mx-4">
                         <h3 className="text-lg font-semibold mb-4">Add Link</h3>
                         <div className="space-y-4">

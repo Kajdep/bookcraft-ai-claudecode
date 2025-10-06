@@ -144,21 +144,21 @@ export const VisualCard: React.FC<VisualCardProps> = ({ visual }) => {
         <Card className="transition-shadow hover:shadow-green-500/10">
             <div className="p-5">
                  <div className="flex items-center space-x-3 mb-3">
-                    <div className="flex-shrink-0 bg-slate-700/50 p-2 rounded-full">
+                    <div className="flex-shrink-0 bg-white/50 p-2 rounded-full">
                         <VisualIcon type={visual.type} className="h-6 w-6 text-green-400" />
                     </div>
                     <div>
-                        <h4 className="font-bold text-lg text-slate-100">{visual.type}</h4>
-                        <p className="text-sm text-slate-400">On page {visual.pageNumber}.</p>
+                        <h4 className="font-bold text-lg text-gray-900">{visual.type}</h4>
+                        <p className="text-sm text-gray-600">On page {visual.pageNumber}.</p>
                     </div>
                 </div>
-                <div className="mt-4 p-3 bg-slate-900/70 rounded-lg min-h-[10rem] flex items-center justify-center overflow-auto border border-slate-700">
+                <div className="mt-4 p-3 bg-white/70 rounded-lg min-h-[10rem] flex items-center justify-center overflow-auto border border-gray-300">
                     {error && (
                         <div className="text-center p-4">
                             <p className="text-sm text-red-400 mb-3">{error}</p>
                             {showImageFallback && (
                                 <div className="space-y-2">
-                                    <p className="text-xs text-slate-400 mb-2">Try one of these options:</p>
+                                    <p className="text-xs text-gray-600 mb-2">Try one of these options:</p>
                                     <div className="flex justify-center gap-2">
                                         <Button size="sm" variant="secondary" onClick={handleRetryRender}>
                                             <RefreshCwIcon className="w-4 h-4 mr-1" />

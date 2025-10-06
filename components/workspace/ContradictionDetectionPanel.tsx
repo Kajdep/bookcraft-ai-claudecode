@@ -22,7 +22,7 @@ const SeverityIcon: React.FC<{ severity: Contradiction['severity'] }> = ({ sever
         case 'low':
             return <InformationCircleIcon className={`${iconClass} text-blue-400`} />;
         default:
-            return <InformationCircleIcon className={`${iconClass} text-slate-400`} />;
+            return <InformationCircleIcon className={`${iconClass} text-gray-600`} />;
     }
 };
 
@@ -73,10 +73,10 @@ const ConsistencyMeter: React.FC<{ label: string; score: number; color?: string 
     return (
         <div className="space-y-2">
             <div className="flex justify-between items-center">
-                <span className="text-sm text-slate-300">{label}</span>
-                <span className="text-sm font-medium text-slate-200">{Math.round(score)}%</span>
+                <span className="text-sm text-gray-700">{label}</span>
+                <span className="text-sm font-medium text-gray-800">{Math.round(score)}%</span>
             </div>
-            <div className="w-full bg-slate-700 rounded-full h-2">
+            <div className="w-full bg-white rounded-full h-2">
                 <div 
                     className={`h-2 rounded-full transition-all duration-300 ${barColor}`}
                     style={{ width: `${Math.max(0, Math.min(100, score))}%` }}
@@ -107,7 +107,7 @@ const ContradictionCard: React.FC<{
         <div className={`p-4 rounded-lg border transition-all ${
             contradiction.resolved 
                 ? 'bg-green-900/20 border-green-500/50' 
-                : 'bg-slate-800/30 border-slate-700/50 hover:border-slate-600'
+                : 'bg-gray-100/30 border-gray-300/50 hover:border-gray-300'
         }`}>
             <div className="flex items-start justify-between mb-3">
                 <div className="flex items-start gap-3 flex-1">
@@ -122,9 +122,9 @@ const ContradictionCard: React.FC<{
                                 </Badge>
                             )}
                         </div>
-                        <h4 className="font-medium text-slate-200 mb-1">{contradiction.title}</h4>
-                        <p className="text-sm text-slate-400 mb-2">{contradiction.description}</p>
-                        <div className="flex items-center gap-4 text-xs text-slate-500">
+                        <h4 className="font-medium text-gray-800 mb-1">{contradiction.title}</h4>
+                        <p className="text-sm text-gray-600 mb-2">{contradiction.description}</p>
+                        <div className="flex items-center gap-4 text-xs text-gray-500">
                             <span>Confidence: {Math.round(contradiction.confidence * 100)}%</span>
                             <span>Category: {contradiction.category}</span>
                             <span>{contradiction.sources.length} sources</span>
@@ -134,7 +134,7 @@ const ContradictionCard: React.FC<{
                 <div className="flex items-center gap-2">
                     <button
                         onClick={() => onExpand(contradiction.id)}
-                        className="p-1 text-slate-400 hover:text-slate-200 transition-colors"
+                        className="p-1 text-gray-600 hover:text-gray-800 transition-colors"
                     >
                         {isExpanded ? <EyeSlashIcon className="w-4 h-4" /> : <EyeIcon className="w-4 h-4" />}
                     </button>
@@ -142,27 +142,27 @@ const ContradictionCard: React.FC<{
             </div>
 
             {isExpanded && (
-                <div className="space-y-4 pt-3 border-t border-slate-700/50">
+                <div className="space-y-4 pt-3 border-t border-gray-300/50">
                     {/* Sources */}
                     <div>
-                        <h5 className="text-sm font-medium text-slate-300 mb-2">Sources:</h5>
+                        <h5 className="text-sm font-medium text-gray-700 mb-2">Sources:</h5>
                         <div className="space-y-2">
                             {contradiction.sources.map((source, index) => (
-                                <div key={index} className="p-2 bg-slate-900/50 rounded text-xs">
+                                <div key={index} className="p-2 bg-white/50 rounded text-xs">
                                     <div className="flex items-center gap-2 mb-1">
                                         <Badge className={`${
                                             source.type === 'research' ? 'bg-indigo-500/20 text-indigo-200' :
                                             source.type === 'chapter' ? 'bg-blue-500/20 text-blue-200' :
-                                            'bg-slate-500/20 text-slate-200'
+                                            'bg-gray-300/20 text-gray-800'
                                         } text-xs`}>
                                             {source.type}
                                         </Badge>
-                                        <span className="text-slate-300">{source.title}</span>
+                                        <span className="text-gray-700">{source.title}</span>
                                         {source.location && (
-                                            <span className="text-slate-500">• {source.location}</span>
+                                            <span className="text-gray-500">• {source.location}</span>
                                         )}
                                     </div>
-                                    <p className="text-slate-400 italic">"{source.excerpt}"</p>
+                                    <p className="text-gray-600 italic">"{source.excerpt}"</p>
                                 </div>
                             ))}
                         </div>
@@ -170,10 +170,10 @@ const ContradictionCard: React.FC<{
 
                     {/* Suggestions */}
                     <div>
-                        <h5 className="text-sm font-medium text-slate-300 mb-2">Suggestions:</h5>
+                        <h5 className="text-sm font-medium text-gray-700 mb-2">Suggestions:</h5>
                         <ul className="space-y-1">
                             {contradiction.suggestions.map((suggestion, index) => (
-                                <li key={index} className="text-sm text-slate-400 flex items-start gap-2">
+                                <li key={index} className="text-sm text-gray-600 flex items-start gap-2">
                                     <span className="text-blue-400 mt-1">•</span>
                                     {suggestion}
                                 </li>
@@ -183,13 +183,13 @@ const ContradictionCard: React.FC<{
 
                     {/* User Notes */}
                     <div>
-                        <h5 className="text-sm font-medium text-slate-300 mb-2">Notes:</h5>
+                        <h5 className="text-sm font-medium text-gray-700 mb-2">Notes:</h5>
                         {contradiction.userNotes ? (
-                            <div className="p-2 bg-slate-900/50 rounded text-sm text-slate-300">
+                            <div className="p-2 bg-white/50 rounded text-sm text-gray-700">
                                 {contradiction.userNotes}
                             </div>
                         ) : (
-                            <p className="text-xs text-slate-500 italic">No notes added yet</p>
+                            <p className="text-xs text-gray-500 italic">No notes added yet</p>
                         )}
                         
                         {isAddingNote ? (
@@ -225,7 +225,7 @@ const ContradictionCard: React.FC<{
 
                     {/* Actions */}
                     {!contradiction.resolved && (
-                        <div className="flex gap-2 pt-2 border-t border-slate-700/50">
+                        <div className="flex gap-2 pt-2 border-t border-gray-300/50">
                             <Button
                                 size="sm"
                                 onClick={() => onResolve(contradiction.id)}
@@ -354,7 +354,7 @@ export const ContradictionDetectionPanel: React.FC<ContradictionDetectionPanelPr
                     <div className="animate-spin">
                         <ShieldCheckIcon className="w-8 h-8 text-blue-400" />
                     </div>
-                    <span className="ml-3 text-slate-300">Analyzing project consistency...</span>
+                    <span className="ml-3 text-gray-700">Analyzing project consistency...</span>
                 </div>
             </Card>
         );
@@ -365,8 +365,8 @@ export const ContradictionDetectionPanel: React.FC<ContradictionDetectionPanelPr
             <Card className={`p-6 ${className}`}>
                 <div className="text-center py-8">
                     <DocumentTextIcon className="mx-auto h-12 w-12 text-slate-600 mb-4" />
-                    <h3 className="text-lg font-semibold text-slate-300 mb-2">Contradiction Detection</h3>
-                    <p className="text-slate-400">Add chapters and research to detect contradictions and analyze consistency.</p>
+                    <h3 className="text-lg font-semibold text-gray-700 mb-2">Contradiction Detection</h3>
+                    <p className="text-gray-600">Add chapters and research to detect contradictions and analyze consistency.</p>
                 </div>
             </Card>
         );
@@ -377,8 +377,8 @@ export const ContradictionDetectionPanel: React.FC<ContradictionDetectionPanelPr
             <Card className={`p-6 ${className}`}>
                 <div className="text-center py-8">
                     <ShieldCheckIcon className="mx-auto h-12 w-12 text-slate-600 mb-4" />
-                    <h3 className="text-lg font-semibold text-slate-300 mb-2">Contradiction Detection</h3>
-                    <p className="text-slate-400 mb-4">Analyze your project for consistency issues and contradictions.</p>
+                    <h3 className="text-lg font-semibold text-gray-700 mb-2">Contradiction Detection</h3>
+                    <p className="text-gray-600 mb-4">Analyze your project for consistency issues and contradictions.</p>
                     <Button onClick={analyzeProjectConsistency}>
                         Start Analysis
                     </Button>
@@ -389,13 +389,13 @@ export const ContradictionDetectionPanel: React.FC<ContradictionDetectionPanelPr
 
     return (
         <Card className={className}>
-            <div className="border-b border-slate-700/50">
+            <div className="border-b border-gray-300/50">
                 <div className="flex items-center justify-between p-4 pb-3">
-                    <h3 className="text-lg font-semibold text-slate-200 flex items-center gap-2">
+                    <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
                         <ShieldCheckIcon className="w-5 h-5 text-blue-400" />
                         Contradiction Detection
                     </h3>
-                    <div className="flex items-center gap-2 text-xs text-slate-400">
+                    <div className="flex items-center gap-2 text-xs text-gray-600">
                         <ClockIcon className="w-4 h-4" />
                         {analysis.processingTime}ms
                         <Button size="sm" variant="outline" onClick={analyzeProjectConsistency}>
@@ -404,13 +404,13 @@ export const ContradictionDetectionPanel: React.FC<ContradictionDetectionPanelPr
                     </div>
                 </div>
                 
-                <div className="flex border-t border-slate-700/50">
+                <div className="flex border-t border-gray-300/50">
                     <button
                         onClick={() => setActiveTab('overview')}
                         className={`flex-1 px-4 py-2 text-sm font-medium transition-colors ${
                             activeTab === 'overview' 
                                 ? 'bg-blue-500/10 text-blue-300 border-b-2 border-blue-500' 
-                                : 'text-slate-400 hover:text-slate-300'
+                                : 'text-gray-600 hover:text-gray-700'
                         }`}
                     >
                         Overview
@@ -420,7 +420,7 @@ export const ContradictionDetectionPanel: React.FC<ContradictionDetectionPanelPr
                         className={`flex-1 px-4 py-2 text-sm font-medium transition-colors ${
                             activeTab === 'contradictions' 
                                 ? 'bg-red-500/10 text-red-300 border-b-2 border-red-500' 
-                                : 'text-slate-400 hover:text-slate-300'
+                                : 'text-gray-600 hover:text-gray-700'
                         }`}
                     >
                         Issues ({analysis.summary.pending})
@@ -430,7 +430,7 @@ export const ContradictionDetectionPanel: React.FC<ContradictionDetectionPanelPr
                         className={`flex-1 px-4 py-2 text-sm font-medium transition-colors ${
                             activeTab === 'consistency' 
                                 ? 'bg-green-500/10 text-green-300 border-b-2 border-green-500' 
-                                : 'text-slate-400 hover:text-slate-300'
+                                : 'text-gray-600 hover:text-gray-700'
                         }`}
                     >
                         Consistency
@@ -442,21 +442,21 @@ export const ContradictionDetectionPanel: React.FC<ContradictionDetectionPanelPr
                 {activeTab === 'overview' && (
                     <div className="space-y-6">
                         <div className="grid grid-cols-2 gap-4">
-                            <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
+                            <div className="bg-gray-100/50 rounded-lg p-4 border border-gray-300/50">
                                 <div className="flex items-center gap-2 mb-2">
                                     <ShieldCheckIcon className="w-5 h-5 text-blue-400" />
-                                    <span className="text-sm text-slate-300">Overall Consistency</span>
+                                    <span className="text-sm text-gray-700">Overall Consistency</span>
                                 </div>
-                                <div className="text-2xl font-bold text-slate-200">
+                                <div className="text-2xl font-bold text-gray-800">
                                     {Math.round(analysis.consistency.overall)}%
                                 </div>
                             </div>
-                            <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
+                            <div className="bg-gray-100/50 rounded-lg p-4 border border-gray-300/50">
                                 <div className="flex items-center gap-2 mb-2">
                                     <ExclamationCircleIcon className="w-5 h-5 text-red-400" />
-                                    <span className="text-sm text-slate-300">Active Issues</span>
+                                    <span className="text-sm text-gray-700">Active Issues</span>
                                 </div>
-                                <div className="text-2xl font-bold text-slate-200">
+                                <div className="text-2xl font-bold text-gray-800">
                                     {analysis.summary.pending}
                                 </div>
                             </div>
@@ -464,7 +464,7 @@ export const ContradictionDetectionPanel: React.FC<ContradictionDetectionPanelPr
 
                         {analysis.summary.pending > 0 && (
                             <div>
-                                <h4 className="text-sm font-medium text-slate-300 mb-3">Issues by Severity</h4>
+                                <h4 className="text-sm font-medium text-gray-700 mb-3">Issues by Severity</h4>
                                 <div className="flex gap-2 flex-wrap">
                                     {Object.entries(analysis.summary.bySeverity).map(([severity, count]) => (
                                         <Badge key={severity} className={`${
@@ -481,12 +481,12 @@ export const ContradictionDetectionPanel: React.FC<ContradictionDetectionPanelPr
                         )}
 
                         <div>
-                            <h4 className="text-sm font-medium text-slate-300 mb-3">Recommendations</h4>
+                            <h4 className="text-sm font-medium text-gray-700 mb-3">Recommendations</h4>
                             <div className="space-y-2">
                                 {analysis.recommendations.map((recommendation, index) => (
-                                    <div key={index} className="flex items-start gap-2 p-2 bg-slate-800/30 rounded">
+                                    <div key={index} className="flex items-start gap-2 p-2 bg-gray-100/30 rounded">
                                         <InformationCircleIcon className="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" />
-                                        <span className="text-sm text-slate-300">{recommendation}</span>
+                                        <span className="text-sm text-gray-700">{recommendation}</span>
                                     </div>
                                 ))}
                             </div>
@@ -497,13 +497,13 @@ export const ContradictionDetectionPanel: React.FC<ContradictionDetectionPanelPr
                 {activeTab === 'contradictions' && (
                     <div className="space-y-4">
                         {/* Filters */}
-                        <div className="flex gap-4 items-center pb-4 border-b border-slate-700/50">
+                        <div className="flex gap-4 items-center pb-4 border-b border-gray-300/50">
                             <div className="flex items-center gap-2">
-                                <label className="text-sm text-slate-300">Severity:</label>
+                                <label className="text-sm text-gray-700">Severity:</label>
                                 <select 
                                     value={filterSeverity}
                                     onChange={(e) => setFilterSeverity(e.target.value as any)}
-                                    className="bg-slate-700 border border-slate-600 text-slate-200 text-sm rounded px-2 py-1"
+                                    className="bg-white border border-gray-300 text-gray-800 text-sm rounded px-2 py-1"
                                 >
                                     <option value="all">All</option>
                                     <option value="critical">Critical</option>
@@ -513,11 +513,11 @@ export const ContradictionDetectionPanel: React.FC<ContradictionDetectionPanelPr
                                 </select>
                             </div>
                             <div className="flex items-center gap-2">
-                                <label className="text-sm text-slate-300">Type:</label>
+                                <label className="text-sm text-gray-700">Type:</label>
                                 <select 
                                     value={filterType}
                                     onChange={(e) => setFilterType(e.target.value as any)}
-                                    className="bg-slate-700 border border-slate-600 text-slate-200 text-sm rounded px-2 py-1"
+                                    className="bg-white border border-gray-300 text-gray-800 text-sm rounded px-2 py-1"
                                 >
                                     <option value="all">All</option>
                                     <option value="character">Character</option>
@@ -528,12 +528,12 @@ export const ContradictionDetectionPanel: React.FC<ContradictionDetectionPanelPr
                                     <option value="research">Research</option>
                                 </select>
                             </div>
-                            <label className="flex items-center gap-2 text-sm text-slate-300">
+                            <label className="flex items-center gap-2 text-sm text-gray-700">
                                 <input
                                     type="checkbox"
                                     checked={showResolved}
                                     onChange={(e) => setShowResolved(e.target.checked)}
-                                    className="rounded border-slate-600 bg-slate-700 text-blue-500"
+                                    className="rounded border-gray-300 bg-white text-blue-500"
                                 />
                                 Show resolved
                             </label>
@@ -543,7 +543,7 @@ export const ContradictionDetectionPanel: React.FC<ContradictionDetectionPanelPr
                             <div className="text-center py-8">
                                 <CheckCircleIcon className="mx-auto h-12 w-12 text-green-400 mb-4" />
                                 <h4 className="text-lg font-semibold text-green-300 mb-2">Great Job!</h4>
-                                <p className="text-slate-400">
+                                <p className="text-gray-600">
                                     {analysis.summary.pending === 0 
                                         ? "No contradictions detected in your project."
                                         : "No contradictions match your current filters."
@@ -594,24 +594,24 @@ export const ContradictionDetectionPanel: React.FC<ContradictionDetectionPanelPr
                             color="bg-orange-500"
                         />
 
-                        <div className="pt-4 border-t border-slate-700/50">
-                            <h4 className="text-sm font-medium text-slate-300 mb-3">Analysis Summary</h4>
+                        <div className="pt-4 border-t border-gray-300/50">
+                            <h4 className="text-sm font-medium text-gray-700 mb-3">Analysis Summary</h4>
                             <div className="grid grid-cols-2 gap-4 text-sm">
                                 <div>
-                                    <span className="text-slate-400">Total Issues:</span>
-                                    <span className="text-slate-200 ml-2">{analysis.summary.total}</span>
+                                    <span className="text-gray-600">Total Issues:</span>
+                                    <span className="text-gray-800 ml-2">{analysis.summary.total}</span>
                                 </div>
                                 <div>
-                                    <span className="text-slate-400">Resolved:</span>
-                                    <span className="text-slate-200 ml-2">{analysis.summary.resolved}</span>
+                                    <span className="text-gray-600">Resolved:</span>
+                                    <span className="text-gray-800 ml-2">{analysis.summary.resolved}</span>
                                 </div>
                                 <div>
-                                    <span className="text-slate-400">Processing Time:</span>
-                                    <span className="text-slate-200 ml-2">{analysis.processingTime}ms</span>
+                                    <span className="text-gray-600">Processing Time:</span>
+                                    <span className="text-gray-800 ml-2">{analysis.processingTime}ms</span>
                                 </div>
                                 <div>
-                                    <span className="text-slate-400">Sources Analyzed:</span>
-                                    <span className="text-slate-200 ml-2">
+                                    <span className="text-gray-600">Sources Analyzed:</span>
+                                    <span className="text-gray-800 ml-2">
                                         {projectData?.chapters.length || 0} chapters, {projectData?.research.length || 0} research
                                     </span>
                                 </div>

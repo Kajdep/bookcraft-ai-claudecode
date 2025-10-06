@@ -1184,7 +1184,7 @@ export const ExportTab: React.FC = () => {
                         <ArrowDownOnSquareIcon className="w-6 h-6 mr-2 text-brand-primary" />
                         Export Your Book
                     </h2>
-                    <p className="text-slate-400 mt-1">
+                    <p className="text-gray-600 mt-1">
                         Generate professional formats for publishing and distribution.
                     </p>
                 </div>
@@ -1200,7 +1200,7 @@ export const ExportTab: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Format Selection */}
                     <div>
-                        <label className="block text-sm font-medium text-slate-300 mb-2">Export Format</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Export Format</label>
                         <Select
                             value={exportOptions.format}
                             onChange={(e) => setExportOptions(prev => ({ ...prev, format: e.target.value as ExportFormat }))}
@@ -1210,7 +1210,7 @@ export const ExportTab: React.FC = () => {
                             <option value="docx">📝 Word Document (DOCX)</option>
                             <option value="html">🌐 HTML (Web)</option>
                         </Select>
-                        <p className="text-xs text-slate-500 mt-1">
+                        <p className="text-xs text-gray-500 mt-1">
                             {exportOptions.format === 'pdf' && 'Perfect for print-on-demand and physical books'}
                             {exportOptions.format === 'epub' && 'Standard ebook format for digital distribution'}
                             {exportOptions.format === 'docx' && 'Microsoft Word format for traditional publishing workflows'}
@@ -1221,7 +1221,7 @@ export const ExportTab: React.FC = () => {
                     {/* Trim Size (PDF only) */}
                     {exportOptions.format === 'pdf' && (
                         <div>
-                            <label className="block text-sm font-medium text-slate-300 mb-2">Trim Size</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Trim Size</label>
                             <Select
                                 value={exportOptions.trimSize}
                                 onChange={(e) => setExportOptions(prev => ({ ...prev, trimSize: e.target.value as TrimSize }))}
@@ -1230,7 +1230,7 @@ export const ExportTab: React.FC = () => {
                                     <option key={key} value={key} title={size.description}>{size.name}</option>
                                 ))}
                             </Select>
-                            <p className="text-xs text-slate-500 mt-1">
+                            <p className="text-xs text-gray-500 mt-1">
                                 {TRIM_SIZES[exportOptions.trimSize].description}
                             </p>
                         </div>
@@ -1238,7 +1238,7 @@ export const ExportTab: React.FC = () => {
 
                     {/* Author */}
                     <div>
-                        <label className="block text-sm font-medium text-slate-300 mb-2">Author</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Author</label>
                         <Input
                             value={exportOptions.author || ''}
                             onChange={(e) => setExportOptions(prev => ({ ...prev, author: e.target.value }))}
@@ -1249,7 +1249,7 @@ export const ExportTab: React.FC = () => {
                     {/* Language (EPUB/HTML only) */}
                     {(exportOptions.format === 'epub' || exportOptions.format === 'html') && (
                         <div>
-                            <label className="block text-sm font-medium text-slate-300 mb-2">Language</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Language</label>
                             <Select
                                 value={exportOptions.language || 'en'}
                                 onChange={(e) => setExportOptions(prev => ({ ...prev, language: e.target.value }))}
@@ -1267,7 +1267,7 @@ export const ExportTab: React.FC = () => {
 
                 {/* Content Options */}
                 <div className="mt-6">
-                    <h4 className="text-md font-medium text-slate-300 mb-3">Content Options</h4>
+                    <h4 className="text-md font-medium text-gray-700 mb-3">Content Options</h4>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <label className="flex items-center cursor-pointer">
                             <input
@@ -1276,7 +1276,7 @@ export const ExportTab: React.FC = () => {
                                 onChange={(e) => setExportOptions(prev => ({ ...prev, includeTOC: e.target.checked }))}
                                 className="mr-2"
                             />
-                            <span className="text-sm text-slate-300">Table of Contents</span>
+                            <span className="text-sm text-gray-700">Table of Contents</span>
                         </label>
                         <label className="flex items-center cursor-pointer">
                             <input
@@ -1285,7 +1285,7 @@ export const ExportTab: React.FC = () => {
                                 onChange={(e) => setExportOptions(prev => ({ ...prev, includeImages: e.target.checked }))}
                                 className="mr-2"
                             />
-                            <span className="text-sm text-slate-300">Generated Images</span>
+                            <span className="text-sm text-gray-700">Generated Images</span>
                         </label>
                         <label className="flex items-center cursor-pointer">
                             <input
@@ -1294,7 +1294,7 @@ export const ExportTab: React.FC = () => {
                                 onChange={(e) => setExportOptions(prev => ({ ...prev, includeVisuals: e.target.checked }))}
                                 className="mr-2"
                             />
-                            <span className="text-sm text-slate-300">Diagrams</span>
+                            <span className="text-sm text-gray-700">Diagrams</span>
                         </label>
                     </div>
                 </div>
@@ -1302,13 +1302,13 @@ export const ExportTab: React.FC = () => {
                 {/* Typography Options (PDF only) */}
                 {exportOptions.format === 'pdf' && (
                     <div className="mt-6">
-                        <h4 className="text-md font-medium text-slate-300 mb-3 flex items-center">
+                        <h4 className="text-md font-medium text-gray-700 mb-3 flex items-center">
                             📖 Professional Typography
                         </h4>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             {/* Font Family */}
                             <div>
-                                <label className="block text-sm font-medium text-slate-300 mb-2">Font Family</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Font Family</label>
                                 <Select
                                     value={exportOptions.typography.fontFamily}
                                     onChange={(e) => setExportOptions(prev => ({
@@ -1320,14 +1320,14 @@ export const ExportTab: React.FC = () => {
                                         <option key={key} value={key} title={font.description}>{font.name}</option>
                                     ))}
                                 </Select>
-                                <p className="text-xs text-slate-500 mt-1">
+                                <p className="text-xs text-gray-500 mt-1">
                                     {FONT_FAMILIES[exportOptions.typography.fontFamily].description}
                                 </p>
                             </div>
 
                             {/* Font Size */}
                             <div>
-                                <label className="block text-sm font-medium text-slate-300 mb-2">Font Size (pt)</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Font Size (pt)</label>
                                 <Input
                                     type="number"
                                     min="8"
@@ -1339,14 +1339,14 @@ export const ExportTab: React.FC = () => {
                                         typography: { ...prev.typography, fontSize: parseFloat(e.target.value) }
                                     }))}
                                 />
-                                <p className="text-xs text-slate-500 mt-1">
+                                <p className="text-xs text-gray-500 mt-1">
                                     Standard book sizes: 10-12pt
                                 </p>
                             </div>
 
                             {/* Paper Color */}
                             <div>
-                                <label className="block text-sm font-medium text-slate-300 mb-2">Paper Color</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Paper Color</label>
                                 <Select
                                     value={exportOptions.typography.paperColor}
                                     onChange={(e) => setExportOptions(prev => ({
@@ -1358,14 +1358,14 @@ export const ExportTab: React.FC = () => {
                                         <option key={key} value={key} title={color.description}>{color.name}</option>
                                     ))}
                                 </Select>
-                                <p className="text-xs text-slate-500 mt-1">
+                                <p className="text-xs text-gray-500 mt-1">
                                     {PAPER_COLORS[exportOptions.typography.paperColor].description}
                                 </p>
                             </div>
 
                             {/* Line Height */}
                             <div>
-                                <label className="block text-sm font-medium text-slate-300 mb-2">Line Height</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Line Height</label>
                                 <Input
                                     type="number"
                                     min="1.0"
@@ -1377,14 +1377,14 @@ export const ExportTab: React.FC = () => {
                                         typography: { ...prev.typography, lineHeight: parseFloat(e.target.value) }
                                     }))}
                                 />
-                                <p className="text-xs text-slate-500 mt-1">
+                                <p className="text-xs text-gray-500 mt-1">
                                     1.6 is optimal for readability
                                 </p>
                             </div>
 
                             {/* Paragraph Spacing */}
                             <div>
-                                <label className="block text-sm font-medium text-slate-300 mb-2">Paragraph Spacing</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Paragraph Spacing</label>
                                 <Input
                                     type="number"
                                     min="0.5"
@@ -1396,14 +1396,14 @@ export const ExportTab: React.FC = () => {
                                         typography: { ...prev.typography, paragraphSpacing: parseFloat(e.target.value) }
                                     }))}
                                 />
-                                <p className="text-xs text-slate-500 mt-1">
+                                <p className="text-xs text-gray-500 mt-1">
                                     Space between paragraphs (em)
                                 </p>
                             </div>
 
                             {/* Chapter Spacing */}
                             <div>
-                                <label className="block text-sm font-medium text-slate-300 mb-2">Chapter Spacing</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Chapter Spacing</label>
                                 <Input
                                     type="number"
                                     min="1.0"
@@ -1415,7 +1415,7 @@ export const ExportTab: React.FC = () => {
                                         typography: { ...prev.typography, chapterSpacing: parseFloat(e.target.value) }
                                     }))}
                                 />
-                                <p className="text-xs text-slate-500 mt-1">
+                                <p className="text-xs text-gray-500 mt-1">
                                     Space before chapter titles (em)
                                 </p>
                             </div>
@@ -1423,7 +1423,7 @@ export const ExportTab: React.FC = () => {
 
                         {/* Typography Features */}
                         <div className="mt-4">
-                            <h5 className="text-sm font-medium text-slate-300 mb-3">Professional Features</h5>
+                            <h5 className="text-sm font-medium text-gray-700 mb-3">Professional Features</h5>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <label className="flex items-center cursor-pointer">
                                     <input
@@ -1435,7 +1435,7 @@ export const ExportTab: React.FC = () => {
                                         }))}
                                         className="mr-2"
                                     />
-                                    <span className="text-sm text-slate-300">Drop Caps</span>
+                                    <span className="text-sm text-gray-700">Drop Caps</span>
                                 </label>
                                 <label className="flex items-center cursor-pointer">
                                     <input
@@ -1447,7 +1447,7 @@ export const ExportTab: React.FC = () => {
                                         }))}
                                         className="mr-2"
                                     />
-                                    <span className="text-sm text-slate-300">Page Numbers</span>
+                                    <span className="text-sm text-gray-700">Page Numbers</span>
                                 </label>
                                 <label className="flex items-center cursor-pointer">
                                     <input
@@ -1459,17 +1459,17 @@ export const ExportTab: React.FC = () => {
                                         }))}
                                         className="mr-2"
                                     />
-                                    <span className="text-sm text-slate-300">Running Headers</span>
+                                    <span className="text-sm text-gray-700">Running Headers</span>
                                 </label>
                             </div>
                         </div>
 
                         {/* Margin Controls */}
                         <div className="mt-4">
-                            <h5 className="text-sm font-medium text-slate-300 mb-3">Margins (points)</h5>
+                            <h5 className="text-sm font-medium text-gray-700 mb-3">Margins (points)</h5>
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                 <div>
-                                    <label className="block text-xs text-slate-400 mb-1">Top</label>
+                                    <label className="block text-xs text-gray-600 mb-1">Top</label>
                                     <Input
                                         type="number"
                                         min="36"
@@ -1485,7 +1485,7 @@ export const ExportTab: React.FC = () => {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs text-slate-400 mb-1">Bottom</label>
+                                    <label className="block text-xs text-gray-600 mb-1">Bottom</label>
                                     <Input
                                         type="number"
                                         min="36"
@@ -1501,7 +1501,7 @@ export const ExportTab: React.FC = () => {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs text-slate-400 mb-1">Left</label>
+                                    <label className="block text-xs text-gray-600 mb-1">Left</label>
                                     <Input
                                         type="number"
                                         min="36"
@@ -1517,7 +1517,7 @@ export const ExportTab: React.FC = () => {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs text-slate-400 mb-1">Right</label>
+                                    <label className="block text-xs text-gray-600 mb-1">Right</label>
                                     <Input
                                         type="number"
                                         min="36"
@@ -1533,7 +1533,7 @@ export const ExportTab: React.FC = () => {
                                     />
                                 </div>
                             </div>
-                            <p className="text-xs text-slate-500 mt-2">
+                            <p className="text-xs text-gray-500 mt-2">
                                 Standard margins: 72pt (1 inch). Adjust for binding requirements.
                             </p>
                         </div>
@@ -1552,9 +1552,9 @@ export const ExportTab: React.FC = () => {
                     </Button>
 
                     {showAdvanced && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-slate-800/50 rounded-lg">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-100/50 rounded-lg">
                             <div>
-                                <label className="block text-sm font-medium text-slate-300 mb-2">Publisher</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Publisher</label>
                                 <Input
                                     value={exportOptions.publisher || ''}
                                     onChange={(e) => setExportOptions(prev => ({ ...prev, publisher: e.target.value }))}
@@ -1562,7 +1562,7 @@ export const ExportTab: React.FC = () => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-slate-300 mb-2">Publication Date</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Publication Date</label>
                                 <Input
                                     type="date"
                                     value={exportOptions.publicationDate || ''}
@@ -1570,7 +1570,7 @@ export const ExportTab: React.FC = () => {
                                 />
                             </div>
                             <div className="md:col-span-2">
-                                <label className="block text-sm font-medium text-slate-300 mb-2">ISBN (Optional)</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">ISBN (Optional)</label>
                                 <Input
                                     value={exportOptions.isbn || ''}
                                     onChange={(e) => setExportOptions(prev => ({ ...prev, isbn: e.target.value }))}
@@ -1578,15 +1578,15 @@ export const ExportTab: React.FC = () => {
                                 />
                             </div>
                             <div className="md:col-span-2">
-                                <label className="block text-sm font-medium text-slate-300 mb-2">Custom CSS (Advanced)</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Custom CSS (Advanced)</label>
                                 <textarea
                                     value={exportOptions.customCSS || ''}
                                     onChange={(e) => setExportOptions(prev => ({ ...prev, customCSS: e.target.value }))}
                                     placeholder="Add custom CSS styles..."
-                                    className="w-full p-3 bg-slate-700 border border-slate-600 rounded resize-none text-sm font-mono"
+                                    className="w-full p-3 bg-white border border-gray-300 rounded resize-none text-sm font-mono"
                                     rows={4}
                                 />
-                                <p className="text-xs text-slate-500 mt-1">
+                                <p className="text-xs text-gray-500 mt-1">
                                     Add custom styles for advanced formatting control
                                 </p>
                             </div>
@@ -1622,7 +1622,7 @@ export const ExportTab: React.FC = () => {
                             </div>
                         )}
                     </Button>
-                    <p className="text-sm text-slate-400 mt-3">
+                    <p className="text-sm text-gray-600 mt-3">
                         {exportOptions.format === 'pdf' && 'Generate a print-ready PDF with professional formatting'}
                         {exportOptions.format === 'epub' && 'Create an ebook compatible with all major e-readers'}
                         {exportOptions.format === 'docx' && 'Create a Microsoft Word document for traditional publishing workflows'}
@@ -1633,7 +1633,7 @@ export const ExportTab: React.FC = () => {
 
             {/* Export Info */}
             <Card className="p-4">
-                <div className="text-sm text-slate-400 space-y-2">
+                <div className="text-sm text-gray-600 space-y-2">
                     <div className="flex justify-between">
                         <span>Chapters:</span>
                         <span>{project?.chapters.length || 0}</span>
@@ -1650,7 +1650,7 @@ export const ExportTab: React.FC = () => {
                             <span>{project?.visuals?.length || 0}</span>
                         </div>
                     )}
-                    <div className="flex justify-between font-medium text-slate-300 border-t border-slate-700 pt-2">
+                    <div className="flex justify-between font-medium text-gray-700 border-t border-gray-300 pt-2">
                         <span>Total Word Count:</span>
                         <span>
                             {project?.chapters.reduce((total, chapter) => 

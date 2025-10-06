@@ -65,14 +65,14 @@ export const AIContextMenu: React.FC<AIContextMenuProps> = ({ x, y, selectedText
     return (
         <div
             ref={menuRef}
-            className="absolute z-50 bg-slate-900 border border-slate-700 rounded-md shadow-2xl p-2 animate-fade-in-fast"
+            className="absolute z-50 bg-white border border-gray-300 rounded-md shadow-2xl p-2 animate-fade-in-fast"
             style={{ top: `${top}px`, left: `${left}px`, width: `${CONTEXT_MENU_WIDTH}px` }}
             onClick={(e) => e.stopPropagation()}
         >
             {totalIsLoading ? (
                 <div className="flex flex-col justify-center items-center p-4">
                     <Spinner size="sm" />
-                    <span className="text-xs text-slate-400 mt-2">{isSuggestingVisual ? 'Creating visual...' : 'Thinking...'}</span>
+                    <span className="text-xs text-gray-600 mt-2">{isSuggestingVisual ? 'Creating visual...' : 'Thinking...'}</span>
                 </div>
             ) : error ? (
                  <div className="p-2 text-center text-red-400 text-sm">
@@ -85,19 +85,19 @@ export const AIContextMenu: React.FC<AIContextMenuProps> = ({ x, y, selectedText
                              <button
                                 key={action}
                                 onClick={() => handleAction(action)}
-                                className="w-full text-left px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-700 hover:text-white rounded-md transition-colors"
+                                className="w-full text-left px-3 py-1.5 text-sm text-gray-800 hover:bg-white hover:text-gray-900 rounded-md transition-colors"
                             >
                                 {action}
                             </button>
                         ))}
                         <button
                             onClick={handleSuggestVisual}
-                            className="w-full text-left px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-700 hover:text-white rounded-md transition-colors flex items-center gap-2"
+                            className="w-full text-left px-3 py-1.5 text-sm text-gray-800 hover:bg-white hover:text-gray-900 rounded-md transition-colors flex items-center gap-2"
                         >
                             <SparklesIcon className="w-4 h-4 text-yellow-400" /> Suggest Visual
                         </button>
                     </div>
-                    <hr className="my-2 border-slate-700/50"/>
+                    <hr className="my-2 border-gray-300/50"/>
                     <div className="space-y-2">
                         <input
                             type="text"
@@ -105,12 +105,12 @@ export const AIContextMenu: React.FC<AIContextMenuProps> = ({ x, y, selectedText
                             value={customPrompt}
                             onChange={(e) => setCustomPrompt(e.target.value)}
                             onKeyDown={(e) => { if(e.key === 'Enter') handleAction(customPrompt)}}
-                            className="w-full bg-slate-800 text-sm text-slate-200 border-slate-700 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary p-1.5"
+                            className="w-full bg-gray-100 text-sm text-gray-800 border-gray-300 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary p-1.5"
                         />
                         <button
                             onClick={() => handleAction(customPrompt)}
                             disabled={!customPrompt.trim()}
-                            className="w-full text-center px-3 py-1.5 text-sm text-white bg-brand-primary hover:bg-brand-primary/90 rounded-md transition-colors disabled:opacity-50"
+                            className="w-full text-center px-3 py-1.5 text-sm text-gray-900 bg-brand-primary hover:bg-brand-primary/90 rounded-md transition-colors disabled:opacity-50"
                         >
                             Go
                         </button>

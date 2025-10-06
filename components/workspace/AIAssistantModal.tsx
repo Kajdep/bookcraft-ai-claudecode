@@ -68,14 +68,14 @@ export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({ isOpen, onCl
             <div className="flex flex-col h-[60vh]">
                 <div className="flex-grow overflow-y-auto pr-2 space-y-4 mb-4">
                     {conversation.length === 0 && (
-                        <div className="text-center p-4 text-slate-400">
+                        <div className="text-center p-4 text-gray-600">
                            <p>Ask me anything about this chapter!</p>
                            <p className="text-sm mt-2">e.g., "Write some dialogue," "Suggest a plot twist," or "Describe the setting."</p>
                         </div>
                     )}
                     {conversation.map((msg, index) => (
                         <div key={index} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-                            <div className={`p-3 rounded-lg max-w-sm ${msg.sender === 'user' ? 'bg-brand-primary text-white' : 'bg-slate-700 text-slate-200'}`}>
+                            <div className={`p-3 rounded-lg max-w-sm ${msg.sender === 'user' ? 'bg-brand-primary text-gray-900' : 'bg-white text-gray-800'}`}>
                                 <p className="whitespace-pre-wrap">{msg.text}</p>
                                 {msg.sender === 'ai' && (
                                     <div className="text-right mt-2">
@@ -89,7 +89,7 @@ export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({ isOpen, onCl
                     ))}
                      {isLoading && (
                         <div className="flex justify-start">
-                             <div className="p-3 rounded-lg bg-slate-700">
+                             <div className="p-3 rounded-lg bg-white">
                                 <Spinner size="sm" />
                             </div>
                         </div>
@@ -102,7 +102,7 @@ export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({ isOpen, onCl
                         value={prompt}
                         onChange={(e) => setPrompt(e.target.value)}
                         placeholder="Ask the assistant..."
-                        className="flex-grow bg-slate-700 border-slate-600 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary sm:text-sm p-2 text-white placeholder-slate-400"
+                        className="flex-grow bg-white border-gray-300 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary sm:text-sm p-2 text-gray-900 placeholder-gray-400"
                         disabled={isLoading}
                     />
                     <Button type="submit" disabled={isLoading || !prompt.trim()}>

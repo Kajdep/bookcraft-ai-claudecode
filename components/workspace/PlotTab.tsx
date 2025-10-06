@@ -53,8 +53,8 @@ const PlotPointCard: React.FC<PlotPointCardProps> = ({
         <Card
             className={`p-4 transition-all duration-200 ${
                 isDragging ? 'opacity-50 scale-95' :
-                isDragOver ? 'bg-slate-700 border-blue-400' :
-                'bg-slate-800'
+                isDragOver ? 'bg-white border-blue-400' :
+                'bg-gray-100'
             }`}
             draggable="true"
             onDragStart={(e) => onDragStart(e, index)}
@@ -66,7 +66,7 @@ const PlotPointCard: React.FC<PlotPointCardProps> = ({
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     onBlur={handleTitleBlur}
-                    className="w-full bg-transparent text-lg font-bold text-slate-100 focus:outline-none focus:ring-0 focus:bg-slate-700/50 rounded px-1"
+                    className="w-full bg-transparent text-lg font-bold text-gray-900 focus:outline-none focus:ring-0 focus:bg-white/50 rounded px-1"
                 />
                 <Button variant="danger" size="sm" onClick={() => onDelete(point.id)} className="!p-2 flex-shrink-0">
                     <TrashIcon className="w-4 h-4"/>
@@ -77,7 +77,7 @@ const PlotPointCard: React.FC<PlotPointCardProps> = ({
                 onChange={(e) => setDescription(e.target.value)}
                 onBlur={handleDescriptionBlur}
                 rows={3}
-                className="w-full bg-transparent text-slate-300 focus:outline-none focus:ring-0 focus:bg-slate-700/50 rounded px-1 mt-2 resize-none"
+                className="w-full bg-transparent text-gray-700 focus:outline-none focus:ring-0 focus:bg-white/50 rounded px-1 mt-2 resize-none"
             />
         </Card>
     );
@@ -104,9 +104,9 @@ export const PlotTab: React.FC = () => {
                 <header className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
                     <h3 className="text-2xl font-bold">Plot & Story Structure</h3>
                 </header>
-                <Card className="p-12 text-center border-2 border-dashed border-slate-700">
-                    <h4 className="mt-4 text-xl font-semibold text-slate-300">No Active Project</h4>
-                    <p className="mt-2 text-slate-400">Please create or select a project to manage plot points.</p>
+                <Card className="p-12 text-center border-2 border-dashed border-gray-300">
+                    <h4 className="mt-4 text-xl font-semibold text-gray-700">No Active Project</h4>
+                    <p className="mt-2 text-gray-600">Please create or select a project to manage plot points.</p>
                 </Card>
             </div>
         );
@@ -182,10 +182,10 @@ export const PlotTab: React.FC = () => {
                         />
                     ))
                 ) : (
-                    <Card className="p-12 text-center border-2 border-dashed border-slate-700">
+                    <Card className="p-12 text-center border-2 border-dashed border-gray-300">
                         <BrainCircuitIcon className="mx-auto h-12 w-12 text-slate-600" />
-                        <h4 className="mt-4 text-xl font-semibold text-slate-300">Map Your Narrative</h4>
-                        <p className="mt-2 text-slate-400">Use the AI Plotting Tool to generate a structure or add plot points manually.</p>
+                        <h4 className="mt-4 text-xl font-semibold text-gray-700">Map Your Narrative</h4>
+                        <p className="mt-2 text-gray-600">Use the AI Plotting Tool to generate a structure or add plot points manually.</p>
                     </Card>
                 )}
             </div>

@@ -82,16 +82,16 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
         <Modal isOpen={isOpen} onClose={onClose} title={projectToEdit ? "Edit Project" : "Create New Project"}>
             <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
-                    <label htmlFor="title" className="block text-sm font-medium text-slate-300">Project Title</label>
+                    <label htmlFor="title" className="block text-sm font-medium text-gray-700">Project Title</label>
                     <input type="text" id="title" value={title} onChange={(e) => setTitle(e.target.value)} required
-                        className="mt-1 block w-full bg-slate-700 border-slate-600 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary sm:text-sm p-2 text-white placeholder-slate-400"
+                        className="mt-1 block w-full bg-white border-gray-300 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary sm:text-sm p-2 text-gray-900 placeholder-gray-400"
                         placeholder="e.g., The Last Voyage"
                      />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label htmlFor="genre" className="block text-sm font-medium text-slate-300">Genre</label>
+                        <label htmlFor="genre" className="block text-sm font-medium text-gray-700">Genre</label>
                         {!showCustomGenre ? (
                             <div className="space-y-2">
                                 <select
@@ -99,7 +99,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
                                     name="genre"
                                     value={genre}
                                     onChange={(e) => setGenre(e.target.value)}
-                                    className="mt-1 block w-full bg-slate-700 border-slate-600 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary sm:text-sm p-2 text-white"
+                                    className="mt-1 block w-full bg-white border-gray-300 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary sm:text-sm p-2 text-gray-900"
                                 >
                                     {Object.values(Genre).map(g => <option key={g} value={g}>{g}</option>)}
                                 </select>
@@ -118,7 +118,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
                                     value={customGenre}
                                     onChange={(e) => setCustomGenre(e.target.value)}
                                     placeholder="Enter custom genre..."
-                                    className="mt-1 block w-full bg-slate-700 border-slate-600 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary sm:text-sm p-2 text-white placeholder-slate-400"
+                                    className="mt-1 block w-full bg-white border-gray-300 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary sm:text-sm p-2 text-gray-900 placeholder-gray-400"
                                 />
                                 <button
                                     type="button"
@@ -126,7 +126,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
                                         setShowCustomGenre(false);
                                         setCustomGenre('');
                                     }}
-                                    className="text-xs text-slate-400 hover:text-slate-300 underline"
+                                    className="text-xs text-gray-600 hover:text-gray-700 underline"
                                 >
                                     ← Back to predefined genres
                                 </button>
@@ -134,7 +134,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
                         )}
                     </div>
                     <div>
-                        <label htmlFor="visualStyle" className="block text-sm font-medium text-slate-300">Visual Style</label>
+                        <label htmlFor="visualStyle" className="block text-sm font-medium text-gray-700">Visual Style</label>
                         {!showCustomVisualStyle ? (
                             <div className="space-y-2">
                                 <select
@@ -142,7 +142,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
                                     name="visualStyle"
                                     value={visualStyle}
                                     onChange={(e) => setVisualStyle(e.target.value)}
-                                    className="mt-1 block w-full bg-slate-700 border-slate-600 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary sm:text-sm p-2 text-white"
+                                    className="mt-1 block w-full bg-white border-gray-300 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary sm:text-sm p-2 text-gray-900"
                                 >
                                     {Object.values(VisualStyle).map(vs => <option key={vs} value={vs}>{vs}</option>)}
                                 </select>
@@ -161,7 +161,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
                                     value={customVisualStyle}
                                     onChange={(e) => setCustomVisualStyle(e.target.value)}
                                     placeholder="Enter custom visual style..."
-                                    className="mt-1 block w-full bg-slate-700 border-slate-600 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary sm:text-sm p-2 text-white placeholder-slate-400"
+                                    className="mt-1 block w-full bg-white border-gray-300 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary sm:text-sm p-2 text-gray-900 placeholder-gray-400"
                                 />
                                 <button
                                     type="button"
@@ -169,7 +169,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
                                         setShowCustomVisualStyle(false);
                                         setCustomVisualStyle('');
                                     }}
-                                    className="text-xs text-slate-400 hover:text-slate-300 underline"
+                                    className="text-xs text-gray-600 hover:text-gray-700 underline"
                                 >
                                     ← Back to predefined styles
                                 </button>
@@ -179,7 +179,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
                 </div>
 
                 <div>
-                    <label htmlFor="description" className="block text-sm font-medium text-slate-300">Description (Optional)</label>
+                    <label htmlFor="description" className="block text-sm font-medium text-gray-700">Description (Optional)</label>
                     <textarea
                         id="description"
                         name="description"
@@ -187,11 +187,11 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
                         onChange={(e) => setDescription(e.target.value)}
                         placeholder="Brief description of your project..."
                         rows={2}
-                        className="mt-1 block w-full bg-slate-700 border-slate-600 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary sm:text-sm p-2 text-white placeholder-slate-400 resize-none"
+                        className="mt-1 block w-full bg-white border-gray-300 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary sm:text-sm p-2 text-gray-900 placeholder-gray-400 resize-none"
                     />
                 </div>
 
-                <p className="text-sm text-slate-400 text-center pt-2">
+                <p className="text-sm text-gray-600 text-center pt-2">
                     You can start adding chapters after creating the project.
                 </p>
 

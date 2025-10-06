@@ -12,7 +12,7 @@ const StatusBadge: React.FC<{ status: ProjectStatus }> = ({ status }) => {
     // FIX: Added 'InProgress' to the status styles to match the updated ProjectStatus enum and prevent runtime errors.
     // The other errors related to 'Analyzing' and 'Review' are fixed by updating the ProjectStatus enum in types.ts.
     const statusStyles: Record<ProjectStatus, string> = {
-        [ProjectStatus.Draft]: 'bg-slate-500/50 text-slate-300 border border-slate-500',
+        [ProjectStatus.Draft]: 'bg-gray-300/50 text-gray-700 border border-gray-400',
         [ProjectStatus.InProgress]: 'bg-indigo-500/50 text-indigo-200 border border-indigo-500',
         [ProjectStatus.Analyzing]: 'bg-blue-500/50 text-blue-200 border border-blue-500 animate-pulse',
         [ProjectStatus.Review]: 'bg-yellow-500/50 text-yellow-200 border border-yellow-500',
@@ -35,7 +35,7 @@ const GenreIcon: React.FC<{ genre: string }> = ({ genre }) => {
         [Genre.SelfHelp]: <LightBulbIcon className="w-6 h-6 text-amber-400" />,
         [Genre.Technical]: <AcademicCapIcon className="w-6 h-6 text-rose-400" />,
     };
-    return <div className="p-2 bg-slate-700/50 rounded-full">{iconMap[genre] || <BookOpenIcon className="w-6 h-6 text-slate-400" />}</div>
+    return <div className="p-2 bg-white/50 rounded-full">{iconMap[genre] || <BookOpenIcon className="w-6 h-6 text-gray-600" />}</div>
 }
 
 
@@ -48,18 +48,18 @@ const ProjectCard: React.FC<{ project: Project; onEdit: () => void; onDelete: ()
                     <div className="flex items-center gap-4">
                         <GenreIcon genre={project.genre} />
                         <div>
-                             <h3 className="text-lg font-bold text-slate-100 truncate">{project.title}</h3>
-                            <p className="text-sm text-slate-400">{project.genre}</p>
+                             <h3 className="text-lg font-bold text-gray-900 truncate">{project.title}</h3>
+                            <p className="text-sm text-gray-600">{project.genre}</p>
                         </div>
                     </div>
                     <StatusBadge status={project.status} />
                 </div>
                 
-                <p className="text-xs text-slate-500 mt-4">
+                <p className="text-xs text-gray-500 mt-4">
                     Created on: {new Date(project.createdAt).toLocaleDateString()}
                 </p>
             </div>
-            <div className="bg-slate-900/50 p-3 border-t border-slate-700/50 flex items-center justify-between gap-2">
+            <div className="bg-white/50 p-3 border-t border-gray-300/50 flex items-center justify-between gap-2">
                 <Button onClick={() => setActiveProject(project.id)} className="flex-grow" variant="secondary">
                     Open Project
                 </Button>
@@ -111,7 +111,7 @@ export const Dashboard: React.FC = () => {
     return (
         <>
             <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
-                <h2 className="text-3xl font-bold text-slate-100">My Projects</h2>
+                <h2 className="text-3xl font-bold text-gray-900">My Projects</h2>
                 <Button onClick={() => toggleCreateModal(true)}>
                     <PlusIcon className="w-5 h-5 mr-2" />
                     New Project
@@ -129,10 +129,10 @@ export const Dashboard: React.FC = () => {
                     )}
                 </div>
             ) : (
-                <div className="text-center py-20 border-2 border-dashed border-slate-700 rounded-lg bg-slate-800/20">
+                <div className="text-center py-20 border-2 border-dashed border-gray-300 rounded-lg bg-gray-100/20">
                     <DocumentTextIcon className="mx-auto h-12 w-12 text-slate-600" />
-                    <h3 className="mt-4 text-xl font-semibold text-slate-300">No Projects Yet</h3>
-                    <p className="mt-2 text-slate-400">Get started by creating your first project.</p>
+                    <h3 className="mt-4 text-xl font-semibold text-gray-700">No Projects Yet</h3>
+                    <p className="mt-2 text-gray-600">Get started by creating your first project.</p>
                     <div className="mt-6">
                          <Button onClick={() => toggleCreateModal(true)}>
                             <PlusIcon className="w-5 h-5 mr-2" />

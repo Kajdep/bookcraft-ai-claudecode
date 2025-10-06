@@ -40,7 +40,7 @@ export const PlottingToolModal: React.FC<PlottingToolModalProps> = ({ isOpen, on
         <Modal isOpen={isOpen} onClose={handleClose} title="AI Plotting Tool">
             <form onSubmit={handleSubmit} className="space-y-4">
                  <div>
-                    <label htmlFor="plot-prompt" className="block text-sm font-medium text-slate-300 mb-1">
+                    <label htmlFor="plot-prompt" className="block text-sm font-medium text-gray-700 mb-1">
                         Describe your story idea
                     </label>
                     <textarea
@@ -49,11 +49,11 @@ export const PlottingToolModal: React.FC<PlottingToolModalProps> = ({ isOpen, on
                         onChange={(e) => setPrompt(e.target.value)}
                         placeholder={'e.g., "A detective in a cyberpunk city has to solve the murder of a high-profile CEO, but the main suspect is an advanced android who claims innocence."'}
                         rows={5}
-                        className="w-full bg-slate-700 border-slate-600 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary sm:text-sm p-2 text-slate-200 placeholder-slate-400"
+                        className="w-full bg-white border-gray-300 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary sm:text-sm p-2 text-gray-800 placeholder-gray-400"
                         required
                     />
                  </div>
-                 <p className="text-sm text-slate-400">
+                 <p className="text-sm text-gray-600">
                      The AI will generate a structured plot outline based on your idea, including key points like the inciting incident, rising action, climax, and resolution.
                  </p>
                  <div className="flex justify-end space-x-3 pt-2">

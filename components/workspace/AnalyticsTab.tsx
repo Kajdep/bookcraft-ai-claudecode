@@ -50,15 +50,15 @@ const StatCard: React.FC<{
                         {icon}
                     </div>
                     <div>
-                        <h3 className="text-2xl font-bold text-slate-100">{value}</h3>
-                        <p className="text-sm text-slate-400">{title}</p>
-                        {subtitle && <p className="text-xs text-slate-500">{subtitle}</p>}
+                        <h3 className="text-2xl font-bold text-gray-900">{value}</h3>
+                        <p className="text-sm text-gray-600">{title}</p>
+                        {subtitle && <p className="text-xs text-gray-500">{subtitle}</p>}
                     </div>
                 </div>
                 {trend && trendValue && (
                     <div className="flex items-center gap-1">
                         {trendIcon}
-                        <span className="text-sm text-slate-300">{trendValue}</span>
+                        <span className="text-sm text-gray-700">{trendValue}</span>
                     </div>
                 )}
             </div>
@@ -77,10 +77,10 @@ const ProgressBar: React.FC<{
     return (
         <div className="space-y-2">
             <div className="flex items-center justify-between text-sm">
-                <span className="text-slate-300">{label}</span>
-                <span className="text-slate-400">{current.toLocaleString()} / {target.toLocaleString()}</span>
+                <span className="text-gray-700">{label}</span>
+                <span className="text-gray-600">{current.toLocaleString()} / {target.toLocaleString()}</span>
             </div>
-            <div className="w-full bg-slate-700 rounded-full h-2">
+            <div className="w-full bg-white rounded-full h-2">
                 <div 
                     className="h-2 rounded-full transition-all duration-300"
                     style={{ 
@@ -90,7 +90,7 @@ const ProgressBar: React.FC<{
                 />
             </div>
             <div className="text-right">
-                <span className="text-xs text-slate-500">{percentage.toFixed(1)}% complete</span>
+                <span className="text-xs text-gray-500">{percentage.toFixed(1)}% complete</span>
             </div>
         </div>
     );
@@ -137,9 +137,9 @@ const GoalCard: React.FC<{
                         {typeIcons[goal.type]}
                     </div>
                     <div>
-                        <h4 className="font-semibold text-slate-200">{goal.title}</h4>
+                        <h4 className="font-semibold text-gray-800">{goal.title}</h4>
                         {goal.description && (
-                            <p className="text-xs text-slate-400">{goal.description}</p>
+                            <p className="text-xs text-gray-600">{goal.description}</p>
                         )}
                     </div>
                 </div>
@@ -150,7 +150,7 @@ const GoalCard: React.FC<{
                         variant="ghost"
                         size="sm"
                         onClick={() => onDelete(goal.id)}
-                        className="text-slate-400 hover:text-red-400"
+                        className="text-gray-600 hover:text-red-400"
                     >
                         ×
                     </Button>
@@ -164,7 +164,7 @@ const GoalCard: React.FC<{
                 color={typeColors[goal.type]}
             />
 
-            <div className="flex items-center justify-between mt-3 text-xs text-slate-500">
+            <div className="flex items-center justify-between mt-3 text-xs text-gray-500">
                 <span>
                     {isOverdue ? 'Overdue' : daysLeft > 0 ? `${daysLeft} days left` : 'Due today'}
                 </span>
@@ -193,7 +193,7 @@ const SimpleChart: React.FC<{
     // Defensive check: ensure data is an array
     const safeData = Array.isArray(data) ? data : [];
 
-    if (safeData.length === 0) return <div className="text-center text-slate-500 p-8">No data available</div>;
+    if (safeData.length === 0) return <div className="text-center text-gray-500 p-8">No data available</div>;
 
     const maxValue = Math.max(...safeData.map(d => d.value));
     const minValue = Math.min(...safeData.map(d => d.value));
@@ -399,8 +399,8 @@ export const AnalyticsTab: React.FC = () => {
     if (!project) {
         return (
             <div className="animate-fade-in max-w-7xl mx-auto p-8 text-center">
-                <h2 className="text-2xl font-bold text-slate-100 mb-2">Writing Analytics</h2>
-                <p className="text-slate-400 mb-4">Please select a project to view analytics.</p>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Writing Analytics</h2>
+                <p className="text-gray-600 mb-4">Please select a project to view analytics.</p>
             </div>
         );
     }
@@ -414,20 +414,20 @@ export const AnalyticsTab: React.FC = () => {
                         <ChartBarIcon className="w-6 h-6 mr-2 text-brand-primary" />
                         Writing Analytics
                     </h2>
-                    <p className="text-slate-400 mt-1">
+                    <p className="text-gray-600 mt-1">
                         Track your writing progress, productivity, and goals.
                     </p>
                 </div>
                 
                 <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1 bg-slate-800 rounded-lg p-1">
+                    <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
                         {(['overview', 'goals', 'productivity', 'insights'] as const).map(mode => (
                             <Button
                                 key={mode}
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => setViewMode(mode)}
-                                className={viewMode === mode ? 'bg-slate-700' : ''}
+                                className={viewMode === mode ? 'bg-white' : ''}
                             >
                                 {mode === 'overview' && <Squares2X2Icon className="w-4 h-4" />}
                                 {mode === 'goals' && <TargetIcon className="w-4 h-4" />}
@@ -479,7 +479,7 @@ export const AnalyticsTab: React.FC = () => {
                     {/* Recent Activity */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         <Card className="p-6">
-                            <h3 className="text-lg font-semibold text-slate-200 mb-4 flex items-center">
+                            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
                                 <ChartBarIcon className="w-5 h-5 mr-2" />
                                 Daily Word Count (Last 14 Days)
                             </h3>
@@ -495,7 +495,7 @@ export const AnalyticsTab: React.FC = () => {
                         </Card>
 
                         <Card className="p-6">
-                            <h3 className="text-lg font-semibold text-slate-200 mb-4 flex items-center">
+                            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
                                 <ClockIcon className="w-5 h-5 mr-2" />
                                 Daily Writing Time (Minutes)
                             </h3>
@@ -514,7 +514,7 @@ export const AnalyticsTab: React.FC = () => {
                     {/* Current Goals */}
                     <Card className="p-6">
                         <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-semibold text-slate-200 flex items-center">
+                            <h3 className="text-lg font-semibold text-gray-800 flex items-center">
                                 <TargetIcon className="w-5 h-5 mr-2" />
                                 Current Goals
                             </h3>
@@ -540,7 +540,7 @@ export const AnalyticsTab: React.FC = () => {
             {viewMode === 'goals' && (
                 <div className="space-y-6">
                     <div className="flex items-center justify-between">
-                        <h3 className="text-xl font-semibold text-slate-200">Writing Goals</h3>
+                        <h3 className="text-xl font-semibold text-gray-800">Writing Goals</h3>
                         <Button onClick={() => setShowNewGoalModal(true)}>
                             Add New Goal
                         </Button>
@@ -561,8 +561,8 @@ export const AnalyticsTab: React.FC = () => {
                     {(analyticsData.goals || []).length === 0 && (
                         <Card className="p-8 text-center">
                             <TargetIcon className="mx-auto h-12 w-12 text-slate-600 mb-4" />
-                            <h3 className="text-lg font-semibold text-slate-300 mb-2">No Goals Set</h3>
-                            <p className="text-slate-400 mb-4">Set writing goals to track your progress and stay motivated.</p>
+                            <h3 className="text-lg font-semibold text-gray-700 mb-2">No Goals Set</h3>
+                            <p className="text-gray-600 mb-4">Set writing goals to track your progress and stay motivated.</p>
                             <Button onClick={() => setShowNewGoalModal(true)}>
                                 Create Your First Goal
                             </Button>
@@ -574,7 +574,7 @@ export const AnalyticsTab: React.FC = () => {
             {viewMode === 'productivity' && (
                 <div className="space-y-6">
                     <div className="flex items-center justify-between">
-                        <h3 className="text-xl font-semibold text-slate-200">Productivity Analysis</h3>
+                        <h3 className="text-xl font-semibold text-gray-800">Productivity Analysis</h3>
                         <Select
                             value={chartType}
                             onChange={(e) => setChartType(e.target.value as 'daily' | 'weekly' | 'monthly')}
@@ -587,7 +587,7 @@ export const AnalyticsTab: React.FC = () => {
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         <Card className="p-6">
-                            <h4 className="text-lg font-semibold text-slate-200 mb-4">Words Written</h4>
+                            <h4 className="text-lg font-semibold text-gray-800 mb-4">Words Written</h4>
                             <SimpleChart
                                 data={(analyticsData.productivity?.daily || []).map(d => ({
                                     label: d.date,
@@ -600,7 +600,7 @@ export const AnalyticsTab: React.FC = () => {
                         </Card>
 
                         <Card className="p-6">
-                            <h4 className="text-lg font-semibold text-slate-200 mb-4">Time Spent Writing</h4>
+                            <h4 className="text-lg font-semibold text-gray-800 mb-4">Time Spent Writing</h4>
                             <SimpleChart
                                 data={(analyticsData.productivity?.daily || []).map(d => ({
                                     label: d.date,
@@ -614,25 +614,25 @@ export const AnalyticsTab: React.FC = () => {
                     </div>
 
                     <Card className="p-6">
-                        <h4 className="text-lg font-semibold text-slate-200 mb-4">Productivity Insights</h4>
+                        <h4 className="text-lg font-semibold text-gray-800 mb-4">Productivity Insights</h4>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div className="text-center p-4 bg-slate-800/50 rounded-lg">
+                            <div className="text-center p-4 bg-gray-100/50 rounded-lg">
                                 <div className="text-2xl font-bold text-blue-400">
                                     {(analyticsData.productivity?.daily || []).length > 0
                                         ? Math.round((analyticsData.productivity?.daily || []).reduce((sum, d) => sum + d.words, 0) / (analyticsData.productivity?.daily || []).length)
                                         : 0}
                                 </div>
-                                <div className="text-sm text-slate-400">Avg Words/Day</div>
+                                <div className="text-sm text-gray-600">Avg Words/Day</div>
                             </div>
-                            <div className="text-center p-4 bg-slate-800/50 rounded-lg">
+                            <div className="text-center p-4 bg-gray-100/50 rounded-lg">
                                 <div className="text-2xl font-bold text-green-400">
                                     {(analyticsData.productivity?.daily || []).length > 0
                                         ? Math.round((analyticsData.productivity?.daily || []).reduce((sum, d) => sum + d.minutes, 0) / (analyticsData.productivity?.daily || []).length)
                                         : 0}
                                 </div>
-                                <div className="text-sm text-slate-400">Avg Minutes/Day</div>
+                                <div className="text-sm text-gray-600">Avg Minutes/Day</div>
                             </div>
-                            <div className="text-center p-4 bg-slate-800/50 rounded-lg">
+                            <div className="text-center p-4 bg-gray-100/50 rounded-lg">
                                 <div className="text-2xl font-bold text-purple-400">
                                     {(() => {
                                         const daily = analyticsData.productivity?.daily || [];
@@ -641,7 +641,7 @@ export const AnalyticsTab: React.FC = () => {
                                         return totalMinutes > 0 ? Math.round(totalWords / totalMinutes * 60) : 0;
                                     })()}
                                 </div>
-                                <div className="text-sm text-slate-400">Words/Hour</div>
+                                <div className="text-sm text-gray-600">Words/Hour</div>
                             </div>
                         </div>
                     </Card>
@@ -650,38 +650,38 @@ export const AnalyticsTab: React.FC = () => {
 
             {viewMode === 'insights' && (
                 <div className="space-y-6">
-                    <h3 className="text-xl font-semibold text-slate-200">Writing Insights</h3>
+                    <h3 className="text-xl font-semibold text-gray-800">Writing Insights</h3>
                     
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         <Card className="p-6">
-                            <h4 className="text-lg font-semibold text-slate-200 mb-4">Writing Patterns</h4>
+                            <h4 className="text-lg font-semibold text-gray-800 mb-4">Writing Patterns</h4>
                             <div className="space-y-4">
                                 <div className="flex justify-between items-center">
-                                    <span className="text-slate-300">Most Productive Day</span>
-                                    <span className="text-slate-400">Wednesday</span>
+                                    <span className="text-gray-700">Most Productive Day</span>
+                                    <span className="text-gray-600">Wednesday</span>
                                 </div>
                                 <div className="flex justify-between items-center">
-                                    <span className="text-slate-300">Preferred Writing Time</span>
-                                    <span className="text-slate-400">Morning (9-11 AM)</span>
+                                    <span className="text-gray-700">Preferred Writing Time</span>
+                                    <span className="text-gray-600">Morning (9-11 AM)</span>
                                 </div>
                                 <div className="flex justify-between items-center">
-                                    <span className="text-slate-300">Average Session Length</span>
-                                    <span className="text-slate-400">85 minutes</span>
+                                    <span className="text-gray-700">Average Session Length</span>
+                                    <span className="text-gray-600">85 minutes</span>
                                 </div>
                                 <div className="flex justify-between items-center">
-                                    <span className="text-slate-300">Writing Velocity</span>
-                                    <span className="text-slate-400">12 words/minute</span>
+                                    <span className="text-gray-700">Writing Velocity</span>
+                                    <span className="text-gray-600">12 words/minute</span>
                                 </div>
                             </div>
                         </Card>
 
                         <Card className="p-6">
-                            <h4 className="text-lg font-semibold text-slate-200 mb-4">Chapter Analysis</h4>
+                            <h4 className="text-lg font-semibold text-gray-800 mb-4">Chapter Analysis</h4>
                             <div className="space-y-4">
                                 {(project?.chapters || []).slice(0, 5).map((chapter, index) => (
                                     <div key={chapter.id} className="flex justify-between items-center">
-                                        <span className="text-slate-300 truncate">{chapter.title || `Chapter ${chapter.order}`}</span>
-                                        <span className="text-slate-400">{(chapter.content?.split(' ').length || 0).toLocaleString()} words</span>
+                                        <span className="text-gray-700 truncate">{chapter.title || `Chapter ${chapter.order}`}</span>
+                                        <span className="text-gray-600">{(chapter.content?.split(' ').length || 0).toLocaleString()} words</span>
                                     </div>
                                 ))}
                             </div>
@@ -689,24 +689,24 @@ export const AnalyticsTab: React.FC = () => {
                     </div>
 
                     <Card className="p-6">
-                        <h4 className="text-lg font-semibold text-slate-200 mb-4">Recommendations</h4>
+                        <h4 className="text-lg font-semibold text-gray-800 mb-4">Recommendations</h4>
                         <div className="space-y-3">
                             <div className="flex items-start gap-3 p-3 bg-blue-900/20 border border-blue-500/30 rounded-lg">
                                 <LightBulbIcon className="w-5 h-5 text-blue-400 mt-0.5" />
                                 <div>
-                                    <p className="text-slate-300">Based on your writing patterns, you're most productive in the morning. Consider scheduling your main writing sessions between 9-11 AM.</p>
+                                    <p className="text-gray-700">Based on your writing patterns, you're most productive in the morning. Consider scheduling your main writing sessions between 9-11 AM.</p>
                                 </div>
                             </div>
                             <div className="flex items-start gap-3 p-3 bg-green-900/20 border border-green-500/30 rounded-lg">
                                 <TrophyIcon className="w-5 h-5 text-green-400 mt-0.5" />
                                 <div>
-                                    <p className="text-slate-300">You're maintaining a great writing streak! Keep it up to build lasting habits.</p>
+                                    <p className="text-gray-700">You're maintaining a great writing streak! Keep it up to build lasting habits.</p>
                                 </div>
                             </div>
                             <div className="flex items-start gap-3 p-3 bg-orange-900/20 border border-orange-500/30 rounded-lg">
                                 <TargetIcon className="w-5 h-5 text-orange-400 mt-0.5" />
                                 <div>
-                                    <p className="text-slate-300">Consider setting a daily word count goal to maintain consistent progress. Based on your current pace, 750 words/day seems achievable.</p>
+                                    <p className="text-gray-700">Consider setting a daily word count goal to maintain consistent progress. Based on your current pace, 750 words/day seems achievable.</p>
                                 </div>
                             </div>
                         </div>
@@ -716,13 +716,13 @@ export const AnalyticsTab: React.FC = () => {
 
             {/* New Goal Modal */}
             {showNewGoalModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                <div className="fixed inset-0 bg-gray-900/30 flex items-center justify-center z-50">
                     <Card className="p-6 max-w-md w-full mx-4">
-                        <h3 className="text-lg font-semibold text-slate-200 mb-4">Create New Goal</h3>
+                        <h3 className="text-lg font-semibold text-gray-800 mb-4">Create New Goal</h3>
 
                         <div className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-slate-300 mb-2">Goal Title</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Goal Title</label>
                                 <Input
                                     value={newGoal.title}
                                     onChange={(e) => setNewGoal(prev => ({ ...prev, title: e.target.value }))}
@@ -731,7 +731,7 @@ export const AnalyticsTab: React.FC = () => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-slate-300 mb-2">Goal Type</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Goal Type</label>
                                 <Select
                                     value={newGoal.type}
                                     onChange={(e) => setNewGoal(prev => ({ ...prev, type: e.target.value as WritingGoal['type'] }))}
@@ -745,7 +745,7 @@ export const AnalyticsTab: React.FC = () => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-slate-300 mb-2">Target</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Target</label>
                                 <Input
                                     type="number"
                                     value={newGoal.target}
@@ -754,7 +754,7 @@ export const AnalyticsTab: React.FC = () => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-slate-300 mb-2">Deadline</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Deadline</label>
                                 <Input
                                     type="date"
                                     value={newGoal.deadline}
@@ -763,7 +763,7 @@ export const AnalyticsTab: React.FC = () => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-slate-300 mb-2">Description (Optional)</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Description (Optional)</label>
                                 <Input
                                     value={newGoal.description}
                                     onChange={(e) => setNewGoal(prev => ({ ...prev, description: e.target.value }))}

@@ -35,10 +35,10 @@ const TabButton: React.FC<{
         disabled={disabled}
         className={`flex items-center w-full justify-start gap-3 px-4 py-2.5 text-sm font-semibold rounded-lg transition-colors ${
             active
-                ? 'bg-brand-primary text-white'
+                ? 'bg-brand-primary text-gray-900'
                 : disabled
-                ? 'text-slate-500 cursor-not-allowed'
-                : 'text-slate-300 hover:bg-slate-700/50'
+                ? 'text-gray-500 cursor-not-allowed'
+                : 'text-gray-700 hover:bg-white/50'
         }`}
     >
         {icon}
@@ -114,10 +114,10 @@ export const MainLayout: React.FC = () => {
     return (
         <div className="flex h-[calc(100vh-4rem)]">
             {/* Sidebar Navigation */}
-            <aside className="w-64 flex-shrink-0 bg-slate-800/30 border-r border-slate-700/50">
+            <aside className="w-64 flex-shrink-0 bg-gray-100/30 border-r border-gray-300/50">
                 <nav className="flex flex-col gap-1 p-4">
                     <div className="mb-4">
-                        <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
+                        <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
                             Main
                         </h3>
                         <TabButton
@@ -130,7 +130,7 @@ export const MainLayout: React.FC = () => {
                     </div>
 
                     <div className="mb-4">
-                        <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
+                        <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
                             Writing Tools
                         </h3>
                         <div className="space-y-1">
@@ -167,7 +167,7 @@ export const MainLayout: React.FC = () => {
                     </div>
 
                     <div className="mb-4">
-                        <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
+                        <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
                             Design & Publishing
                         </h3>
                         <div className="space-y-1">
@@ -205,10 +205,10 @@ export const MainLayout: React.FC = () => {
 
                     {/* Project Info */}
                     {project && (
-                        <div className="mt-auto pt-4 border-t border-slate-700/50">
-                            <div className="text-xs text-slate-400 mb-1">Current Project</div>
-                            <div className="text-sm font-medium text-slate-200 truncate">{project.title}</div>
-                            <div className="text-xs text-slate-500">{project.genre} - {project.visualStyle}</div>
+                        <div className="mt-auto pt-4 border-t border-gray-300/50">
+                            <div className="text-xs text-gray-600 mb-1">Current Project</div>
+                            <div className="text-sm font-medium text-gray-800 truncate">{project.title}</div>
+                            <div className="text-xs text-gray-500">{project.genre} - {project.visualStyle}</div>
                         </div>
                     )}
                 </nav>

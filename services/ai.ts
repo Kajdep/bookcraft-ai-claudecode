@@ -20,19 +20,19 @@ interface AIEnvironmentConfig {
 
 // Get environment configuration with fallbacks
 const getEnvironmentConfig = (): AIEnvironmentConfig => {
-    const isProduction = process.env.NODE_ENV === 'production';
-    const debugLogging = process.env.ENABLE_DEBUG_LOGGING === 'true';
+    const isProduction = import.meta.env.MODE === 'production';
+    const debugLogging = import.meta.env.VITE_ENABLE_DEBUG_LOGGING === 'true';
     
     return {
-        openRouterApiKey: process.env.OPENROUTER_API_KEY || '',
-        openRouterEndpoint: process.env.OPENROUTER_ENDPOINT || 'https://openrouter.ai/api/v1',
-        geminiApiKey: process.env.GEMINI_API_KEY || '',
-        geminiEndpoint: process.env.GEMINI_ENDPOINT || 'https://generativelanguage.googleapis.com',
-        defaultModel: process.env.DEFAULT_AI_MODEL || DEFAULT_OPENROUTER_MODEL,
-        temperature: parseFloat(process.env.DEFAULT_TEMPERATURE || '0.7'),
-        maxTokens: parseInt(process.env.DEFAULT_MAX_TOKENS || '4000'),
+        openRouterApiKey: import.meta.env.VITE_OPENROUTER_API_KEY || '',
+        openRouterEndpoint: import.meta.env.VITE_OPENROUTER_ENDPOINT || 'https://openrouter.ai/api/v1',
+        geminiApiKey: import.meta.env.VITE_GEMINI_API_KEY || '',
+        geminiEndpoint: import.meta.env.VITE_GEMINI_ENDPOINT || 'https://generativelanguage.googleapis.com',
+        defaultModel: import.meta.env.VITE_DEFAULT_AI_MODEL || DEFAULT_OPENROUTER_MODEL,
+        temperature: parseFloat(import.meta.env.VITE_DEFAULT_TEMPERATURE || '0.7'),
+        maxTokens: parseInt(import.meta.env.VITE_DEFAULT_MAX_TOKENS || '4000'),
         enableDebugLogging: debugLogging && !isProduction,
-        validateApiKeys: process.env.VALIDATE_API_KEYS !== 'false'
+        validateApiKeys: import.meta.env.VITE_VALIDATE_API_KEYS !== 'false'
     };
 };
 
@@ -97,8 +97,8 @@ const rateLimitMap = new Map<string, RateLimitInfo>();
 
 const checkRateLimit = async (apiKey: string): Promise<void> => {
     const envConfig = getEnvironmentConfig();
-    const limit = parseInt(process.env.API_RATE_LIMIT || '100');
-    const window = parseInt(process.env.API_RATE_WINDOW || '3600000'); // 1 hour
+    const limit = parseInt(import.meta.env.VITE_API_RATE_LIMIT || '100');
+    const window = parseInt(import.meta.env.VITE_API_RATE_WINDOW || '3600000'); // 1 hour
     
     const keyHash = apiKey.slice(-8); // Use last 8 chars for identification
     const now = Date.now();
@@ -187,9 +187,9 @@ const callOpenRouter = async (prompt: string, jsonMode = false): Promise<string>
             headers: {
                 "Authorization": `Bearer ${settings.openRouterApiKey}`,
                 "Content-Type": "application/json",
-                "HTTP-Referer": process.env.VITE_APP_NAME || "BookCraft AI",
-                "X-Title": process.env.VITE_APP_NAME || "BookCraft AI",
-                "User-Agent": `${process.env.VITE_APP_NAME || "BookCraft AI"}/${process.env.VITE_APP_VERSION || "1.0.0"}`
+                "HTTP-Referer": import.meta.env.VITE_APP_NAME || "BookCraft AI",
+                "X-Title": import.meta.env.VITE_APP_NAME || "BookCraft AI",
+                "User-Agent": `${import.meta.env.VITE_APP_NAME || "BookCraft AI"}/${import.meta.env.VITE_APP_VERSION || "1.0.0"}`
             },
             body: JSON.stringify(requestBody)
         });
@@ -979,23 +979,86 @@ export const combineChapterContent = async (originalContent: string, newContent:
  * Generates a structural outline for a given chapter's content.
  */
 export const generateChapterStructure = async (chapterContent: string): Promise<{ point: string; details: string }[]> => {
+    // Strip HTML tags and clean up content for analysis
+    const cleanContent = chapterContent
+        .replace(/<[^>]*>/g, ' ')  // Remove HTML tags
+        .replace(/\s+/g, ' ')       // Normalize whitespace
+        .trim();
+    
+    // Check if content is too short for meaningful analysis
+    if (cleanContent.length < 100) {
+        log.warn('Chapter content too short for structure analysis', { length: cleanContent.length });
+        return [];
+    }
+    
     const prompt = `
-        Analyze the following chapter content and generate a structural outline.
-        Identify the main points or sections and provide a brief summary for each.
+        You are a professional editor analyzing a chapter's narrative structure.
+        
+        Analyze the following chapter content and generate a detailed structural outline.
+        Identify 4-8 key structural elements such as:
+        - Opening/Hook
+        - Character introductions or developments
+        - Major plot developments
+        - Conflicts or tensions
+        - Scene transitions
+        - Climactic moments
+        - Resolution or cliffhangers
+        - Closing/Transition to next chapter
+        
+        For each structural element, provide:
+        1. A concise point name (3-8 words)
+        2. A detailed summary (1-2 sentences) explaining what happens and its significance
 
-        Chapter Content:
+        Chapter Content (${cleanContent.split(/\s+/).length} words):
         ---
-        ${chapterContent.substring(0, 5000)}
+        ${cleanContent.substring(0, 5000)}${cleanContent.length > 5000 ? '... [truncated]' : ''}
         ---
 
-        Return ONLY a valid JSON object with this exact format:
-        {"structure": [{"point": "Main Point 1", "details": "Brief summary..."}, {"point": "Main Point 2", "details": "Brief summary..."}]}
+        Return ONLY a valid JSON object with this exact format (no markdown, no explanations):
+        {"structure": [{"point": "Opening Hook", "details": "The chapter begins with..."}, {"point": "Character Development", "details": "We see the protagonist..."}]}
+        
+        Provide at least 4 structural points, but no more than 8.
     `;
 
     try {
+        log.debug('Generating chapter structure', { contentLength: cleanContent.length });
         const response = await callOpenRouter(prompt, true);
-        const json = JSON.parse(response);
-        return json.structure || [];
+        
+        // Enhanced JSON parsing with validation
+        let json;
+        try {
+            json = JSON.parse(response);
+        } catch (parseError) {
+            log.error('Failed to parse chapter structure JSON', { 
+                response: response.substring(0, 200),
+                error: parseError 
+            });
+            throw new Error('Invalid JSON response from AI service');
+        }
+        
+        // Validate structure
+        if (!json.structure || !Array.isArray(json.structure)) {
+            log.error('Invalid structure format', { json });
+            throw new Error('AI response missing structure array');
+        }
+        
+        // Validate each item has required fields
+        const validStructure = json.structure.filter((item: any) => 
+            item.point && item.details && 
+            typeof item.point === 'string' && 
+            typeof item.details === 'string'
+        );
+        
+        if (validStructure.length === 0) {
+            log.warn('No valid structure items found', { rawStructure: json.structure });
+            return [];
+        }
+        
+        log.info('Chapter structure generated successfully', { 
+            itemCount: validStructure.length 
+        });
+        
+        return validStructure;
     } catch (error) {
         log.aiError('Chapter structure generation failed', error as Error);
         throw new Error("Failed to generate chapter structure from AI.");

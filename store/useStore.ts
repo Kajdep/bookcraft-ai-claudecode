@@ -503,6 +503,18 @@ export const useBookCraftStore = create<BookCraftState & BookCraftActions>()(
                             // Default settings can be added here
                         };
                     }
+                    
+                    // MIGRATION: Initialize materials array for existing projects
+                    // This ensures backward compatibility with projects created before materials feature
+                    Object.values(state.projects).forEach((project) => {
+                        if (!project.materials) {
+                            project.materials = [];
+                            log.info('Migrated project to include materials array', { projectId: project.id });
+                        }
+                        if (!project.materialFolders) {
+                            project.materialFolders = [];
+                        }
+                    });
                 });
             },
 

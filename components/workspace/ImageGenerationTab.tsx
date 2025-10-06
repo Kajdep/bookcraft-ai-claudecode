@@ -30,7 +30,7 @@ export const ImageGenerationTab: React.FC<ImageGenerationTabProps> = ({ project 
             <Card className="p-6">
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <label htmlFor="image-prompt" className="block text-sm font-bold text-slate-200 mb-2">
+                        <label htmlFor="image-prompt" className="block text-sm font-bold text-gray-800 mb-2">
                            Image Prompt
                         </label>
                         <textarea
@@ -39,7 +39,7 @@ export const ImageGenerationTab: React.FC<ImageGenerationTabProps> = ({ project 
                             value={prompt}
                             onChange={(e) => setPrompt(e.target.value)}
                             placeholder="e.g., A majestic castle on a floating island, digital painting style..."
-                            className="w-full bg-slate-700 border-slate-600 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary sm:text-sm p-2 text-slate-200"
+                            className="w-full bg-white border-gray-300 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary sm:text-sm p-2 text-gray-800"
                             required
                         />
                     </div>
@@ -53,9 +53,9 @@ export const ImageGenerationTab: React.FC<ImageGenerationTabProps> = ({ project 
             </Card>
 
             <div>
-                <h3 className="text-2xl font-bold text-slate-200 mb-4">Generated Images</h3>
+                <h3 className="text-2xl font-bold text-gray-800 mb-4">Generated Images</h3>
                 {isGeneratingImage && (project.generatedImages || []).length === 0 && (
-                     <Card className="bg-slate-800/50">
+                     <Card className="bg-gray-100/50">
                         <LoadingState
                             type="image"
                             message="Gemini Flash 2.5 is generating your image..."
@@ -69,7 +69,7 @@ export const ImageGenerationTab: React.FC<ImageGenerationTabProps> = ({ project 
                         {(project.generatedImages || []).map(image => (
                             <ErrorBoundary key={image.id}>
                                 <Card className="group overflow-hidden">
-                                    <div className="aspect-square bg-slate-900 flex items-center justify-center">
+                                    <div className="aspect-square bg-white flex items-center justify-center">
                                         <img
                                             src={`data:image/png;base64,${image.base64Image}`}
                                             alt={image.prompt}
@@ -77,7 +77,7 @@ export const ImageGenerationTab: React.FC<ImageGenerationTabProps> = ({ project 
                                         />
                                     </div>
                                     <div className="p-4">
-                                        <p className="text-sm text-slate-400 truncate group-hover:whitespace-normal">{image.prompt}</p>
+                                        <p className="text-sm text-gray-600 truncate group-hover:whitespace-normal">{image.prompt}</p>
                                     </div>
                                 </Card>
                             </ErrorBoundary>
@@ -85,10 +85,10 @@ export const ImageGenerationTab: React.FC<ImageGenerationTabProps> = ({ project 
                     </div>
                 ) : (
                     !isGeneratingImage && (
-                        <div className="text-center py-16 border-2 border-dashed border-slate-700 rounded-lg bg-slate-800/20">
+                        <div className="text-center py-16 border-2 border-dashed border-gray-300 rounded-lg bg-gray-100/20">
                             <PhotoIcon className="mx-auto h-12 w-12 text-slate-600" />
-                            <h3 className="mt-4 text-xl font-semibold text-slate-300">No Images Generated Yet</h3>
-                            <p className="mt-2 text-slate-400">Use the form above to create your first visual.</p>
+                            <h3 className="mt-4 text-xl font-semibold text-gray-700">No Images Generated Yet</h3>
+                            <p className="mt-2 text-gray-600">Use the form above to create your first visual.</p>
                         </div>
                     )
                 )}

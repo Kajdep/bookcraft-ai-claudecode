@@ -30,17 +30,17 @@ const ChapterCard: React.FC<ChapterCardProps> = ({ chapter, onSelect }) => {
 
     return (
         <Card
-            className="mb-3 cursor-pointer bg-slate-800 hover:bg-slate-700/50 hover:border-brand-primary"
+            className="mb-3 cursor-pointer bg-gray-100 hover:bg-white/50 hover:border-brand-primary"
             onClick={() => onSelect(chapter.id)}
         >
             <div className="p-4">
                 <div className="flex justify-between items-start">
-                    <h4 className="font-bold text-slate-100 pr-2">{chapter.title}</h4>
-                    <button onClick={handleDelete} className="text-slate-500 hover:text-red-400 transition-colors flex-shrink-0">
+                    <h4 className="font-bold text-gray-900 pr-2">{chapter.title}</h4>
+                    <button onClick={handleDelete} className="text-gray-500 hover:text-red-400 transition-colors flex-shrink-0">
                         <XCircleIcon className="w-5 h-5"/>
                     </button>
                 </div>
-                <p className="text-sm text-slate-400 mt-2 line-clamp-2">
+                <p className="text-sm text-gray-600 mt-2 line-clamp-2">
                     {chapter.content || <span className="italic">No content yet...</span>}
                 </p>
                 <div className="mt-4">
@@ -48,7 +48,7 @@ const ChapterCard: React.FC<ChapterCardProps> = ({ chapter, onSelect }) => {
                         value={chapter.status}
                         onChange={handleStatusChange}
                         onClick={(e) => e.stopPropagation()}
-                        className="w-full bg-slate-700 border-slate-600 rounded-md text-xs p-1 text-white focus:ring-brand-primary focus:border-brand-primary"
+                        className="w-full bg-white border-gray-300 rounded-md text-xs p-1 text-gray-900 focus:ring-brand-primary focus:border-brand-primary"
                      >
                         {/* FIX: Type errors are resolved now that `ChapterStatus` is a defined enum. */}
                         {Object.values(ChapterStatus).map(s => <option key={s} value={s}>{s}</option>)}
@@ -84,10 +84,10 @@ const KanbanColumn: React.FC<KanbanColumnProps> = ({ status, chapters, onChapter
     );
 
     return (
-        <div className="bg-slate-900/50 rounded-lg w-full flex-shrink-0">
+        <div className="bg-white/50 rounded-lg w-full flex-shrink-0">
             <div className={`flex items-center justify-between p-3 border-b-2 ${border}`}>
                 <h3 className={`font-semibold text-lg ${text}`}>{status}</h3>
-                <span className="bg-slate-700 text-slate-200 text-sm font-bold w-6 h-6 flex items-center justify-center rounded-full">{chapters.length}</span>
+                <span className="bg-white text-gray-800 text-sm font-bold w-6 h-6 flex items-center justify-center rounded-full">{chapters.length}</span>
             </div>
             <div className="p-2 h-full overflow-y-auto">
                 {sortedChapters.map(chap => (

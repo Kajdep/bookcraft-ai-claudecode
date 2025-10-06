@@ -63,6 +63,8 @@ export const ChapterEditorView: React.FC<ChapterEditorViewProps> = ({ chapterId 
     const [isGeneratingSuggestions, setIsGeneratingSuggestions] = useState(false);
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [showGrammarChecker, setShowGrammarChecker] = useState(false);
+    const [appliedSuggestions, setAppliedSuggestions] = useState<Set<number>>(new Set());
+    const [undoStack, setUndoStack] = useState<Array<{content: string; suggestionIndex: number}>>([]);
 
     useEffect(() => {
         if (chapter) {
@@ -71,6 +73,54 @@ export const ChapterEditorView: React.FC<ChapterEditorViewProps> = ({ chapterId 
             setNotes(chapter.notes || '');
         }
     }, [chapter]);
+
+    // FIX: Save content immediately when component unmounts
+    useEffect(() => {
+        return () => {
+            // Save any pending changes when unmounting
+            if (chapter && content && content !== chapter.content) {
+                log.debug('ChapterEditorView: Saving content on unmount', { chapterId: chapter.id });
+                updateChapter(chapter.id, { content });
+            }
+            if (chapter && notes && notes !== chapter.notes) {
+                log.debug('ChapterEditorView: Saving notes on unmount', { chapterId: chapter.id });
+                updateChapter(chapter.id, { notes });
+            }
+            if (chapter && title && title !== chapter.title) {
+                log.debug('ChapterEditorView: Saving title on unmount', { chapterId: chapter.id });
+                updateChapter(chapter.id, { title });
+            }
+        };
+    }, [chapter, content, notes, title, updateChapter]);
+
+    // ENHANCED: Add beforeunload safety to prevent data loss on browser navigation/refresh
+    useEffect(() => {
+        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+            // Always try to save before potential unload
+            if (chapter) {
+                if (content && content !== chapter.content) {
+                    updateChapter(chapter.id, { content });
+                    log.info('ChapterEditorView: Emergency save on beforeunload', { chapterId: chapter.id });
+                }
+                if (notes && notes !== chapter.notes) {
+                    updateChapter(chapter.id, { notes });
+                }
+                if (title && title !== chapter.title) {
+                    updateChapter(chapter.id, { title });
+                }
+                
+                // Show warning if there are unsaved changes
+                if (content !== chapter.content || notes !== chapter.notes || title !== chapter.title) {
+                    e.preventDefault();
+                    e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+                    return e.returnValue;
+                }
+            }
+        };
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    }, [chapter, content, notes, title, updateChapter]);
 
 
     // FIX: Stable content saving with memoized comparison
@@ -176,37 +226,151 @@ export const ChapterEditorView: React.FC<ChapterEditorViewProps> = ({ chapterId 
         if (!chapter.content.trim()) return;
         setIsGeneratingSuggestions(true);
         try {
-            // Create a context-aware prompt for suggestions
+            // Get project context for more intelligent suggestions
+            const project = activeProjectId ? projects[activeProjectId] : null;
             const plainText = content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
-            const prompt = `Analyze this chapter content and provide 5 specific, actionable suggestions for improvement. Consider pacing, character development, dialogue, description, plot progression, and structure. 
+            const wordCount = plainText.split(/\s+/).filter(w => w.length > 0).length;
+            
+            // Build context-aware prompt with project details
+            let contextInfo = '';
+            
+            if (project) {
+                contextInfo += `\n\nPROJECT CONTEXT:\n`;
+                contextInfo += `- Book Title: "${project.title}"\n`;
+                contextInfo += `- Genre: ${project.genre}\n`;
+                
+                // Add plot point context if available
+                if (plotPoints && plotPoints.length > 0) {
+                    const plotContext = plotPoints.slice(0, 3).map(p => `  • ${p.title}: ${p.description}`).join('\n');
+                    contextInfo += `- Key Plot Points:\n${plotContext}\n`;
+                }
+                
+                // Add research context if available
+                if (researchItems && researchItems.length > 0) {
+                    const researchContext = researchItems.slice(0, 2).map(r => `  • ${r.query}`).join('\n');
+                    contextInfo += `- Related Research:\n${researchContext}\n`;
+                }
+                
+                // Add chapter position context
+                const chapterIndex = project.chapters.findIndex(c => c.id === chapterId);
+                const totalChapters = project.chapters.length;
+                if (chapterIndex !== -1) {
+                    const position = chapterIndex === 0 ? 'opening' : 
+                                   chapterIndex === totalChapters - 1 ? 'closing' : 
+                                   chapterIndex < totalChapters / 3 ? 'early' :
+                                   chapterIndex > (totalChapters * 2) / 3 ? 'late' : 'middle';
+                    contextInfo += `- Chapter Position: Chapter ${chapterIndex + 1} of ${totalChapters} (${position} stage)\n`;
+                }
+            }
+            
+            const prompt = `You are a professional editor providing detailed, actionable feedback on a chapter.
 
-Chapter: "${chapter.title}"
-Content: ${plainText.substring(0, 1000)}${plainText.length > 1000 ? '...' : ''}
+CHAPTER DETAILS:
+- Title: "${chapter.title}"
+- Word Count: ${wordCount} words${contextInfo}
 
-Provide suggestions in this format:
-1. [Suggestion type]: [Specific actionable advice]
+CHAPTER CONTENT (first 1500 words):
+---
+${plainText.substring(0, 1500)}${plainText.length > 1500 ? '\n... [content continues]' : ''}
+---
 
-Focus on concrete improvements the author can implement.`;
+Provide 5-7 specific, actionable suggestions for improving this chapter. Consider:
+
+1. **Pacing & Structure**: Does the chapter flow well? Are scenes balanced?
+2. **Character Development**: Are characters authentic and evolving?
+3. **Dialogue**: Is it natural, purposeful, and revealing?
+4. **Description & Atmosphere**: Is the setting vivid without being overdone?
+5. **Plot Progression**: Does the chapter advance the story meaningfully?
+6. **Genre Conventions**: Does it meet ${project?.genre || 'the genre'} reader expectations?
+7. **Opening & Closing**: Strong hooks and transitions?
+8. **Show vs Tell**: Balance of action/dialogue vs exposition?
+
+For each suggestion:
+- Be specific about what needs improvement
+- Explain WHY it matters for the story
+- Provide concrete examples or techniques
+
+Format your response as a numbered list:
+1. [Category]: [Specific suggestion with reasoning and example]
+
+Provide 5-7 suggestions, prioritizing the most impactful improvements.`;
+            
+            log.debug('Generating enhanced suggestions', { 
+                chapterTitle: chapter.title,
+                wordCount,
+                hasPlotContext: plotPoints.length > 0,
+                hasResearchContext: researchItems.length > 0
+            });
             
             const response = await getAIAssistantResponse(chapter.id, prompt);
-            const suggestionLines = response.split('\n').filter(line => line.match(/^\d+\./)).slice(0, 5);
-            setSuggestions(suggestionLines);
+            const suggestionLines = response.split('\n').filter(line => line.match(/^\d+\./)).slice(0, 7);
+            
+            if (suggestionLines.length === 0) {
+                // Fallback: split by double newlines or sentences if numbered format fails
+                const fallbackSuggestions = response
+                    .split(/\n\n+/)
+                    .filter(s => s.trim().length > 20)
+                    .map((s, i) => `${i + 1}. ${s.trim()}`)
+                    .slice(0, 7);
+                setSuggestions(fallbackSuggestions.length > 0 ? fallbackSuggestions : ['Unable to generate suggestions. Please try again.']);
+            } else {
+                setSuggestions(suggestionLines);
+            }
+            
             setShowSuggestions(true);
+            log.info('Suggestions generated successfully', { count: suggestionLines.length });
         } catch (error) {
             log.error('Failed to generate chapter suggestions', error as Error, 'ChapterEditorView');
-            alert("Sorry, there was an error generating suggestions.");
+            alert("Sorry, there was an error generating suggestions. Please check your AI configuration.");
         } finally {
             setIsGeneratingSuggestions(false);
         }
+    };
+
+    const handleApplySuggestion = (suggestionText: string, index: number) => {
+        // Save current content for undo
+        setUndoStack(prev => [...prev, { content, suggestionIndex: index }]);
+        
+        // Extract the actual suggestion text (remove the number prefix)
+        const cleanSuggestion = suggestionText.replace(/^\d+\.\s*/, '');
+        
+        // Add suggestion as a note/comment at the end of the content
+        const separator = content.trim().length > 0 ? '<p><br></p>' : '';
+        const formattedSuggestion = `<p><em><strong>AI Suggestion:</strong> ${cleanSuggestion}</em></p>`;
+        setContent(content + separator + formattedSuggestion);
+        
+        // Mark as applied
+        setAppliedSuggestions(prev => new Set(prev).add(index));
+        
+        log.debug('Applied suggestion', { index, suggestion: cleanSuggestion });
+    };
+
+    const handleUndoLastSuggestion = () => {
+        if (undoStack.length === 0) return;
+        
+        const lastUndo = undoStack[undoStack.length - 1];
+        setContent(lastUndo.content);
+        
+        // Remove from applied set
+        setAppliedSuggestions(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(lastUndo.suggestionIndex);
+            return newSet;
+        });
+        
+        // Remove from undo stack
+        setUndoStack(prev => prev.slice(0, -1));
+        
+        log.debug('Undid last suggestion', { suggestionIndex: lastUndo.suggestionIndex });
     };
 
     if (!chapter) return <div className="p-4 text-center">Chapter not found.</div>;
 
     return (
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 h-full">
-            <div className="xl:col-span-2 bg-slate-800/50 rounded-lg border border-slate-700/50 h-full flex flex-col">
-                <div className="p-4 border-b border-slate-700/50">
-                    <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} onBlur={handleTitleBlur} placeholder="Chapter Title" className="w-full bg-transparent text-2xl font-bold text-slate-100 focus:outline-none focus:ring-0" />
+            <div className="xl:col-span-2 bg-gray-100/50 rounded-lg border border-gray-300/50 h-full flex flex-col">
+                <div className="p-4 border-b border-gray-300/50">
+                    <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} onBlur={handleTitleBlur} placeholder="Chapter Title" className="w-full bg-transparent text-2xl font-bold text-gray-900 focus:outline-none focus:ring-0" />
                 </div>
                 <LexicalEditor
                     content={content}
@@ -218,7 +382,7 @@ Focus on concrete improvements the author can implement.`;
                     placeholder="Start writing your chapter..."
                     className="flex-grow"
                 />
-                <div className="p-3 bg-slate-900/50 border-t border-slate-700/50 flex items-center justify-between space-x-3 rounded-b-lg flex-wrap">
+                <div className="p-3 bg-white/50 border-t border-gray-300/50 flex items-center justify-between space-x-3 rounded-b-lg flex-wrap">
                     <div className="flex items-center space-x-2">
                         <Button variant="secondary" size="sm" onClick={handleCleanAndFormat} isLoading={isCleaning}>
                             <SparklesIcon className="w-4 h-4 mr-1" />
@@ -233,7 +397,7 @@ Focus on concrete improvements the author can implement.`;
                             Assistant
                         </Button>
                     </div>
-                    <div className="flex items-center gap-4 text-xs text-slate-400">
+                    <div className="flex items-center gap-4 text-xs text-gray-600">
                         <span>Words: {content.replace(/<[^>]*>/g, '').split(/\s+/).filter(w => w.length > 0).length}</span>
                         <SaveStatusIndicator />
                     </div>
@@ -248,13 +412,13 @@ Focus on concrete improvements the author can implement.`;
                         className="h-1/2"
                     />
                 ) : (
-                    <div className="bg-slate-800/50 border border-slate-700/50 rounded-lg p-4 flex-grow flex flex-col">
-                        <h3 className="text-slate-200 font-bold mb-2 flex-shrink-0">Research</h3>
-                    <div className="overflow-y-auto text-sm text-slate-400 space-y-2 flex-grow">
+                    <div className="bg-gray-100/50 border border-gray-300/50 rounded-lg p-4 flex-grow flex flex-col">
+                        <h3 className="text-gray-800 font-bold mb-2 flex-shrink-0">Research</h3>
+                    <div className="overflow-y-auto text-sm text-gray-600 space-y-2 flex-grow">
                         {researchItems.length > 0 ? (
                             researchItems.map((item) => (
-                                <div key={item.id} className="p-2 bg-slate-700/30 rounded group">
-                                    <p className="font-semibold text-slate-300 text-xs mb-1">{item.query}</p>
+                                <div key={item.id} className="p-2 bg-white/30 rounded group">
+                                    <p className="font-semibold text-gray-700 text-xs mb-1">{item.query}</p>
                                     <p className="text-xs mb-2 line-clamp-2">{item.summary}</p>
                                     <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                         <Button size="xs" variant="secondary" onClick={() => handleInsertResearch(item)} className="text-xs py-1 px-2">
@@ -271,13 +435,13 @@ Focus on concrete improvements the author can implement.`;
                 </div>
                 )}
                 {!showGrammarChecker && (
-                <div className="bg-slate-800/50 border border-slate-700/50 rounded-lg p-4 flex-grow flex flex-col">
-                    <h3 className="text-slate-200 font-bold mb-2 flex-shrink-0">Plot Points</h3>
-                    <div className="overflow-y-auto text-sm text-slate-400 space-y-2 flex-grow">
+                <div className="bg-gray-100/50 border border-gray-300/50 rounded-lg p-4 flex-grow flex flex-col">
+                    <h3 className="text-gray-800 font-bold mb-2 flex-shrink-0">Plot Points</h3>
+                    <div className="overflow-y-auto text-sm text-gray-600 space-y-2 flex-grow">
                         {plotPoints.length > 0 ? (
                             plotPoints.map((item) => (
-                                <div key={item.id} className="p-2 bg-slate-700/30 rounded">
-                                    <p className="font-semibold text-slate-300">{item.title}</p>
+                                <div key={item.id} className="p-2 bg-white/30 rounded">
+                                    <p className="font-semibold text-gray-700">{item.title}</p>
                                     <p className="text-xs">{item.description}</p>
                                 </div>
                             ))
@@ -285,9 +449,9 @@ Focus on concrete improvements the author can implement.`;
                     </div>
                 </div>
                 )}
-                 <div className="bg-slate-800/50 border border-slate-700/50 rounded-lg p-4 flex-grow flex flex-col">
+                 <div className="bg-gray-100/50 border border-gray-300/50 rounded-lg p-4 flex-grow flex flex-col">
                     <div className="mb-4 flex-shrink-0">
-                        <h3 className="text-slate-200 font-bold mb-2">AI Tools</h3>
+                        <h3 className="text-gray-800 font-bold mb-2">AI Tools</h3>
                         <div className="space-y-2">
                              <Button size="sm" variant={showGrammarChecker ? "primary" : "secondary"} onClick={() => setShowGrammarChecker(!showGrammarChecker)} className="w-full justify-start"><BeakerIcon className="w-4 h-4 mr-2" /> Grammar Check</Button>
                              <Button size="sm" variant="secondary" onClick={handleGenerateStructure} isLoading={isGeneratingStructure} disabled={!chapter.content.trim()} className="w-full justify-start"><BrainCircuitIcon className="w-4 h-4 mr-2" /> Chapter Structure</Button>
@@ -295,22 +459,45 @@ Focus on concrete improvements the author can implement.`;
                              <Button size="sm" variant="secondary" onClick={handleGenerateSuggestions} isLoading={isGeneratingSuggestions} disabled={!chapter.content.trim()} className="w-full justify-start"><SparklesIcon className="w-4 h-4 mr-2" /> Get Suggestions</Button>
                         </div>
                     </div>
-                    <div className="overflow-y-auto text-sm text-slate-400 space-y-2 flex-grow">
+                    <div className="overflow-y-auto text-sm text-gray-600 space-y-2 flex-grow">
                         {showSuggestions && suggestions.length > 0 ? (
                             <>
-                                <h4 className="text-slate-300 font-semibold text-xs mb-2">Chapter Suggestions:</h4>
+                                <div className="flex items-center justify-between mb-2">
+                                    <h4 className="text-gray-700 font-semibold text-xs">Chapter Suggestions:</h4>
+                                    {undoStack.length > 0 && (
+                                        <Button 
+                                            size="sm" 
+                                            variant="secondary" 
+                                            onClick={handleUndoLastSuggestion}
+                                            className="text-xs py-1 px-2"
+                                        >
+                                            Undo Last
+                                        </Button>
+                                    )}
+                                </div>
                                 {suggestions.map((suggestion, index) => (
-                                    <div key={index} className="p-2 bg-slate-700/30 rounded">
-                                        <p className="text-xs text-slate-300">{suggestion}</p>
+                                    <div key={index} className="p-2 bg-white/30 rounded mb-2 group">
+                                        <p className="text-xs text-gray-700 mb-2">{suggestion}</p>
+                                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <Button 
+                                                size="sm" 
+                                                variant={appliedSuggestions.has(index) ? "success" : "primary"}
+                                                onClick={() => handleApplySuggestion(suggestion, index)}
+                                                disabled={appliedSuggestions.has(index)}
+                                                className="text-xs py-1 px-2"
+                                            >
+                                                {appliedSuggestions.has(index) ? '✓ Applied' : 'Apply'}
+                                            </Button>
+                                        </div>
                                     </div>
                                 ))}
                             </>
                         ) : chapter.structure && chapter.structure.length > 0 ? (
                             <>
-                                <h4 className="text-slate-300 font-semibold text-xs mb-2">Chapter Structure:</h4>
+                                <h4 className="text-gray-700 font-semibold text-xs mb-2">Chapter Structure:</h4>
                                 {chapter.structure.map((item, index) => (
-                                    <div key={index} className="p-2 bg-slate-700/30 rounded">
-                                        <p className="font-semibold text-slate-300">{item.point}</p>
+                                    <div key={index} className="p-2 bg-white/30 rounded">
+                                        <p className="font-semibold text-gray-700">{item.point}</p>
                                         <p className="text-xs">{item.details}</p>
                                     </div>
                                 ))}

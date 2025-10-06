@@ -12,7 +12,7 @@ const TabButton: React.FC<{ active: boolean; onClick: () => void; children: Reac
     <button
         onClick={onClick}
         className={`px-4 py-2 text-sm font-medium rounded-md transition-colors relative ${
-            active ? 'text-white' : 'text-slate-300 hover:bg-slate-700/50'
+            active ? 'text-gray-900' : 'text-gray-700 hover:bg-white/50'
         }`}
     >
         {children}
@@ -29,14 +29,14 @@ export const VisualsWorkspace: React.FC<VisualsWorkspaceProps> = ({ project }) =
 
     return (
         <div className="animate-fade-in">
-             <div className="border-b border-slate-700 mb-8">
+             <div className="border-b border-gray-300 mb-8">
                 <nav className="flex space-x-2">
                     <TabButton active={activeTab === 'AI Visuals'} onClick={() => setActiveTab('AI Visuals')}>AI Visuals</TabButton>
                     <TabButton active={activeTab === 'Visual Library'} onClick={() => setActiveTab('Visual Library')}>
-                        Visual Library <span className="ml-2 bg-slate-700 text-slate-200 text-xs font-bold px-2 py-0.5 rounded-full">{project.visuals.length}</span>
+                        Visual Library <span className="ml-2 bg-white text-gray-800 text-xs font-bold px-2 py-0.5 rounded-full">{project.visuals.length}</span>
                     </TabButton>
                     <TabButton active={activeTab === 'Image Generation'} onClick={() => setActiveTab('Image Generation')}>
-                        Image Generation <span className="ml-2 bg-slate-700 text-slate-200 text-xs font-bold px-2 py-0.5 rounded-full">{project.generatedImages.length}</span>
+                        Image Generation <span className="ml-2 bg-white text-gray-800 text-xs font-bold px-2 py-0.5 rounded-full">{project.generatedImages.length}</span>
                     </TabButton>
                 </nav>
             </div>

@@ -431,6 +431,27 @@ export const MaterialTab: React.FC = () => {
     const addMaterialLink = useBookCraftStore(state => state.addMaterialLink);
     const uploadMaterialFile = useBookCraftStore(state => state.uploadMaterialFile);
 
+    const typeFilterOptions = useMemo(
+        () => [
+            { value: '', label: 'All Types' },
+            ...Object.values(MaterialType).map(type => ({ value: type, label: type }))
+        ],
+        []
+    );
+
+    const categoryFilterOptions = useMemo(
+        () => [
+            { value: '', label: 'All Categories' },
+            ...Object.values(MaterialCategory).map(category => ({ value: category, label: category }))
+        ],
+        []
+    );
+
+    const categoryOptions = useMemo(
+        () => Object.values(MaterialCategory).map(category => ({ value: category, label: category })),
+        []
+    );
+
     // Filter and search materials
     const filteredMaterials = useMemo(() => {
         // Create a copy of materials array to avoid mutating readonly state
@@ -564,24 +585,16 @@ export const MaterialTab: React.FC = () => {
                     <div>
                         <Select
                             value={filterType}
-                            onChange={(e) => setFilterType(e.target.value as MaterialType | '')}
-                        >
-                            <option value="">All Types</option>
-                            {Object.values(MaterialType).map(type => (
-                                <option key={type} value={type}>{type}</option>
-                            ))}
-                        </Select>
+                            onChange={(value) => setFilterType(value as MaterialType | '')}
+                            options={typeFilterOptions}
+                        />
                     </div>
                     <div>
                         <Select
                             value={filterCategory}
-                            onChange={(e) => setFilterCategory(e.target.value as MaterialCategory | '')}
-                        >
-                            <option value="">All Categories</option>
-                            {Object.values(MaterialCategory).map(category => (
-                                <option key={category} value={category}>{category}</option>
-                            ))}
-                        </Select>
+                            onChange={(value) => setFilterCategory(value as MaterialCategory | '')}
+                            options={categoryFilterOptions}
+                        />
                     </div>
                     <div className="flex items-center space-x-4">
                         <label className="flex items-center cursor-pointer">
@@ -665,12 +678,9 @@ export const MaterialTab: React.FC = () => {
                             />
                             <Select
                                 value={newNoteCategory}
-                                onChange={(e) => setNewNoteCategory(e.target.value as MaterialCategory)}
-                            >
-                                {Object.values(MaterialCategory).map(category => (
-                                    <option key={category} value={category}>{category}</option>
-                                ))}
-                            </Select>
+                                onChange={(value) => setNewNoteCategory(value as MaterialCategory)}
+                                options={categoryOptions}
+                            />
                             <textarea
                                 placeholder="Write your note content here..."
                                 value={newNoteContent}
@@ -713,12 +723,9 @@ export const MaterialTab: React.FC = () => {
                             />
                             <Select
                                 value={newLinkCategory}
-                                onChange={(e) => setNewLinkCategory(e.target.value as MaterialCategory)}
-                            >
-                                {Object.values(MaterialCategory).map(category => (
-                                    <option key={category} value={category}>{category}</option>
-                                ))}
-                            </Select>
+                                onChange={(value) => setNewLinkCategory(value as MaterialCategory)}
+                                options={categoryOptions}
+                            />
                         </div>
                         <div className="flex justify-end space-x-3 mt-6">
                             <Button variant="secondary" onClick={() => setShowLinkForm(false)}>

@@ -15,6 +15,21 @@ type BookBinding = 'paperback' | 'hardcover';
 type PaperType = 'white' | 'cream' | 'color';
 type Genre = 'fiction' | 'non-fiction' | 'poetry' | 'children' | 'textbook' | 'other';
 
+const GENRE_OPTIONS: { value: Genre; label: string }[] = [
+    { value: 'fiction', label: 'Fiction' },
+    { value: 'non-fiction', label: 'Non-Fiction' },
+    { value: 'poetry', label: 'Poetry' },
+    { value: 'children', label: "Children's" },
+    { value: 'textbook', label: 'Textbook' },
+    { value: 'other', label: 'Other' }
+];
+
+const PAPER_TYPE_OPTIONS: { value: PaperType; label: string }[] = [
+    { value: 'white', label: 'White (Standard)' },
+    { value: 'cream', label: 'Cream (Classic)' },
+    { value: 'color', label: 'Color (Premium)' }
+];
+
 interface PaperDimensions {
     width: number;
     height: number;
@@ -150,6 +165,15 @@ export const KDPCalculator: React.FC = () => {
     const [listPrice, setListPrice] = useState<number>(12.99);
     const [selectedGenre, setSelectedGenre] = useState<Genre>('fiction');
     const [activeTab, setActiveTab] = useState<'margins' | 'cover' | 'royalty' | 'spine' | 'guidelines'>('guidelines');
+
+    const paperSizeOptions = useMemo(
+        () =>
+            Object.entries(PAPER_SIZES).map(([key, size]) => ({
+                value: key as PaperSize,
+                label: `${size.name}${size.recommended ? ' ⭐' : ''}`
+            })),
+        []
+    );
 
     const dimensions = PAPER_SIZES[paperSize] || PAPER_SIZES['6x9'];
 
@@ -592,18 +616,13 @@ export const KDPCalculator: React.FC = () => {
                 <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
                     <div>
                         <label className="block text-sm font-medium mb-2">Genre</label>
-                        <Select 
-                            value={selectedGenre} 
-                            onChange={(e) => setSelectedGenre(e.target.value as Genre)}
+                        <Select
+                            value={selectedGenre}
+                            onChange={(value) => setSelectedGenre(value as Genre)}
+                            options={GENRE_OPTIONS}
+                            placeholder="Select a genre"
                             className="w-full"
-                        >
-                            <option value="fiction">Fiction</option>
-                            <option value="non-fiction">Non-Fiction</option>
-                            <option value="poetry">Poetry</option>
-                            <option value="children">Children's</option>
-                            <option value="textbook">Textbook</option>
-                            <option value="other">Other</option>
-                        </Select>
+                        />
                     </div>
                     <div>
                         <label className="block text-sm font-medium mb-2">
@@ -615,19 +634,15 @@ export const KDPCalculator: React.FC = () => {
                                 <span className="text-orange-400 text-xs ml-1">(Check genre fit)</span>
                             )}
                         </label>
-                        <Select 
-                            value={paperSize} 
-                            onChange={(e) => setPaperSize(e.target.value as PaperSize)}
+                        <Select
+                            value={paperSize}
+                            onChange={(value) => setPaperSize(value as PaperSize)}
+                            options={paperSizeOptions}
+                            placeholder="Select a paper size"
                             className={`w-full ${
                                 !dimensions.genre.includes(selectedGenre) ? 'border-orange-400/50' : ''
                             }`}
-                        >
-                            {Object.entries(PAPER_SIZES).map(([key, size]) => (
-                                <option key={key} value={key}>
-                                    {size.name} {size.recommended ? '⭐' : ''}
-                                </option>
-                            ))}
-                        </Select>
+                        />
                     </div>
                     <div>
                         <label className="block text-sm font-medium mb-2">
@@ -658,15 +673,13 @@ export const KDPCalculator: React.FC = () => {
                                 <span className="text-amber-400 text-xs ml-1">(Higher cost)</span>
                             )}
                         </label>
-                        <Select 
-                            value={paperType} 
-                            onChange={(e) => setPaperType(e.target.value as PaperType)}
+                        <Select
+                            value={paperType}
+                            onChange={(value) => setPaperType(value as PaperType)}
+                            options={PAPER_TYPE_OPTIONS}
+                            placeholder="Select a paper type"
                             className="w-full"
-                        >
-                            <option value="white">White (Standard)</option>
-                            <option value="cream">Cream (Classic)</option>
-                            <option value="color">Color (Premium)</option>
-                        </Select>
+                        />
                     </div>
                     <div>
                         <label className="block text-sm font-medium mb-2">

@@ -2293,9 +2293,88 @@ export const useBookCraftStore = create<BookCraftState & BookCraftActions>()(
                 try {
                     return await materialFileManager.extractFileMetadata(file);
                 } catch (error) {
-                    log.warn('Failed to extract file metadata', error as Error);
-                    return {};
+                    log.warn('Failed to extract file metadata via manager, using fallback', error as Error);
                 }
+
+                const metadata: Record<string, unknown> = {};
+
+                try {
+                    metadata.dateCreated = new Date(file.lastModified);
+                } catch (error) {
+                    // Ignore date extraction errors
+                }
+
+                if (file.type.startsWith('image/')) {
+                    try {
+                        const dimensions = await new Promise<{ width: number; height: number }>((resolve, reject) => {
+                            const reader = new FileReader();
+                            reader.onload = () => {
+                                const image = new Image();
+                                image.onload = () => resolve({ width: image.width, height: image.height });
+                                image.onerror = () => reject(new Error('Failed to load image dimensions'));
+                                image.src = reader.result as string;
+                            };
+                            reader.onerror = () => reject(new Error('Failed to read image for dimensions'));
+                            reader.readAsDataURL(file);
+                        });
+
+                        metadata.dimensions = dimensions;
+                    } catch (error) {
+                        // Ignore failures when extracting dimensions
+                    }
+                } else if (file.type.startsWith('video/') || file.type.startsWith('audio/')) {
+                    try {
+                        const duration = await new Promise<number>((resolve) => {
+                            const element = document.createElement(file.type.startsWith('video/') ? 'video' : 'audio');
+                            element.preload = 'metadata';
+                            const url = URL.createObjectURL(file);
+
+                            const cleanup = () => {
+                                URL.revokeObjectURL(url);
+                                element.src = '';
+                            };
+
+                            element.onloadedmetadata = () => {
+                                resolve(Number.isFinite(element.duration) ? element.duration : 0);
+                                cleanup();
+                            };
+
+                            element.onerror = () => {
+                                resolve(0);
+                                cleanup();
+                            };
+
+                            element.src = url;
+
+                            // Timeout in case metadata never loads
+                            setTimeout(() => {
+                                resolve(0);
+                                cleanup();
+                            }, 10000);
+                        });
+
+                        metadata.duration = duration;
+                    } catch (error) {
+                        metadata.duration = 0;
+                    }
+                } else if (file.type === 'application/pdf') {
+                    metadata.fileType = 'document';
+                } else if (file.type.includes('text') || /\.(txt|md|rtf)$/i.test(file.name)) {
+                    try {
+                        const text = await new Promise<string>((resolve, reject) => {
+                            const reader = new FileReader();
+                            reader.onload = () => resolve((reader.result as string) ?? '');
+                            reader.onerror = () => reject(new Error('Failed to read text file'));
+                            reader.readAsText(file);
+                        });
+
+                        metadata.wordCount = text.split(/\s+/).filter(word => word.length > 0).length;
+                    } catch (error) {
+                        // Ignore text parsing errors
+                    }
+                }
+
+                return metadata as Partial<MaterialItem['metadata']>;
             },
 
             // AI Process tracking

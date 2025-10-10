@@ -24,7 +24,7 @@ export default defineConfig(({ mode }) => {
           output: {
             manualChunks: {
               'react-vendor': ['react', 'react-dom'],
-              'editor': ['lexical', '@lexical/react', '@lexical/html'],
+              'editor': ['lexical', '@lexical/html'],
               'export': ['docx', 'jspdf', 'epub-gen-memory'],
               'ui': ['lucide-react']
             }
@@ -42,7 +42,8 @@ export default defineConfig(({ mode }) => {
           '@services': path.resolve(__dirname, './services'),
           '@store': path.resolve(__dirname, './store'),
           '@types': path.resolve(__dirname, './types.ts')
-        }
+        },
+        conditions: ['import', 'module', 'browser', 'default']
       },
       define: {
         // === REQUIRED API KEYS ===

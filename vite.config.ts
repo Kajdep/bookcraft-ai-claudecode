@@ -85,18 +85,9 @@ export default defineConfig(({ mode }) => {
         // Backwards compatibility
         'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY)
       },
-      resolve: {
-        alias: {
-          '@': path.resolve(__dirname, '.'),
-        }
-      },
       server: {
         port: 5173,
         host: true
-      },
-      build: {
-        sourcemap: mode === 'development',
-        minify: mode === 'production'
       }
     };
 });

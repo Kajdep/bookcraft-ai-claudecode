@@ -317,12 +317,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                         />
                                     </div>
                                 </div>
-                            </>
+                            </form>
                         )}
 
                         {/* AI Models Tab */}
                         {activeTab === 'models' && (
-                            <>
+                            <form onSubmit={(e) => e.preventDefault()}>
                                 <div>
                                     <h3 className="text-lg font-semibold text-gray-900 mb-2">AI Model Selection</h3>
                                     <p className="text-sm text-gray-600 mb-6">

@@ -2295,55 +2295,7 @@ export const useBookCraftStore = create<BookCraftState & BookCraftActions>()(
                 } catch (error) {
                     log.warn('Failed to extract file metadata', error as Error);
                     return {};
-                            });
-                            
-                            if (file.type.startsWith('video/')) {
-                                (element as HTMLVideoElement).src = url;
-                            }
-                            
-                            // Timeout after 10 seconds
-                            setTimeout(() => {
-                                URL.revokeObjectURL(url);
-                                resolve(0);
-                            }, 10000);
-                        });
-                        
-                        metadata.duration = duration;
-                        
-                        if (file.type.startsWith('video/')) {
-                            // Extract additional video metadata if possible
-                            metadata.format = file.type;
-                        }
-                    } catch (error) {
-                        metadata.duration = 0;
-                    }
-                } else if (file.type === 'application/pdf') {
-                    // For PDF files, try to extract basic information
-                    try {
-                        metadata.format = 'PDF';
-                        metadata.fileType = 'document';
-                    } catch (error) {
-                        // Ignore errors
-                    }
-                } else if (file.type.includes('text') || file.name.match(/\.(txt|md|rtf)$/i)) {
-                    // For text files, calculate word count
-                    try {
-                        const text = await new Promise<string>((resolve, reject) => {
-                            const reader = new FileReader();
-                            reader.onload = () => resolve(reader.result as string);
-                            reader.onerror = reject;
-                            reader.readAsText(file);
-                        });
-                        
-                        metadata.wordCount = text.split(/\s+/).filter(word => word.length > 0).length;
-                        metadata.characterCount = text.length;
-                        metadata.lineCount = text.split('\n').length;
-                    } catch (error) {
-                        // Ignore errors
-                    }
                 }
-                
-                return metadata;
             },
 
             // AI Process tracking

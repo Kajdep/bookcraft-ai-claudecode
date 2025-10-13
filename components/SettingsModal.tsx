@@ -43,7 +43,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     const [fontFamily, setFontFamily] = useState(settings?.fontFamily || 'inter');
     const [theme, setTheme] = useState(settings?.theme || 'dark');
     const [autoSave, setAutoSave] = useState(settings?.autoSave !== false);
-    const [autoSaveInterval, setAutoSaveInterval] = useState(settings?.autoSaveInterval || 2000);
+    const [autoSaveInterval, setAutoSaveInterval] = useState(settings?.autoSaveInterval || 30000);
     const [spellCheck, setSpellCheck] = useState(settings?.spellCheck !== false);
     
     // Export settings

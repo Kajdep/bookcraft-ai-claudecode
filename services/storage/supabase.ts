@@ -251,7 +251,13 @@ export async function signUpWithEmail(email: string, password: string) {
     try {
         const { data, error } = await client.auth.signUp({
             email,
-            password
+            password,
+            options: {
+                emailRedirectTo: window.location.origin,
+                data: {
+                    email_confirm: false
+                }
+            }
         });
 
         if (error) {

@@ -28,7 +28,7 @@ export type AutosaveListener = (state: AutosaveState) => void;
 
 class AutosaveManager {
   private config: AutosaveConfig = {
-    debounceMs: 2000,
+    debounceMs: 30000,
     retryAttempts: 3,
     retryDelayMs: 5000,
     syncToCloud: true,

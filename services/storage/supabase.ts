@@ -195,121 +195,34 @@ export async function deleteFile(
  * Get current authenticated user
  */
 export async function getCurrentUser() {
-    const client = getSupabaseClient();
-    if (!client) {
-        // Check local storage for user
-        try {
-            const currentUser = localStorage.getItem('bookcraft_current_user');
-            if (currentUser) {
-                return JSON.parse(currentUser);
-            }
-        } catch (error) {
-            log.error('Failed to get local user', error as Error);
-        }
-        return null;
-    }
-
+    // Always use local auth in development
     try {
-        const timeoutPromise = new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('Connection timeout')), 5000)
-        );
-
-        const getUserPromise = client.auth.getUser();
-        const { data: { user }, error } = await Promise.race([getUserPromise, timeoutPromise]) as any;
-
-        if (error) {
-            throw error;
+        const currentUser = localStorage.getItem('bookcraft_current_user');
+        if (currentUser) {
+            return JSON.parse(currentUser);
         }
-        return user;
     } catch (error) {
-        log.warn('Failed to get Supabase user, checking local storage', error);
-        // Fallback to local storage
-        try {
-            const currentUser = localStorage.getItem('bookcraft_current_user');
-            if (currentUser) {
-                return JSON.parse(currentUser);
-            }
-        } catch (err) {
-            log.error('Failed to get local user', err as Error);
-        }
-        return null;
+        log.error('Failed to get local user', error as Error);
     }
+    return null;
 }
 
 /**
  * Sign in with email and password
  */
 export async function signInWithEmail(email: string, password: string) {
-    const client = getSupabaseClient();
-    if (!client) {
-        return { success: false, error: 'Supabase not configured' };
-    }
-
-    try {
-        // Try Supabase signin with timeout
-        const timeoutPromise = new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('Connection timeout')), 5000)
-        );
-
-        const signinPromise = client.auth.signInWithPassword({
-            email,
-            password
-        });
-
-        const { data, error } = await Promise.race([signinPromise, timeoutPromise]) as any;
-
-        if (error) {
-            throw error;
-        }
-
-        log.info('User signed in successfully via Supabase', { userId: data.user?.id });
-        return { success: true, user: data.user, session: data.session };
-    } catch (error) {
-        log.warn('Supabase signin failed, using local auth', error);
-        // Fallback to local storage auth
-        return fallbackSignIn(email, password);
-    }
+    // Always use local auth in development
+    log.info('Using local authentication');
+    return fallbackSignIn(email, password);
 }
 
 /**
  * Sign up with email and password
  */
 export async function signUpWithEmail(email: string, password: string) {
-    const client = getSupabaseClient();
-    if (!client) {
-        return { success: false, error: 'Supabase not configured' };
-    }
-
-    try {
-        // Try Supabase signup with timeout
-        const timeoutPromise = new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('Connection timeout')), 5000)
-        );
-
-        const signupPromise = client.auth.signUp({
-            email,
-            password,
-            options: {
-                emailRedirectTo: window.location.origin,
-                data: {
-                    email_confirm: false
-                }
-            }
-        });
-
-        const { data, error } = await Promise.race([signupPromise, timeoutPromise]) as any;
-
-        if (error) {
-            throw error;
-        }
-
-        log.info('User signed up successfully via Supabase', { userId: data.user?.id });
-        return { success: true, user: data.user, session: data.session };
-    } catch (error) {
-        log.warn('Supabase signup failed, using local auth', error);
-        // Fallback to local storage auth
-        return fallbackSignUp(email, password);
-    }
+    // Always use local auth in development
+    log.info('Using local authentication');
+    return fallbackSignUp(email, password);
 }
 
 /**

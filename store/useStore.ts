@@ -502,9 +502,32 @@ export const useBookCraftStore = create<BookCraftState & BookCraftActions>()(
                     // as these might be part of the workflow state users want to maintain
                 });
             },
-            initializeApp: () => {
+            initializeApp: async () => {
                 // Initialize the app with clean UI state
                 // This is called on app startup to ensure no persisted UI state causes issues
+
+                // Check for existing Supabase session
+                try {
+                    const { getCurrentUser } = await import('../services/storage/supabase');
+                    const user = await getCurrentUser();
+
+                    if (user) {
+                        set((state) => {
+                            state.isAuthenticated = true;
+                            state.currentUser = {
+                                id: user.id,
+                                email: user.email || '',
+                                name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
+                                createdAt: new Date(user.created_at),
+                                lastLogin: new Date()
+                            };
+                        });
+                        log.info('User session restored', { userId: user.id });
+                    }
+                } catch (error) {
+                    log.warn('Failed to check auth session', error);
+                }
+
                 set((state) => {
                     // Reset all modal and UI states to defaults
                     state.activeModal = { type: 'none' };
@@ -580,24 +603,17 @@ export const useBookCraftStore = create<BookCraftState & BookCraftActions>()(
             // Auth Management
             login: async (email, password) => {
                 try {
-                    // Get stored users from localStorage
-                    const storedUsers = localStorage.getItem('bookcraft_users');
-                    const users = storedUsers ? JSON.parse(storedUsers) : {};
+                    const { signInWithEmail } = await import('../services/storage/supabase');
+                    const result = await signInWithEmail(email, password);
 
-                    // Check if user exists and password matches
-                    const userKey = email.toLowerCase();
-                    if (users[userKey] && users[userKey].password === password) {
+                    if (result.success && result.user) {
                         const user: User = {
-                            id: users[userKey].id,
-                            email: email,
-                            name: users[userKey].name,
-                            createdAt: new Date(users[userKey].createdAt),
+                            id: result.user.id,
+                            email: result.user.email || email,
+                            name: result.user.user_metadata?.name || email.split('@')[0],
+                            createdAt: new Date(result.user.created_at),
                             lastLogin: new Date()
                         };
-
-                        // Update last login
-                        users[userKey].lastLogin = new Date().toISOString();
-                        localStorage.setItem('bookcraft_users', JSON.stringify(users));
 
                         set((state) => {
                             state.isAuthenticated = true;
@@ -607,10 +623,11 @@ export const useBookCraftStore = create<BookCraftState & BookCraftActions>()(
                         toast.success('Welcome Back!', `Logged in as ${user.name}`);
                         return true;
                     } else {
-                        toast.error('Login Failed', 'Invalid email or password');
+                        toast.error('Login Failed', result.error || 'Invalid email or password');
                         return false;
                     }
                 } catch (error) {
+                    log.error('Login error', error as Error);
                     toast.error('Login Error', 'An error occurred during login');
                     return false;
                 }
@@ -618,15 +635,27 @@ export const useBookCraftStore = create<BookCraftState & BookCraftActions>()(
 
             register: async (email, password, name) => {
                 try {
-                    // Get stored users from localStorage
-                    const storedUsers = localStorage.getItem('bookcraft_users');
-                    const users = storedUsers ? JSON.parse(storedUsers) : {};
+                    const { signUpWithEmail } = await import('../services/storage/supabase');
+                    const result = await signUpWithEmail(email, password);
 
-                    const userKey = email.toLowerCase();
+                    if (result.success && result.user) {
+                        const user: User = {
+                            id: result.user.id,
+                            email: result.user.email || email,
+                            name: name,
+                            createdAt: new Date(result.user.created_at),
+                            lastLogin: new Date()
+                        };
 
-                    // Check if user already exists
-                    if (users[userKey]) {
-                        toast.error('Registration Failed', 'An account with this email already exists');
+                        set((state) => {
+                            state.isAuthenticated = true;
+                            state.currentUser = user;
+                        });
+
+                        toast.success('Account Created!', `Welcome, ${name}!`);
+                        return true;
+                    } else {
+                        toast.error('Registration Failed', result.error || 'An error occurred');
                         return false;
                     }
 
@@ -668,12 +697,25 @@ export const useBookCraftStore = create<BookCraftState & BookCraftActions>()(
                 }
             },
 
-            logout: () => {
-                set((state) => {
-                    state.isAuthenticated = false;
-                    state.currentUser = null;
-                });
-                toast.success('Logged Out', 'You have been successfully logged out');
+            logout: async () => {
+                try {
+                    const { signOut } = await import('../services/storage/supabase');
+                    await signOut();
+
+                    set((state) => {
+                        state.isAuthenticated = false;
+                        state.currentUser = null;
+                    });
+
+                    toast.success('Logged Out', 'You have been successfully logged out');
+                } catch (error) {
+                    log.error('Logout error', error as Error);
+                    // Still clear auth state even if Supabase signout fails
+                    set((state) => {
+                        state.isAuthenticated = false;
+                        state.currentUser = null;
+                    });
+                }
             },
 
             updateUserProfile: (updates) => {

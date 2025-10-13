@@ -196,17 +196,42 @@ export async function deleteFile(
  */
 export async function getCurrentUser() {
     const client = getSupabaseClient();
-    if (!client) return null;
+    if (!client) {
+        // Check local storage for user
+        try {
+            const currentUser = localStorage.getItem('bookcraft_current_user');
+            if (currentUser) {
+                return JSON.parse(currentUser);
+            }
+        } catch (error) {
+            log.error('Failed to get local user', error as Error);
+        }
+        return null;
+    }
 
     try {
-        const { data: { user }, error } = await client.auth.getUser();
+        const timeoutPromise = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Connection timeout')), 5000)
+        );
+
+        const getUserPromise = client.auth.getUser();
+        const { data: { user }, error } = await Promise.race([getUserPromise, timeoutPromise]) as any;
+
         if (error) {
-            log.error('Failed to get current user', error as Error);
-            return null;
+            throw error;
         }
         return user;
     } catch (error) {
-        log.error('Failed to get current user', error as Error);
+        log.warn('Failed to get Supabase user, checking local storage', error);
+        // Fallback to local storage
+        try {
+            const currentUser = localStorage.getItem('bookcraft_current_user');
+            if (currentUser) {
+                return JSON.parse(currentUser);
+            }
+        } catch (err) {
+            log.error('Failed to get local user', err as Error);
+        }
         return null;
     }
 }
@@ -221,21 +246,28 @@ export async function signInWithEmail(email: string, password: string) {
     }
 
     try {
-        const { data, error } = await client.auth.signInWithPassword({
+        // Try Supabase signin with timeout
+        const timeoutPromise = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Connection timeout')), 5000)
+        );
+
+        const signinPromise = client.auth.signInWithPassword({
             email,
             password
         });
 
+        const { data, error } = await Promise.race([signinPromise, timeoutPromise]) as any;
+
         if (error) {
-            log.error('Sign in failed', error as Error);
-            return { success: false, error: error.message };
+            throw error;
         }
 
-        log.info('User signed in successfully', { userId: data.user?.id });
+        log.info('User signed in successfully via Supabase', { userId: data.user?.id });
         return { success: true, user: data.user, session: data.session };
     } catch (error) {
-        log.error('Sign in failed', error as Error);
-        return { success: false, error: (error as Error).message };
+        log.warn('Supabase signin failed, using local auth', error);
+        // Fallback to local storage auth
+        return fallbackSignIn(email, password);
     }
 }
 
@@ -249,7 +281,12 @@ export async function signUpWithEmail(email: string, password: string) {
     }
 
     try {
-        const { data, error } = await client.auth.signUp({
+        // Try Supabase signup with timeout
+        const timeoutPromise = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Connection timeout')), 5000)
+        );
+
+        const signupPromise = client.auth.signUp({
             email,
             password,
             options: {
@@ -260,16 +297,18 @@ export async function signUpWithEmail(email: string, password: string) {
             }
         });
 
+        const { data, error } = await Promise.race([signupPromise, timeoutPromise]) as any;
+
         if (error) {
-            log.error('Sign up failed', error as Error);
-            return { success: false, error: error.message };
+            throw error;
         }
 
-        log.info('User signed up successfully', { userId: data.user?.id });
+        log.info('User signed up successfully via Supabase', { userId: data.user?.id });
         return { success: true, user: data.user, session: data.session };
     } catch (error) {
-        log.error('Sign up failed', error as Error);
-        return { success: false, error: (error as Error).message };
+        log.warn('Supabase signup failed, using local auth', error);
+        // Fallback to local storage auth
+        return fallbackSignUp(email, password);
     }
 }
 
@@ -278,17 +317,21 @@ export async function signUpWithEmail(email: string, password: string) {
  */
 export async function signOut() {
     const client = getSupabaseClient();
-    if (!client) {
-        return { success: false, error: 'Supabase not configured' };
-    }
 
     try {
-        const { error } = await client.auth.signOut();
-        if (error) {
-            log.error('Sign out failed', error as Error);
-            return { success: false, error: error.message };
+        if (client) {
+            const { error } = await client.auth.signOut();
+            if (error) {
+                log.warn('Supabase sign out failed', error);
+            }
         }
+    } catch (error) {
+        log.warn('Supabase sign out error', error);
+    }
 
+    // Always clear local storage
+    try {
+        localStorage.removeItem('bookcraft_current_user');
         log.info('User signed out successfully');
         return { success: true };
     } catch (error) {
@@ -306,6 +349,79 @@ export function onAuthStateChange(callback: (event: string, session: any) => voi
 
     const { data: { subscription } } = client.auth.onAuthStateChange(callback);
     return subscription;
+}
+
+/**
+ * Fallback authentication using localStorage
+ */
+function fallbackSignUp(email: string, password: string) {
+    try {
+        const users = JSON.parse(localStorage.getItem('bookcraft_local_users') || '{}');
+        const userKey = email.toLowerCase();
+
+        if (users[userKey]) {
+            return { success: false, error: 'User already exists' };
+        }
+
+        const userId = `local-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        users[userKey] = {
+            id: userId,
+            email,
+            password,
+            created_at: new Date().toISOString(),
+            user_metadata: { name: email.split('@')[0] }
+        };
+
+        localStorage.setItem('bookcraft_local_users', JSON.stringify(users));
+        localStorage.setItem('bookcraft_current_user', JSON.stringify(users[userKey]));
+
+        log.info('User signed up via local auth', { userId });
+        return {
+            success: true,
+            user: {
+                id: userId,
+                email,
+                created_at: users[userKey].created_at,
+                user_metadata: users[userKey].user_metadata
+            },
+            session: { access_token: 'local-session' }
+        };
+    } catch (error) {
+        log.error('Local signup failed', error as Error);
+        return { success: false, error: 'Failed to create account' };
+    }
+}
+
+function fallbackSignIn(email: string, password: string) {
+    try {
+        const users = JSON.parse(localStorage.getItem('bookcraft_local_users') || '{}');
+        const userKey = email.toLowerCase();
+
+        if (!users[userKey]) {
+            return { success: false, error: 'User not found' };
+        }
+
+        if (users[userKey].password !== password) {
+            return { success: false, error: 'Invalid password' };
+        }
+
+        localStorage.setItem('bookcraft_current_user', JSON.stringify(users[userKey]));
+
+        log.info('User signed in via local auth', { userId: users[userKey].id });
+        return {
+            success: true,
+            user: {
+                id: users[userKey].id,
+                email: users[userKey].email,
+                created_at: users[userKey].created_at,
+                user_metadata: users[userKey].user_metadata
+            },
+            session: { access_token: 'local-session' }
+        };
+    } catch (error) {
+        log.error('Local signin failed', error as Error);
+        return { success: false, error: 'Failed to sign in' };
+    }
 }
 
 export default getSupabaseClient;

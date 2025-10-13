@@ -55,3 +55,4 @@ tests/*-test.*
 
 # But keep the README
 !tests/README.md
+.env

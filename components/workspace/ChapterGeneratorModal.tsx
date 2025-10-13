@@ -23,6 +23,7 @@ export const ChapterGeneratorModal: React.FC<ChapterGeneratorModalProps> = ({ is
     const [selectedPlotPoints, setSelectedPlotPoints] = useState<string[]>([]);
     const [showPlotSelector, setShowPlotSelector] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [useInternetSearch, setUseInternetSearch] = useState(false);
 
     // Get available research items for this chapter or all research
     const availableResearch = useMemo(() => {
@@ -101,8 +102,8 @@ export const ChapterGeneratorModal: React.FC<ChapterGeneratorModalProps> = ({ is
             if (plotContext) {
                 enhancedPrompt += `\n\nRelevant Plot Points:\n${plotContext}`;
             }
-                
-            const newContent = await generateChapterContent(chapter.id, enhancedPrompt, wordCount, style);
+
+            const newContent = await generateChapterContent(chapter.id, enhancedPrompt, wordCount, style, useInternetSearch);
             onGenerated(newContent);
             onClose(); // Close modal on success
         } catch (error) {
@@ -123,6 +124,7 @@ export const ChapterGeneratorModal: React.FC<ChapterGeneratorModalProps> = ({ is
         setSelectedPlotPoints([]);
         setShowPlotSelector(false);
         setIsLoading(false);
+        setUseInternetSearch(false);
         onClose();
     }
     
@@ -180,6 +182,17 @@ export const ChapterGeneratorModal: React.FC<ChapterGeneratorModalProps> = ({ is
                             placeholder="e.g., 1500"
                             className="w-full bg-white border-gray-300 rounded-md shadow-sm focus:ring-brand-primary focus:border-brand-primary sm:text-sm p-2 text-gray-900 placeholder-gray-400"
                          />
+                    </div>
+                    <div className="flex items-end">
+                        <label className="flex items-center space-x-2 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={useInternetSearch}
+                                onChange={(e) => setUseInternetSearch(e.target.checked)}
+                                className="w-4 h-4 text-brand-primary bg-white border-gray-300 rounded focus:ring-brand-primary"
+                            />
+                            <span className="text-sm text-gray-700">Use Internet Search</span>
+                        </label>
                     </div>
                  </div>
                  

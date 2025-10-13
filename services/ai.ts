@@ -882,13 +882,14 @@ const generatePlaceholderImage = (prompt: string): string => {
 /**
  * Generates content for a chapter based on its title, a prompt, and project context.
  */
-export const generateChapterContent = async (project: Project, chapter: Chapter, prompt: string, wordCount?: string, style?: string): Promise<string> => {
+export const generateChapterContent = async (project: Project, chapter: Chapter, prompt: string, wordCount?: string, style?: string, useInternetSearch?: boolean): Promise<string> => {
     let fullPrompt = `
         The user is writing a chapter titled "${chapter.title}" for their book, "${project.title}" (Genre: ${project.genre}).
         The user's instructions for the new content are: "${prompt}".
 
         ${wordCount ? `The target word count is approximately ${wordCount} words.` : ''}
         ${style ? `Additional style guidance: "${style}"` : ''}
+        ${useInternetSearch ? '\n\nIMPORTANT: This request should use internet search for current information and facts. Include relevant, up-to-date details.' : ''}
 
         Return ONLY the generated text for the chapter. Do not include conversational wrappers or headings.
     `;

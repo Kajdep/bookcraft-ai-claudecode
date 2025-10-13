@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { logger } from '../services/logger';
 import { toast } from '../services/toast';
+import { fetchOpenRouterModels, getDefaultModels, OpenRouterModel } from '../services/openRouterModels';
 
 interface SettingsModalProps {
     isOpen: boolean;
@@ -54,21 +55,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     const [debugMode, setDebugMode] = useState(settings?.debugMode || false);
     const [telemetry, setTelemetry] = useState(settings?.telemetry !== false);
 
-    // Available OpenRouter models
-    const openRouterModels = [
-        { value: 'nvidia/nemotron-nano-9b-v2:free', label: 'Nemotron Nano 9B (Free)', description: 'Fast and efficient free model' },
-        { value: 'anthropic/claude-3.5-sonnet', label: 'Claude 3.5 Sonnet', description: 'High-quality reasoning and writing' },
-        { value: 'anthropic/claude-3-haiku', label: 'Claude 3 Haiku', description: 'Fast and cost-effective' },
-        { value: 'openai/gpt-4o', label: 'GPT-4o', description: 'OpenAI\'s latest multimodal model' },
-        { value: 'openai/gpt-4o-mini', label: 'GPT-4o Mini', description: 'Smaller, faster GPT-4o variant' },
-        { value: 'openai/gpt-4-turbo', label: 'GPT-4 Turbo', description: 'Advanced reasoning with large context' },
-        { value: 'openai/gpt-3.5-turbo', label: 'GPT-3.5 Turbo', description: 'Balanced performance and cost' },
-        { value: 'google/gemini-pro-1.5', label: 'Gemini Pro 1.5', description: 'Google\'s advanced model' },
-        { value: 'meta-llama/llama-3.1-405b-instruct', label: 'Llama 3.1 405B', description: 'Meta\'s largest open model' },
-        { value: 'meta-llama/llama-3.1-70b-instruct', label: 'Llama 3.1 70B', description: 'Balanced open source model' },
-        { value: 'mistralai/mistral-large', label: 'Mistral Large', description: 'Mistral\'s flagship model' },
-        { value: 'cohere/command-r-plus', label: 'Command R+', description: 'Cohere\'s advanced model' }
-    ];
+    // Available OpenRouter models - dynamically fetched
+    const [openRouterModels, setOpenRouterModels] = useState<Array<{ value: string; label: string; description?: string }>>(getDefaultModels().map(m => ({ value: m.id, label: m.name, description: m.description })));
+    const [isLoadingModels, setIsLoadingModels] = useState(false);
 
     // Sync with store when modal opens
     useEffect(() => {
@@ -91,6 +80,30 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
             setTelemetry(settings.telemetry !== false);
         }
     }, [isOpen, settings]);
+
+    // Fetch models when OpenRouter API key changes
+    useEffect(() => {
+        if (openRouterApiKey && openRouterApiKey.startsWith('sk-or-')) {
+            const loadModels = async () => {
+                setIsLoadingModels(true);
+                try {
+                    const models = await fetchOpenRouterModels(openRouterApiKey);
+                    const formattedModels = models.map(m => ({
+                        value: m.id,
+                        label: m.name,
+                        description: m.description || undefined
+                    }));
+                    setOpenRouterModels(formattedModels);
+                    logger.debug('Loaded OpenRouter models', { count: formattedModels.length });
+                } catch (error) {
+                    logger.error('Failed to fetch OpenRouter models', error);
+                } finally {
+                    setIsLoadingModels(false);
+                }
+            };
+            loadModels();
+        }
+    }, [openRouterApiKey]);
 
     // Load storage stats when storage tab is active
     useEffect(() => {
@@ -334,15 +347,17 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-2">
                                             Default AI Model
+                                            {isLoadingModels && <span className="ml-2 text-xs text-gray-500">(Loading models...)</span>}
                                         </label>
                                         <Select
                                             value={defaultModel}
                                             onChange={setDefaultModel}
                                             options={openRouterModels}
                                             placeholder="Select a model..."
+                                            disabled={isLoadingModels}
                                         />
                                         <p className="text-xs text-gray-500 mt-1">
-                                            Choose the AI model for text generation. Free models are marked accordingly.
+                                            {isLoadingModels ? 'Fetching available models from OpenRouter...' : `Choose the AI model for text generation. ${openRouterModels.length} models available.`}
                                         </p>
                                     </div>
 

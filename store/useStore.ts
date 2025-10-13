@@ -180,7 +180,7 @@ interface BookCraftActions {
     // AI Actions
     planChapters: (prompt: string) => Promise<string[]>;
     regenerateChapterTitle: (originalPrompt: string, titleToReplace: string) => Promise<string>;
-    generateChapterContent: (chapterId: string, prompt: string, wordCount?: string, style?: string) => Promise<string>;
+    generateChapterContent: (chapterId: string, prompt: string, wordCount?: string, style?: string, useInternetSearch?: boolean) => Promise<string>;
     getAIAssistantResponse: (chapterId: string, prompt: string) => Promise<string>;
     getAIContextMenuResponse: (text: string, action: string) => Promise<string>;
     combineChapterContent: (originalContent: string, newContent: string) => Promise<string>;
@@ -880,15 +880,15 @@ export const useBookCraftStore = create<BookCraftState & BookCraftActions>()(
             regenerateChapterTitle: async (originalPrompt, titleToReplace) => {
                 return ai.regenerateChapterTitle(originalPrompt, titleToReplace);
             },
-            generateChapterContent: async (chapterId, prompt, wordCount, style) => {
+            generateChapterContent: async (chapterId, prompt, wordCount, style, useInternetSearch) => {
                 const projectId = get().activeProjectId;
                 if (!projectId) throw new Error("No active project");
 
                 const project = get().projects[projectId];
                 const chapter = project.chapters.find(c => c.id === chapterId);
                 if (!chapter) throw new Error("Chapter not found");
-                
-                return await ai.generateChapterContent(project, chapter, prompt, wordCount, style);
+
+                return await ai.generateChapterContent(project, chapter, prompt, wordCount, style, useInternetSearch);
             },
             getAIAssistantResponse: async (chapterId, prompt) => {
                 const projectId = get().activeProjectId;

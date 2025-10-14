@@ -96,6 +96,22 @@ export interface Chapter {
     order: number;
     notes?: string;
     structure?: { point: string; details: string }[];
+    insightHistory?: ChapterInsight[];
+}
+
+export enum InsightType {
+    Structure = 'structure',
+    Suggestions = 'suggestions',
+    VisualAnalysis = 'visual_analysis',
+    Grammar = 'grammar'
+}
+
+export interface ChapterInsight {
+    id: string;
+    type: InsightType;
+    timestamp: number;
+    data: any; // Flexible data structure based on type
+    summary: string; // Brief description for UI
 }
 
 export interface VisualRecommendation {

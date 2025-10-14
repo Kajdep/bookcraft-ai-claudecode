@@ -7,10 +7,12 @@ import { AIAssistantModal } from './AIAssistantModal';
 import { AIContextMenu } from './AIContextMenu';
 import { MergeContentModal } from './MergeContentModal';
 import { LexicalEditor } from './lexical/LexicalEditor';
+import { InsightsHistoryModal } from './InsightsHistoryModal';
 import { SaveStatusIndicator } from '../SaveStatusIndicator';
 import { GrammarCheckerPanel } from './GrammarCheckerPanel';
 import { Chapter, PlotPoint } from '../../types';
 import { log } from '../../services/logger';
+import { toast } from '../../services/toast';
 
 
 interface ChapterEditorViewProps {
@@ -57,6 +59,7 @@ export const ChapterEditorView: React.FC<ChapterEditorViewProps> = ({ chapterId 
     const [isAssistantOpen, setIsAssistantOpen] = useState(false);
     const [contextMenu, setContextMenu] = useState<{ x: number; y: number; text: string; range: Range } | null>(null);
     const [mergeState, setMergeState] = useState<{ original: string; generated: string } | null>(null);
+    const [showInsightsHistory, setShowInsightsHistory] = useState(false);
     const [isGeneratingStructure, setIsGeneratingStructure] = useState(false);
     const [isCleaning, setIsCleaning] = useState(false);
     const [suggestions, setSuggestions] = useState<string[]>([]);
@@ -493,7 +496,18 @@ Provide 5-7 suggestions, prioritizing the most impactful improvements.`;
                 )}
                  <div className="bg-gray-100/50 border border-gray-300/50 rounded-lg p-4 flex-grow flex flex-col">
                     <div className="mb-4 flex-shrink-0">
-                        <h3 className="text-gray-800 font-bold mb-2">AI Tools</h3>
+                        <div className="flex items-center justify-between mb-2">
+                            <h3 className="text-gray-800 font-bold">AI Tools</h3>
+                            <Button
+                                size="sm"
+                                variant="secondary"
+                                onClick={() => setShowInsightsHistory(true)}
+                                disabled={!chapter.insightHistory || chapter.insightHistory.length === 0}
+                                title="View insights history"
+                            >
+                                📜 History ({chapter.insightHistory?.length || 0})
+                            </Button>
+                        </div>
                         <div className="space-y-2">
                              <Button size="sm" variant={showGrammarChecker ? "primary" : "secondary"} onClick={() => setShowGrammarChecker(!showGrammarChecker)} className="w-full justify-start"><BeakerIcon className="w-4 h-4 mr-2" /> Grammar Check</Button>
                              <Button size="sm" variant="secondary" onClick={handleGenerateStructure} isLoading={isGeneratingStructure} disabled={!chapter.content.trim()} className="w-full justify-start"><BrainCircuitIcon className="w-4 h-4 mr-2" /> Chapter Structure</Button>
@@ -551,6 +565,18 @@ Provide 5-7 suggestions, prioritizing the most impactful improvements.`;
 
             <ChapterGeneratorModal isOpen={isGeneratorOpen} onClose={() => setIsGeneratorOpen(false)} chapter={chapter} onGenerated={(generated) => setMergeState({ original: content, generated })} />
             <AIAssistantModal isOpen={isAssistantOpen} onClose={() => setIsAssistantOpen(false)} chapter={chapter} onGenerated={(generated) => setMergeState({ original: content, generated })} />
+            <InsightsHistoryModal
+                isOpen={showInsightsHistory}
+                onClose={() => setShowInsightsHistory(false)}
+                insights={chapter.insightHistory || []}
+                onRestoreInsight={(insight) => {
+                    if (insight.type === 'structure' && Array.isArray(insight.data)) {
+                        updateChapter(chapter.id, { structure: insight.data });
+                        toast.success('Structure restored from history');
+                    }
+                    setShowInsightsHistory(false);
+                }}
+            />
             {contextMenu && (
                 <AIContextMenu 
                     x={contextMenu.x} 

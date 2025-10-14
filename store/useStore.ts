@@ -2,7 +2,8 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 import { storageAdapter } from './storageAdapter';
-import type { Project, Chapter, VisualRecommendation, Visual, GeneratedImage, PlotPoint, ResearchItem, ResearchType, FactCheckResult, ResearchQuery, ResearchFolder, Citation, CitationStyle, ThematicTag, ResearchTimeline, ResearchMindMap, ResearchAttachment, ResearchContradiction, Settings, MaterialItem, MaterialFolder, MaterialType, MaterialCategory, User } from '../types';
+import type { Project, Chapter, VisualRecommendation, Visual, GeneratedImage, PlotPoint, ResearchItem, ResearchType, FactCheckResult, ResearchQuery, ResearchFolder, Citation, CitationStyle, ThematicTag, ResearchTimeline, ResearchMindMap, ResearchAttachment, ResearchContradiction, Settings, MaterialItem, MaterialFolder, MaterialType, MaterialCategory, User, ChapterInsight } from '../types';
+import { InsightType } from '../types';
 
 // Analytics types
 export interface WritingSession {
@@ -955,7 +956,21 @@ export const useBookCraftStore = create<BookCraftState & BookCraftActions>()(
                 if (!chapter || !chapter.content) return;
 
                 const structure = await ai.generateChapterStructure(chapter.content);
-                get().updateChapter(chapterId, { structure });
+
+                // Add to insight history
+                const insight: ChapterInsight = {
+                    id: `insight_${Date.now()}`,
+                    type: InsightType.Structure,
+                    timestamp: Date.now(),
+                    data: structure,
+                    summary: `Structure analysis: ${structure.length} points identified`
+                };
+
+                const updatedHistory = [...(chapter.insightHistory || []), insight];
+                get().updateChapter(chapterId, {
+                    structure,
+                    insightHistory: updatedHistory
+                });
             },
             refineGeneratedText: async (originalText, refinementPrompt) => {
                 return ai.refineGeneratedText(originalText, refinementPrompt);

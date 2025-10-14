@@ -199,9 +199,15 @@ export const ChapterEditorView: React.FC<ChapterEditorViewProps> = ({ chapterId 
 
     const handleTextCorrection = (originalText: string, correctedText: string, startOffset: number, endOffset: number) => {
         setContent(prevContent => {
-            // Simple text replacement - in a production app, you'd want more sophisticated handling
-            return prevContent.replace(originalText, correctedText);
+            // Replace the first occurrence of the original text with corrected text
+            const newContent = prevContent.replace(originalText, correctedText);
+            log.debug('Grammar correction applied', { originalText, correctedText });
+            return newContent;
         });
+        // Force update the chapter content immediately
+        if (chapter) {
+            updateChapter(chapter.id, { content: content.replace(originalText, correctedText) });
+        }
     };
 
     const handleGenerateStructure = async () => {

@@ -431,13 +431,15 @@ export const MaterialTab: React.FC = () => {
     const addMaterialLink = useBookCraftStore(state => state.addMaterialLink);
     const uploadMaterialFile = useBookCraftStore(state => state.uploadMaterialFile);
 
-    // Filter and search materials
+    // Filter and search materials with null safety
     const filteredMaterials = useMemo(() => {
+        if (!materials || materials.length === 0) return [];
         // Create a copy of materials array to avoid mutating readonly state
         return [...materials].filter(material => {
-            if (searchTerm && !material.title.toLowerCase().includes(searchTerm.toLowerCase()) &&
+            if (!material) return false;
+            if (searchTerm && !material.title?.toLowerCase().includes(searchTerm.toLowerCase()) &&
                 !material.description?.toLowerCase().includes(searchTerm.toLowerCase()) &&
-                !material.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))) {
+                !material.tags?.some(tag => tag?.toLowerCase().includes(searchTerm.toLowerCase()))) {
                 return false;
             }
             if (filterType && material.type !== filterType) return false;
@@ -445,7 +447,11 @@ export const MaterialTab: React.FC = () => {
             if (showFavoritesOnly && !material.isFavorite) return false;
             if (showBookmarkedOnly && !material.isBookmarked) return false;
             return true;
-        }).sort((a, b) => b.lastModified.getTime() - a.lastModified.getTime());
+        }).sort((a, b) => {
+            const aTime = a.lastModified instanceof Date ? a.lastModified.getTime() : 0;
+            const bTime = b.lastModified instanceof Date ? b.lastModified.getTime() : 0;
+            return bTime - aTime;
+        });
     }, [materials, searchTerm, filterType, filterCategory, showFavoritesOnly, showBookmarkedOnly]);
 
     const handleAddMaterial = (type: 'note' | 'link' | 'file') => {

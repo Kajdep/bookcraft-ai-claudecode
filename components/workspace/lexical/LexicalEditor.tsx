@@ -47,11 +47,12 @@ function ContentSyncPlugin({
           return;
         }
         
-        // Validate that we're not trying to update with invalid content
-        if (normalizedNewContent && normalizedNewContent.length > 0 && normalizedNewContent !== '<p></p>') {
-          log.debug('Lexical: Valid content detected, proceeding with update');
-        } else if (normalizedCurrentHtml.length > 0) {
-          log.debug('Lexical: New content is empty but current content exists, preserving current content');
+        // Only skip update if both are effectively empty
+        const currentIsEmpty = !normalizedCurrentHtml || normalizedCurrentHtml === '<p></p>' || normalizedCurrentHtml === '<p><br></p>';
+        const newIsEmpty = !normalizedNewContent || normalizedNewContent === '<p></p>' || normalizedNewContent === '<p><br></p>';
+
+        if (currentIsEmpty && newIsEmpty) {
+          log.debug('Lexical: Both contents are empty, skipping update');
           return;
         }
 

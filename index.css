@@ -2,6 +2,19 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Root variables for consistent theming */
+:root {
+  --color-bg-primary: #ffffff;
+  --color-bg-secondary: #f8fafc;
+  --color-bg-tertiary: #f1f5f9;
+  --color-text-primary: #1e293b;
+  --color-text-secondary: #475569;
+  --color-text-tertiary: #64748b;
+  --color-border: #e2e8f0;
+  --color-accent: #3b82f6;
+  --color-accent-hover: #2563eb;
+}
+
 /* Basic styles for the Lexical editor */
 .lexical-editor {
   font-family: system-ui, -apple-system, sans-serif;

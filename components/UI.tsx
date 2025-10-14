@@ -413,10 +413,11 @@ interface SelectOption {
 interface SelectProps {
     value: string;
     onChange: (value: string) => void;
-    options: SelectOption[];
+    options?: SelectOption[];
     placeholder?: string;
     className?: string;
     disabled?: boolean;
+    children?: React.ReactNode;
 }
 
 export const Select: React.FC<SelectProps> = ({
@@ -425,7 +426,8 @@ export const Select: React.FC<SelectProps> = ({
     options,
     placeholder = "Select an option...",
     className = '',
-    disabled = false
+    disabled = false,
+    children
 }) => {
     const baseClasses = "w-full px-3 py-2 text-sm rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white cursor-pointer";
     const variantClasses = "bg-white border-gray-300 text-gray-800 focus:border-brand-primary focus:ring-brand-primary";
@@ -437,16 +439,20 @@ export const Select: React.FC<SelectProps> = ({
             className={`${baseClasses} ${variantClasses} ${className}`}
             disabled={disabled}
         >
-            {placeholder && (
-                <option value="" disabled>
-                    {placeholder}
-                </option>
+            {children ? children : (
+                <>
+                    {placeholder && (
+                        <option value="" disabled>
+                            {placeholder}
+                        </option>
+                    )}
+                    {options?.map((option) => (
+                        <option key={option.value} value={option.value}>
+                            {option.label}
+                        </option>
+                    ))}
+                </>
             )}
-            {options.map((option) => (
-                <option key={option.value} value={option.value}>
-                    {option.label}
-                </option>
-            ))}
         </select>
     );
 };

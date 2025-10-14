@@ -951,6 +951,13 @@ export const getAIContextMenuResponse = async (text: string, action: string): Pr
  * Combines original and new content into a cohesive narrative.
  */
 export const combineChapterContent = async (originalContent: string, newContent: string): Promise<string> => {
+    // If original content is empty or very short, just return the new content
+    const cleanOriginal = originalContent.replace(/<[^>]*>/g, '').trim();
+    if (!cleanOriginal || cleanOriginal.length < 10) {
+        log.info('Original content empty or too short, returning new content as-is');
+        return newContent;
+    }
+
     const prompt = `
         Merge the "Newly Generated Text" into the "Original Text" to create a single, cohesive narrative.
         You may need to rewrite transitions, remove redundant sentences, or restructure paragraphs to make them fit together naturally.

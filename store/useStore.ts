@@ -2848,7 +2848,7 @@ export const useBookCraftStore = create<BookCraftState & BookCraftActions>()(
             }
         })),
         {
-            name: 'bookcraft-storage',
+            name: 'writtenupai-storage',
             storage: storageAdapter,
             partialize: (state) => ({
                 // ONLY persist data, NEVER persist UI state

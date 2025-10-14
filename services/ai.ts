@@ -475,35 +475,64 @@ const generateFallbackMermaid = (type: VisualType, context: string): string => {
 };
 
 /**
+ * Validates and cleans Mermaid code
+ */
+const validateMermaidCode = (code: string): string => {
+    // Remove markdown code fences if present
+    let cleaned = code.replace(/```mermaid\n?/g, '').replace(/```\n?/g, '').trim();
+
+    // Remove any leading/trailing whitespace
+    cleaned = cleaned.trim();
+
+    // Ensure there's a valid diagram type at the start
+    const validTypes = ['graph', 'flowchart', 'sequenceDiagram', 'classDiagram', 'stateDiagram',
+                       'gantt', 'pie', 'timeline', 'mindmap', 'journey', 'gitGraph'];
+    const hasValidStart = validTypes.some(type => cleaned.toLowerCase().startsWith(type.toLowerCase()));
+
+    if (!hasValidStart) {
+        log.warn('Mermaid code missing valid diagram type, prepending flowchart TD');
+        cleaned = 'flowchart TD\n' + cleaned;
+    }
+
+    // Basic validation: ensure some structure exists
+    if (cleaned.length < 10) {
+        throw new Error('Generated mermaid code is too short');
+    }
+
+    return cleaned;
+};
+
+/**
  * Generates Mermaid.js code for a specific visual recommendation.
  */
 export const generateVisual = async (rec: VisualRecommendation): Promise<string> => {
     // Enhanced prompt with specific Mermaid syntax guidance
     const typeGuidance = {
-        [VisualType.Flowchart]: 'Use "flowchart TD" or "flowchart LR" syntax. Nodes should be in format: A[Label] --> B[Label]',
-        [VisualType.MindMap]: 'Use "mindmap" syntax with proper indentation. Root node: root((Label))',
-        [VisualType.Timeline]: 'Use "timeline" syntax with title and chronological events',
-        [VisualType.Pie]: 'Use "pie" syntax with title and sections with percentages',
-        [VisualType.Gantt]: 'Use "gantt" syntax with dateFormat, sections, and tasks',
-        [VisualType.Diagram]: 'Use "graph TD" syntax for top-down or "graph LR" for left-right flow'
+        [VisualType.Flowchart]: 'Use "flowchart TD" syntax. Example: flowchart TD\n    A[Start] --> B[Process]\n    B --> C[End]',
+        [VisualType.MindMap]: 'Use "mindmap" syntax. Example: mindmap\n  root((Central Idea))\n    Topic 1\n      Detail A\n      Detail B',
+        [VisualType.Timeline]: 'Use "timeline" syntax. Example: timeline\n    title Project Timeline\n    2024-01 : Started\n    2024-06 : Milestone',
+        [VisualType.Pie]: 'Use "pie" syntax. Example: pie title Distribution\n    "A" : 40\n    "B" : 30\n    "C" : 30',
+        [VisualType.Gantt]: 'Use "gantt" syntax. Example: gantt\n    title Schedule\n    dateFormat YYYY-MM-DD\n    section Phase 1\n    Task 1 :2024-01-01, 30d',
+        [VisualType.Diagram]: 'Use "flowchart TD" syntax for general diagrams'
     };
-    
+
     const guidance = typeGuidance[rec.type] || 'Use appropriate Mermaid syntax';
-    
+
     const prompt = `
         Generate valid Mermaid.js code for a "${rec.type}" diagram.
-        
+
         Context to visualize: "${rec.context.substring(0, 300)}"
         Purpose: ${rec.reasoning}
-        
-        IMPORTANT SYNTAX RULES:
+
+        CRITICAL SYNTAX RULES:
         - ${guidance}
-        - Start with the diagram type declaration (e.g., "flowchart TD", "mindmap", "timeline")
-        - Keep node labels short and clear (under 30 characters)
-        - Use simple ASCII characters only, avoid special symbols
-        - Ensure all brackets and parentheses are balanced
-        - Test that your syntax is valid Mermaid.js v10+ compatible
-        
+        - Use ONLY valid Mermaid.js v11 syntax
+        - Keep node IDs simple: A, B, C (no special characters)
+        - Keep labels under 30 characters
+        - Use only ASCII characters, no emojis or special symbols
+        - For flowcharts: use --> for arrows
+        - Double-check bracket matching: [], (), {}
+
         Return ONLY the raw Mermaid.js code. Do NOT include:
         - Markdown fences (\`\`\`mermaid)
         - Explanations or comments
@@ -888,7 +917,7 @@ export const generateChapterContent = async (project: Project, chapter: Chapter,
         The user is writing a chapter titled "${chapter.title}" for their book, "${project.title}" (Genre: ${project.genre}).
         The user's instructions for the new content are: "${prompt}".
 
-        ${wordCount ? `The target word count is approximately ${wordCount} words.` : ''}
+        ${wordCount ? `CRITICAL REQUIREMENT: Generate EXACTLY ${wordCount} words. This is a strict requirement - do not deviate from this word count target. Count your words carefully and aim for precisely ${wordCount} words.` : ''}
         ${style ? `Additional style guidance: "${style}"` : ''}
         ${useInternetSearch ? '\n\nIMPORTANT: This request should use internet search for current information and facts. Include relevant, up-to-date details.' : ''}
 

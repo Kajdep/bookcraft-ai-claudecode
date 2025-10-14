@@ -413,6 +413,19 @@ Provide 5-7 suggestions, prioritizing the most impactful improvements.`;
                 />
                 <div className="p-3 bg-white/50 border-t border-gray-300/50 flex items-center justify-between space-x-3 rounded-b-lg flex-wrap">
                     <div className="flex items-center space-x-2">
+                        <Button
+                            variant="primary"
+                            size="sm"
+                            onClick={() => {
+                                if (chapter) {
+                                    updateChapter(chapter.id, { content, title, notes });
+                                    toast.success('Chapter saved successfully');
+                                    log.info('Manual save triggered', { chapterId: chapter.id });
+                                }
+                            }}
+                        >
+                            💾 Save
+                        </Button>
                         <Button variant="secondary" size="sm" onClick={handleCleanAndFormat} isLoading={isCleaning}>
                             <SparklesIcon className="w-4 h-4 mr-1" />
                             Clean & Format
@@ -426,7 +439,7 @@ Provide 5-7 suggestions, prioritizing the most impactful improvements.`;
                             Assistant
                         </Button>
                     </div>
-                    <div className="flex items-center gap-4 text-xs text-gray-600">
+                    <div className="flex items-center gap-4 text-xs text-gray-700">
                         <span>Words: {content.replace(/<[^>]*>/g, '').split(/\s+/).filter(w => w.length > 0).length}</span>
                         <SaveStatusIndicator />
                     </div>

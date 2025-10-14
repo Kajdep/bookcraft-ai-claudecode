@@ -86,6 +86,16 @@ export const GrammarCheckerPanel: React.FC<GrammarCheckerPanelProps> = ({ text, 
         setErrors(prev => prev.filter(e => e.id !== errorId));
     };
 
+    const handleFixAll = () => {
+        // Apply all corrections in sequence
+        filteredErrors.forEach(error => {
+            if (!appliedCorrections.has(error.id)) {
+                handleApplyCorrection(error);
+            }
+        });
+        log.info('Applied all grammar corrections', { count: filteredErrors.length });
+    };
+
     // Filter errors by type
     const filteredErrors = useMemo(() => {
         if (filterType === 'all') return errors;
@@ -126,15 +136,26 @@ export const GrammarCheckerPanel: React.FC<GrammarCheckerPanelProps> = ({ text, 
         <div className={`bg-gray-100/50 border border-gray-300/50 rounded-lg p-4 flex flex-col ${className}`}>
             <div className="flex items-center justify-between mb-3">
                 <h3 className="text-gray-800 font-bold">Grammar Checker</h3>
-                <Button 
-                    size="sm" 
-                    onClick={handleCheck}
-                    isLoading={isChecking}
-                    disabled={!cleanText || cleanText.length < 50}
-                >
-                    <SparklesIcon className="w-4 h-4 mr-1" />
-                    {isChecking ? 'Checking...' : hasChecked ? 'Re-check' : 'Check Grammar'}
-                </Button>
+                <div className="flex gap-2">
+                    {hasChecked && filteredErrors.length > 0 && (
+                        <Button
+                            size="sm"
+                            variant="primary"
+                            onClick={handleFixAll}
+                        >
+                            🔧 Fix All
+                        </Button>
+                    )}
+                    <Button
+                        size="sm"
+                        onClick={handleCheck}
+                        isLoading={isChecking}
+                        disabled={!cleanText || cleanText.length < 50}
+                    >
+                        <SparklesIcon className="w-4 h-4 mr-1" />
+                        {isChecking ? 'Checking...' : hasChecked ? 'Re-check' : 'Check Grammar'}
+                    </Button>
+                </div>
             </div>
 
             {/* Stats */}

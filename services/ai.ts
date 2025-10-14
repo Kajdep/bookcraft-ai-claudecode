@@ -131,7 +131,7 @@ const checkRateLimit = async (apiKey: string): Promise<void> => {
 /**
  * Makes a request to OpenRouter API for text generation with enhanced error handling
  */
-const callOpenRouter = async (prompt: string, jsonMode = false): Promise<string> => {
+const callOpenRouter = async (prompt: string, jsonMode = false, overrideModel?: string): Promise<string> => {
     const settings = await getAISettings();
     const envConfig = getEnvironmentConfig();
 
@@ -149,13 +149,14 @@ const callOpenRouter = async (prompt: string, jsonMode = false): Promise<string>
         throw rateLimitError;
     }
 
+    const modelToUse = overrideModel || settings.defaultModel || DEFAULT_OPENROUTER_MODEL;
     const apiUrl = `${settings.openRouterEndpoint}/chat/completions`;
     const requestBody = {
-        model: settings.defaultModel || DEFAULT_OPENROUTER_MODEL,
+        model: modelToUse,
         messages: [
             {
                 role: "system",
-                content: "You are a helpful AI assistant for BookCraft AI, a professional writing application. Provide accurate, helpful, and well-structured responses."
+                content: "You are a helpful AI assistant for WrittenUpAi, a professional writing application. Provide accurate, helpful, and well-structured responses. ALWAYS follow word count and length requirements precisely when specified."
             },
             {
                 role: "user",

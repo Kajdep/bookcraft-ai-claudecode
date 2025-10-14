@@ -10,8 +10,19 @@ export default {
   theme: {
     extend: {
       colors: {
-        'brand-primary': '#4f46e5',
-        'brand-secondary': '#06b6d4',
+        'brand-primary': '#2563eb',
+        'brand-secondary': '#0891b2',
+        'brand-accent': '#059669',
+        // Light mode optimized palette
+        'light-bg-primary': '#ffffff',
+        'light-bg-secondary': '#f9fafb',
+        'light-bg-tertiary': '#f3f4f6',
+        'light-bg-hover': '#e5e7eb',
+        'light-text-primary': '#111827',
+        'light-text-secondary': '#374151',
+        'light-text-tertiary': '#6b7280',
+        'light-border': '#d1d5db',
+        'light-border-light': '#e5e7eb',
         // Dark mode color palette
         'dark-bg-primary': '#111827',
         'dark-bg-secondary': '#1f2937',

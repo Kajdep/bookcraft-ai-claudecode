@@ -22,14 +22,14 @@ export const storageAdapter: StateStorage = {
         try {
             logger.debug('Storage adapter: getting item', { name });
             
-            // For the bookcraft-storage key, we need to retrieve all projects
+            // For the writtenupai-storage key, we need to retrieve all projects
             // and reconstruct the state object
-            if (name === 'bookcraft-storage') {
+            if (name === 'writtenupai-storage') {
                 const projects = await storageService.getAllProjects();
                 
                 // Get analytics data from localStorage for now
                 // (we'll migrate this to IndexedDB in a future iteration)
-                const analyticsData = localStorage.getItem('bookcraft-analytics');
+                const analyticsData = localStorage.getItem('writtenupai-analytics');
                 
                 // Migrate projects to ensure all required arrays exist
                 const migratedProjects = projects.map(project => ({
@@ -81,8 +81,8 @@ export const storageAdapter: StateStorage = {
             // Ensure value is a string
             const stringValue = typeof value === 'string' ? value : JSON.stringify(value);
 
-            // For the bookcraft-storage key, parse and save projects individually
-            if (name === 'bookcraft-storage') {
+            // For the writtenupai-storage key, parse and save projects individually
+            if (name === 'writtenupai-storage') {
                 const data = JSON.parse(stringValue);
                 const state = data.state || data;
                 
@@ -108,7 +108,7 @@ export const storageAdapter: StateStorage = {
                     researchFilters: state.researchFilters,
                     lastSaved: state.lastSaved,
                 };
-                localStorage.setItem('bookcraft-analytics', JSON.stringify(analyticsData));
+                localStorage.setItem('writtenupai-analytics', JSON.stringify(analyticsData));
                 
                 logger.info('Storage adapter: saved state', { 
                     projectCount: Object.keys(projects).length 

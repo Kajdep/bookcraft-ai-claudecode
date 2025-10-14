@@ -197,7 +197,7 @@ export async function deleteFile(
 export async function getCurrentUser() {
     // Always use local auth in development
     try {
-        const currentUser = localStorage.getItem('bookcraft_current_user');
+        const currentUser = localStorage.getItem('writtenupai_current_user');
         if (currentUser) {
             return JSON.parse(currentUser);
         }
@@ -244,7 +244,7 @@ export async function signOut() {
 
     // Always clear local storage
     try {
-        localStorage.removeItem('bookcraft_current_user');
+        localStorage.removeItem('writtenupai_current_user');
         log.info('User signed out successfully');
         return { success: true };
     } catch (error) {
@@ -286,7 +286,7 @@ function fallbackSignUp(email: string, password: string) {
         };
 
         localStorage.setItem('bookcraft_local_users', JSON.stringify(users));
-        localStorage.setItem('bookcraft_current_user', JSON.stringify(users[userKey]));
+        localStorage.setItem('writtenupai_current_user', JSON.stringify(users[userKey]));
 
         log.info('User signed up via local auth', { userId });
         return {
@@ -318,7 +318,7 @@ function fallbackSignIn(email: string, password: string) {
             return { success: false, error: 'Invalid password' };
         }
 
-        localStorage.setItem('bookcraft_current_user', JSON.stringify(users[userKey]));
+        localStorage.setItem('writtenupai_current_user', JSON.stringify(users[userKey]));
 
         log.info('User signed in via local auth', { userId: users[userKey].id });
         return {

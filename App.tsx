@@ -31,7 +31,7 @@ const Header: React.FC<{ onSettingsClick: () => void }> = ({ onSettingsClick }) 
                     <div className="flex items-center space-x-3">
                         <BookOpenIcon className="h-8 w-8 text-brand-primary" />
                         <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 dark:from-gray-200 dark:to-gray-400 text-transparent bg-clip-text">
-                            BookCraft <span className="text-brand-primary">AI</span>
+                            WrittenUpAi
                         </h1>
                     </div>
                     <div className="flex items-center space-x-4">

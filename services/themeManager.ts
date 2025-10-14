@@ -11,7 +11,7 @@ export type Theme = 'light' | 'dark';
 
 class ThemeManager {
   private currentTheme: Theme = 'light';
-  private readonly STORAGE_KEY = 'bookcraft-theme';
+  private readonly STORAGE_KEY = 'writtenupai-theme';
 
   constructor() {
     this.initialize();

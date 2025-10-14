@@ -38,7 +38,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToRegister }) => {
                         </div>
                     </div>
                     <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 dark:from-gray-200 dark:to-gray-400 text-transparent bg-clip-text mb-2">
-                        BookCraft AI
+                        WrittenUpAi
                     </h1>
                     <p className="text-gray-600 dark:text-gray-400">Sign in to start writing amazing books</p>
                 </div>

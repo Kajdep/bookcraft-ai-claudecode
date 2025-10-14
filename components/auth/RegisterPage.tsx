@@ -47,7 +47,7 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ onSwitchToLogin }) =
                     <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 dark:from-gray-200 dark:to-gray-400 text-transparent bg-clip-text mb-2">
                         Create Account
                     </h1>
-                    <p className="text-gray-600 dark:text-gray-400">Join BookCraft AI and start writing</p>
+                    <p className="text-gray-600 dark:text-gray-400">Join WrittenUpAi and start writing</p>
                 </div>
 
                 {/* Register Form */}

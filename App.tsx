@@ -9,6 +9,7 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { SettingsModal } from './components/SettingsModal.tsx';
 import { LoginPage } from './components/auth/LoginPage';
 import { RegisterPage } from './components/auth/RegisterPage';
+import { SyncStatusIndicator } from './components/SyncStatusIndicator';
 import { useBookCraftStore } from './store/useStore';
 import { initializeStorage } from './store/storageAdapter';
 import { logger } from './services/logger';
@@ -46,6 +47,7 @@ const Header: React.FC<{ onSettingsClick: () => void }> = ({ onSettingsClick }) 
                             </div>
                         )}
                         <div className="flex items-center space-x-2">
+                            <SyncStatusIndicator />
                             <button
                                 onClick={toggleTheme}
                                 className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"

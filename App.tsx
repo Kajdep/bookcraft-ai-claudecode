@@ -11,7 +11,7 @@ import { LoginPage } from './components/auth/LoginPage';
 import { RegisterPage } from './components/auth/RegisterPage';
 import { SyncStatusIndicator } from './components/SyncStatusIndicator';
 import { useBookCraftStore } from './store/useStore';
-import { initializeStorage } from './store/storageAdapter';
+import { initializeSupabaseSync } from './store/supabaseSync';
 import { logger } from './services/logger';
 import { themeManager } from './services/themeManager';
 
@@ -97,13 +97,13 @@ const App: React.FC = () => {
         // Initialize theme first (synchronous)
         themeManager.initialize();
         
-        // Initialize storage system
-        initializeStorage()
+        // Initialize Supabase sync
+        initializeSupabaseSync()
             .then(() => {
-                logger.info('Storage initialized successfully');
+                logger.info('Supabase sync initialized successfully');
                 initializeApp();
                 closeAllModals(); // Ensure all modals are closed on app start
-                
+
                 // Sync theme with store settings
                 const storedTheme = settings?.theme;
                 if (storedTheme && storedTheme !== themeManager.getTheme()) {
@@ -111,12 +111,12 @@ const App: React.FC = () => {
                 }
             })
             .catch((error) => {
-                logger.error('Failed to initialize storage', error);
-                // Still initialize the app even if storage init fails
+                logger.error('Failed to initialize Supabase sync', error);
+                // Still initialize the app even if sync init fails
                 initializeApp();
                 closeAllModals();
             });
-    }, [initializeApp, closeAllModals]);
+    }, [initializeApp, closeAllModals, settings?.theme]);
 
     // Handle app visibility change to cleanup modals
     React.useEffect(() => {

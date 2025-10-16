@@ -1,7 +1,5 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
-import { storageAdapter } from './storageAdapter';
 import type { Project, Chapter, VisualRecommendation, Visual, GeneratedImage, PlotPoint, ResearchItem, ResearchType, FactCheckResult, ResearchQuery, ResearchFolder, Citation, CitationStyle, ThematicTag, ResearchTimeline, ResearchMindMap, ResearchAttachment, ResearchContradiction, Settings, MaterialItem, MaterialFolder, MaterialType, MaterialCategory, User, ChapterInsight } from '../types';
 import { InsightType } from '../types';
 
@@ -328,8 +326,7 @@ interface BookCraftActions {
 }
 
 export const useBookCraftStore = create<BookCraftState & BookCraftActions>()(
-    persist(
-        immer((set, get) => ({
+    immer((set, get) => ({
             // STATE
             projects: {} as Record<string, Project>,
             activeProjectId: null,
@@ -404,16 +401,33 @@ export const useBookCraftStore = create<BookCraftState & BookCraftActions>()(
 
             // ACTIONS
             // Project Management
-            addProject: (newProjectData) => {
+            addProject: async (newProjectData) => {
                 const id = `proj_${Date.now()}`;
                 const { description, ...projectData } = newProjectData;
+
+                // Create default chapter
+                const defaultChapter: Chapter = {
+                    id: `chap_${Date.now()}`,
+                    projectId: id,
+                    title: 'Chapter 1',
+                    content: '',
+                    status: ChapterStatus.Idea,
+                    order: 0,
+                    wordCount: 0,
+                    notes: '',
+                    structure: [],
+                    createdAt: new Date(),
+                    lastModified: new Date()
+                };
+
                 const newProject: Project = {
                     ...projectData,
                     id,
                     status: ProjectStatus.Draft,
                     createdAt: new Date(),
+                    lastModified: new Date(),
                     metadata: description ? { description } : undefined,
-                    chapters: [],
+                    chapters: [defaultChapter],
                     plotPoints: [],
                     recommendations: [],
                     visuals: [],
@@ -436,39 +450,60 @@ export const useBookCraftStore = create<BookCraftState & BookCraftActions>()(
                         researchSuggestions: true
                     }
                 };
+
+                // Optimistic update
                 set((state) => {
                     state.projects[id] = newProject;
-                    // Automatically set the new project as active
                     state.activeProjectId = id;
-                    
-                    // Create a default chapter to get users started
-                    const defaultChapter: Chapter = {
-                        id: `chap_${Date.now()}`,
-                        title: 'Chapter 1',
-                        content: '',
-                        status: ChapterStatus.Idea,
-                        order: 0,
-                        notes: '',
-                        structure: [],
-                    };
-                    newProject.chapters.push(defaultChapter);
                 });
+
+                // Save to Supabase
+                try {
+                    const { saveProjectToSupabase } = await import('./supabaseSync');
+                    await saveProjectToSupabase(newProject);
+                    toast('Project created successfully', 'success');
+                } catch (error) {
+                    log.error('Failed to save project to Supabase', error);
+                    toast('Failed to save project', 'error');
+                }
             },
-            updateProject: (id, updates) => {
+            updateProject: async (id, updates) => {
+                // Optimistic update
                 set((state) => {
                     const project = state.projects[id];
                     if (project) {
-                        Object.assign(project, updates);
+                        Object.assign(project, updates, { lastModified: new Date() });
                     }
                 });
+
+                // Save to Supabase
+                try {
+                    const project = get().projects[id];
+                    if (project) {
+                        const { saveProjectToSupabase } = await import('./supabaseSync');
+                        await saveProjectToSupabase(project);
+                    }
+                } catch (error) {
+                    log.error('Failed to update project in Supabase', error);
+                }
             },
-            deleteProject: (id) => {
+            deleteProject: async (id) => {
+                // Optimistic update
                 set((state) => {
                     delete state.projects[id];
                     if (state.activeProjectId === id) {
                         state.activeProjectId = null;
                     }
                 });
+
+                // Delete from Supabase
+                try {
+                    const { deleteProjectFromSupabase } = await import('./supabaseSync');
+                    await deleteProjectFromSupabase(id);
+                } catch (error) {
+                    log.error('Failed to delete project from Supabase', error);
+                    toast('Failed to delete project', 'error');
+                }
             },
             setActiveProject: (id) => {
                 set({ activeProjectId: id });
@@ -760,32 +795,54 @@ export const useBookCraftStore = create<BookCraftState & BookCraftActions>()(
                     }
                 });
             },
-            updateChapter: (chapterId, updates) => {
+            updateChapter: async (chapterId, updates) => {
                 const projectId = get().activeProjectId;
                 if (!projectId) return;
 
+                // Optimistic update
                 set(state => {
                     const project = state.projects[projectId];
                     if (project) {
                         const chapter = project.chapters.find(c => c.id === chapterId);
                         if (chapter) {
-                            Object.assign(chapter, updates);
+                            Object.assign(chapter, updates, { lastModified: new Date() });
                         }
                     }
                 });
-                
-                // Trigger autosave after chapter update
+
+                // Save to Supabase (debounced via autosave)
                 get().triggerAutosave();
+
+                // Direct save to Supabase
+                try {
+                    const chapter = get().projects[projectId]?.chapters.find(c => c.id === chapterId);
+                    if (chapter) {
+                        const { saveChapterToSupabase } = await import('./supabaseSync');
+                        await saveChapterToSupabase(chapter);
+                    }
+                } catch (error) {
+                    log.error('Failed to save chapter to Supabase', error);
+                }
             },
-            deleteChapter: (chapterId) => {
+            deleteChapter: async (chapterId) => {
                 const projectId = get().activeProjectId;
                 if (!projectId) return;
-                 set(state => {
+
+                // Optimistic update
+                set(state => {
                     const project = state.projects[projectId];
                     if (project) {
                         project.chapters = project.chapters.filter(c => c.id !== chapterId);
                     }
                 });
+
+                // Delete from Supabase
+                try {
+                    const { deleteChapterFromSupabase } = await import('./supabaseSync');
+                    await deleteChapterFromSupabase(chapterId);
+                } catch (error) {
+                    log.error('Failed to delete chapter from Supabase', error);
+                }
             },
             addChaptersFromPlan: (titles) => {
                 const projectId = get().activeProjectId;
@@ -2861,43 +2918,5 @@ export const useBookCraftStore = create<BookCraftState & BookCraftActions>()(
                     goalsActive: projectGoals.filter(g => !g.completed).length
                 };
             }
-        })),
-        {
-            name: 'writtenupai-storage',
-            storage: storageAdapter,
-            partialize: (state) => ({
-                // ONLY persist data, NEVER persist UI state
-                projects: state.projects,
-                activeProjectId: state.activeProjectId,
-                settings: state.settings,
-                // Persist analytics data
-                writingSessions: state.writingSessions,
-                writingGoals: state.writingGoals,
-                dailyMetrics: state.dailyMetrics,
-                weeklyMetrics: state.weeklyMetrics,
-                monthlyMetrics: state.monthlyMetrics,
-                writingStreak: state.writingStreak,
-                // Persist some research preferences but not loading states
-                researchView: state.researchView,
-                researchFilters: state.researchFilters,
-                // Persist autosave metadata
-                lastSaved: state.lastSaved,
-                // EXPLICITLY EXCLUDE all modal and UI states
-                // activeModal: undefined, // Don't persist
-                // modalStack: undefined, // Don't persist
-                // isCreateModalOpen: undefined, // Don't persist
-                // isLoading: undefined, // Don't persist
-                // generatingVisualFor: undefined, // Don't persist
-                // isGeneratingImage: undefined, // Don't persist
-                // isSuggestingVisual: undefined, // Don't persist
-                // isAnalyzingChapter: undefined, // Don't persist
-                // isResearching: undefined, // Don't persist
-                // isFactChecking: undefined, // Don't persist
-                // isGeneratingCitation: undefined, // Don't persist
-                // isAnalyzingThemes: undefined, // Don't persist
-                // isDetectingContradictions: undefined, // Don't persist
-                // selectedResearchItems: undefined, // Don't persist
-            })
-        }
-    )
+        }))
 );

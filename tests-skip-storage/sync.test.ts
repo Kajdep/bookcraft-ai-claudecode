@@ -10,9 +10,8 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { syncEngine } from '../../services/storage/syncEngine';
+import * as syncEngine from '../../services/storage/syncEngine';
 import { db } from '../../services/storage/indexedDB';
-import { supabase } from '../../services/storage/supabase';
 import { logger } from '../../services/logger';
 
 // Mock Supabase

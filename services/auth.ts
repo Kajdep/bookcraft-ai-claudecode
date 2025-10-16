@@ -4,7 +4,9 @@
  */
 
 import { createClient, SupabaseClient, User, Session } from '@supabase/supabase-js';
-import { log } from './logger';
+import { logger } from './logger';
+
+const log = logger;
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;

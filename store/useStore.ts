@@ -1269,7 +1269,7 @@ export const useBookCraftStore = create<BookCraftState & BookCraftActions>()(
                         projectPhase: project.status
                     };
 
-                    // This will be implemented when we create the AI service
+                    // Perform research using the AI service
                     const researchResult = await ai.performResearch(query, type, context);
 
                     const newResearchItem: ResearchItem = {
@@ -1673,7 +1673,7 @@ export const useBookCraftStore = create<BookCraftState & BookCraftActions>()(
 
                 set({ isFactChecking: true });
                 try {
-                    // This will be implemented when we create the AI service
+                    // Verify facts using the AI service
                     const factCheckResults = await ai.verifyFacts(text, { projectId, chapterId });
 
                     set(state => {

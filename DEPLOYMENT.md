@@ -42,8 +42,9 @@
 1. Push code to GitHub repository
 2. Connect repository to Vercel
 3. Configure environment variables in Vercel dashboard:
-   - `VITE_SUPABASE_URL` (optional)
-   - `VITE_SUPABASE_ANON_KEY` (optional)
+   - `VITE_SUPABASE_URL` (optional - for cloud sync)
+   - `VITE_SUPABASE_ANON_KEY` (optional - for cloud sync)
+   - See [SUPABASE_DATABASE_SETUP.md](SUPABASE_DATABASE_SETUP.md) for detailed instructions
    - `VITE_APP_NAME=BookCraft AI`
    - `VITE_APP_VERSION=1.0.0`
    - `VITE_ENABLE_DEBUG_LOGGING=false`

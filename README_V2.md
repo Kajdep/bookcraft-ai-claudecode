@@ -68,6 +68,7 @@ BookCraft AI requires two API keys to function:
      VITE_SUPABASE_URL=https://your-project.supabase.co
      VITE_SUPABASE_ANON_KEY=your-anon-key
      ```
+   - **Need help?** See [SUPABASE_DATABASE_SETUP.md](SUPABASE_DATABASE_SETUP.md) for detailed instructions
 
 ### First Run
 

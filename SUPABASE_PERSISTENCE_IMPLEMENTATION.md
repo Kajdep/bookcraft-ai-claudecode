@@ -449,6 +449,13 @@ VITE_SUPABASE_URL=https://xxx.supabase.co
 VITE_SUPABASE_ANON_KEY=eyJxxx...
 ```
 
+**📚 Need help finding these credentials?**  
+See [SUPABASE_DATABASE_SETUP.md](SUPABASE_DATABASE_SETUP.md) for detailed instructions on:
+- Where to find your Supabase URL and anon key
+- How to locate your database password
+- Setting up direct database connections for migrations
+- Connection string formats and examples
+
 ### Supabase Configuration
 
 1. **Create tables** (projects, chapters)

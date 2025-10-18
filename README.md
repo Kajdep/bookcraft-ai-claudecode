@@ -63,6 +63,7 @@ Users configure their own API keys in the app settings:
 3. Configure environment variables (optional):
    - `VITE_SUPABASE_URL` - For cloud sync
    - `VITE_SUPABASE_ANON_KEY` - For cloud sync
+   - See [SUPABASE_DATABASE_SETUP.md](SUPABASE_DATABASE_SETUP.md) for how to find these credentials
 4. Deploy!
 
 See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment instructions.
@@ -80,6 +81,7 @@ See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment instructions.
 ## 📖 Documentation
 
 - [Deployment Guide](DEPLOYMENT.md) - Complete deployment instructions
+- [Supabase Database Setup](SUPABASE_DATABASE_SETUP.md) - How to configure Supabase and find database credentials
 - [Implementation Summary](IMPLEMENTATION_SUMMARY.md) - Technical details and features
 
 ## 🎯 Key Features

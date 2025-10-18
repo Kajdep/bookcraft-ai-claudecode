@@ -18,17 +18,31 @@ NC='\033[0m' # No Color
 # Check if .env.local exists
 if [ ! -f .env.local ]; then
     echo -e "${YELLOW}⚠️  .env.local file not found${NC}"
-    echo "Creating from template..."
-    cp .env.example .env.local
-    echo -e "${GREEN}✓ Created .env.local from .env.example${NC}"
-    echo -e "${YELLOW}➜ Please edit .env.local and add your Supabase credentials${NC}"
-    echo ""
-    exit 1
+    if [ -f .env.example ]; then
+      echo "Creating .env.local from template..."
+      cp -n .env.example .env.local
+      echo -e "${GREEN}✓ Created .env.local from .env.example${NC}"
+      echo -e "${YELLOW}➜ Please edit .env.local and add your Supabase credentials${NC}"
+      echo ""
+      exit 0
+    else
+      echo -e "${RED}✗ .env.example template not found; cannot create .env.local${NC}"
+      exit 1
+    fi
 fi
 
-# Source environment variables
+# Source environment variables safely
 echo "Reading environment variables from .env.local..."
-export $(cat .env.local | grep -v '^#' | xargs)
+set -a
+# Allow only simple KEY=VALUE lines, ignore comments and invalid lines
+# shellcheck disable=SC1091
+if grep -qE '^[[:space:]]*[^#[:space:]]+[[:space:]]*=' .env.local; then
+  . .env.local
+else
+  echo -e "${RED}✗ .env.local does not contain valid KEY=VALUE entries${NC}"
+  exit 1
+fi
+set +a
 
 # Check VITE_SUPABASE_URL
 echo ""
@@ -70,17 +84,31 @@ fi
 # Test connection with curl (if URL is set)
 echo ""
 echo "4. Testing Supabase API connectivity..."
-if [ ! -z "$VITE_SUPABASE_URL" ]; then
-    HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "${VITE_SUPABASE_URL}/rest/v1/" \
-        -H "apikey: ${VITE_SUPABASE_ANON_KEY}")
+if [ -n "$VITE_SUPABASE_URL" ]; then
+    # Basic URL sanity check
+    if ! echo "$VITE_SUPABASE_URL" | grep -Eq '^https://[a-z0-9-]+\.supabase\.co/?$'; then
+      echo -e "${YELLOW}⚠️  VITE_SUPABASE_URL format looks unusual: $VITE_SUPABASE_URL${NC}"
+    fi
     
-    if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "401" ]; then
-        echo -e "${GREEN}✓ Supabase API is reachable${NC}"
+    if [ -z "$VITE_SUPABASE_ANON_KEY" ]; then
+      echo -e "${YELLOW}⚠️  VITE_SUPABASE_ANON_KEY not set; testing reachability without auth headers${NC}"
+      HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "${VITE_SUPABASE_URL}/rest/v1/")
+    else
+      HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "${VITE_SUPABASE_URL}/rest/v1/" \
+        -H "apikey: ${VITE_SUPABASE_ANON_KEY}" \
+        -H "Authorization: Bearer ${VITE_SUPABASE_ANON_KEY}")
+    fi
+    
+    if [ "$HTTP_CODE" != "000" ] && [ "$HTTP_CODE" -ge 200 ] && [ "$HTTP_CODE" -lt 500 ]; then
+        echo -e "${GREEN}✓ Supabase API endpoint is reachable${NC}"
         echo "  HTTP Status: $HTTP_CODE"
+        if [ "$HTTP_CODE" -eq 401 ] || [ "$HTTP_CODE" -eq 403 ]; then
+          echo -e "${YELLOW}⚠️  Authorization failed. Ensure VITE_SUPABASE_ANON_KEY is correct${NC}"
+        fi
     else
         echo -e "${RED}✗ Cannot reach Supabase API${NC}"
         echo "  HTTP Status: $HTTP_CODE"
-        echo "  Check your VITE_SUPABASE_URL and internet connection"
+        echo "  Verify VITE_SUPABASE_URL, network connectivity, or project status"
     fi
 else
     echo -e "${YELLOW}⚠️  Skipping API test (URL not set)${NC}"
@@ -89,14 +117,24 @@ fi
 # Check if psql is available for database connection test
 echo ""
 echo "5. Testing direct database connection..."
-if [ ! -z "$DATABASE_URL" ]; then
+if [ -n "$DATABASE_URL" ]; then
     if command -v psql &> /dev/null; then
         echo "Testing with psql..."
-        if psql "$DATABASE_URL" -c "SELECT version();" &> /dev/null; then
+        TEST_URL="$DATABASE_URL"
+        if ! echo "$TEST_URL" | grep -q 'sslmode='; then
+          # Append sslmode=require safely
+          if echo "$TEST_URL" | grep -q '?'; then
+            TEST_URL="${TEST_URL}&sslmode=require"
+          else
+            TEST_URL="${TEST_URL}?sslmode=require"
+          fi
+        fi
+        if OUTPUT=$(psql "$TEST_URL" -c "SELECT version();" 2>&1); then
             echo -e "${GREEN}✓ Database connection successful${NC}"
         else
             echo -e "${RED}✗ Database connection failed${NC}"
-            echo "  Check your DATABASE_URL and database password"
+            echo "  Hint: Ensure your password is correct and SSL is enabled."
+            echo "  Error: $(echo "$OUTPUT" | tail -n 1)"
         fi
     else
         echo -e "${YELLOW}⚠️  psql not installed (skipping test)${NC}"
@@ -112,7 +150,12 @@ echo "=================================================="
 echo "Summary"
 echo "=================================================="
 
-if [ ! -z "$VITE_SUPABASE_URL" ] && [ ! -z "$VITE_SUPABASE_ANON_KEY" ]; then
+URL_OK=false
+if [ -n "$VITE_SUPABASE_URL" ] && echo "$VITE_SUPABASE_URL" | grep -Eq '^https://[a-z0-9-]+\.supabase\.co/?$'; then
+  URL_OK=true
+fi
+
+if $URL_OK && [ -n "$VITE_SUPABASE_ANON_KEY" ]; then
     echo -e "${GREEN}✓ Application configuration looks good!${NC}"
     echo ""
     echo "Next steps:"
@@ -120,12 +163,13 @@ if [ ! -z "$VITE_SUPABASE_URL" ] && [ ! -z "$VITE_SUPABASE_ANON_KEY" ]; then
     echo "  2. Open http://localhost:5173 in your browser"
     echo "  3. Test creating a project and syncing data"
 else
-    echo -e "${RED}✗ Missing required configuration${NC}"
+    echo -e "${RED}✗ Missing or invalid configuration${NC}"
     echo ""
     echo "Next steps:"
     echo "  1. Edit .env.local and add your Supabase credentials"
-    echo "  2. Get credentials from: https://supabase.com"
-    echo "  3. See SUPABASE_DATABASE_SETUP.md for detailed instructions"
+    echo "  2. Ensure VITE_SUPABASE_URL looks like https://your-project.supabase.co"
+    echo "  3. Get credentials from: https://supabase.com"
+    echo "  4. See SUPABASE_DATABASE_SETUP.md for detailed instructions"
 fi
 
 echo ""

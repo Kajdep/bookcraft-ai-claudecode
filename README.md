@@ -321,9 +321,9 @@ Amazon KDP pricing calculator:
 ## 🛠️ Technology Stack
 
 ### Frontend Framework
-- **React 19** - Modern React with hooks and concurrent features
-- **TypeScript 5.8** - Type-safe development
-- **Vite 6.2** - Lightning-fast build tool and dev server
+- **React 19.1** - Modern React with hooks and concurrent features
+- **TypeScript ~5.8.2** - Type-safe development
+- **Vite ^6.2.0** - Lightning-fast build tool and dev server
 
 ### State Management
 - **Zustand 5.0** - Lightweight state management
@@ -368,10 +368,9 @@ Amazon KDP pricing calculator:
 - **TypeScript** - Static type checking
 
 ### Development Tools
-- **ESLint** - Code linting and quality
-- **Prettier** - Code formatting
 - **Git** - Version control
 - **npm/yarn** - Package management
+- **TypeScript** - Static type checking and compilation
 
 ---
 
@@ -429,8 +428,10 @@ bookcraft-ai-claudecode/
 │   ├── storageAdapter.ts     # Storage persistence
 │   └── supabaseSync.ts       # Supabase sync logic
 ├── docs/                      # Documentation
+│   ├── BACK_COVER_GENERATION.md
 │   ├── IMPLEMENTATION_SUMMARY.md
 │   ├── PROJECT_COMPLETION_SUMMARY.md
+│   ├── SESSION_SUMMARY_BACK_COVER.md
 │   └── VERCEL_DEPLOYMENT.md
 ├── tests/                     # Test files
 │   └── storage/              # Storage tests

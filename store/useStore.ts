@@ -544,8 +544,8 @@ export const useBookCraftStore = create<BookCraftState & BookCraftActions>()(
 
                 // Check for existing Supabase session
                 try {
-                    const { getCurrentUser } = await import('../services/storage/supabase');
-                    const user = await getCurrentUser();
+                    const { authService } = await import('../services/auth');
+                    const user = await authService.getCurrentUser();
 
                     if (user) {
                         set((state) => {
@@ -638,120 +638,48 @@ export const useBookCraftStore = create<BookCraftState & BookCraftActions>()(
 
             // Auth Management
             login: async (email, password) => {
-                try {
-                    const { signInWithEmail } = await import('../services/storage/supabase');
-                    const result = await signInWithEmail(email, password);
-
-                    if (result.success && result.user) {
-                        const user: User = {
-                            id: result.user.id,
-                            email: result.user.email || email,
-                            name: result.user.user_metadata?.name || email.split('@')[0],
-                            createdAt: new Date(result.user.created_at),
-                            lastLogin: new Date()
-                        };
-
-                        set((state) => {
-                            state.isAuthenticated = true;
-                            state.currentUser = user;
-                        });
-
-                        toast.success('Welcome Back!', `Logged in as ${user.name}`);
-                        return true;
-                    } else {
-                        toast.error('Login Failed', result.error || 'Invalid email or password');
-                        return false;
-                    }
-                } catch (error) {
-                    log.error('Login error', error as Error);
-                    toast.error('Login Error', 'An error occurred during login');
-                    return false;
+                const { authService } = await import('../services/auth');
+                const result = await authService.signInWithEmail(email, password);
+                if (result.success && result.user) {
+                    const user: User = {
+                        id: result.user.id,
+                        email: result.user.email || email,
+                        name: result.user.user_metadata?.name || email.split('@')[0],
+                        createdAt: new Date(result.user.created_at || ''),
+                        lastLogin: new Date()
+                    };
+                    set({ isAuthenticated: true, currentUser: user });
+                    toast.success('Welcome Back!', `Logged in as ${user.name}`);
+                    return true;
                 }
+                toast.error('Login Failed', result.error || 'Invalid email or password');
+                return false;
             },
 
             register: async (email, password, name) => {
-                try {
-                    const { signUpWithEmail } = await import('../services/storage/supabase');
-                    const result = await signUpWithEmail(email, password);
-
-                    if (result.success && result.user) {
-                        const user: User = {
-                            id: result.user.id,
-                            email: result.user.email || email,
-                            name: name,
-                            createdAt: new Date(result.user.created_at),
-                            lastLogin: new Date()
-                        };
-
-                        set((state) => {
-                            state.isAuthenticated = true;
-                            state.currentUser = user;
-                        });
-
-                        toast.success('Account Created!', `Welcome, ${name}!`);
-                        return true;
-                    } else {
-                        toast.error('Registration Failed', result.error || 'An error occurred');
-                        return false;
-                    }
-
-                    // Create new user
-                    const userId = `user_${Date.now()}`;
-                    const now = new Date().toISOString();
-
-                    users[userKey] = {
-                        id: userId,
-                        email: email,
-                        name: name,
-                        password: password, // In production, this should be hashed
-                        createdAt: now,
-                        lastLogin: now
-                    };
-
-                    // Save to localStorage
-                    localStorage.setItem('bookcraft_users', JSON.stringify(users));
-
-                    // Auto-login after registration
+                const { authService } = await import('../services/auth');
+                const result = await authService.signUpWithEmail(email, password);
+                 if (result.success && result.user) {
                     const user: User = {
-                        id: userId,
-                        email: email,
+                        id: result.user.id,
+                        email: result.user.email || email,
                         name: name,
-                        createdAt: new Date(now),
-                        lastLogin: new Date(now)
+                        createdAt: new Date(result.user.created_at || ''),
+                        lastLogin: new Date()
                     };
-
-                    set((state) => {
-                        state.isAuthenticated = true;
-                        state.currentUser = user;
-                    });
-
-                    toast.success('Account Created!', `Welcome to BookCraft AI, ${name}!`);
+                    set({ isAuthenticated: true, currentUser: user });
+                    toast.success('Account Created!', `Welcome, ${name}!`);
                     return true;
-                } catch (error) {
-                    toast.error('Registration Error', 'An error occurred during registration');
-                    return false;
                 }
+                toast.error('Registration Failed', result.error || 'An error occurred');
+                return false;
             },
 
             logout: async () => {
-                try {
-                    const { signOut } = await import('../services/storage/supabase');
-                    await signOut();
-
-                    set((state) => {
-                        state.isAuthenticated = false;
-                        state.currentUser = null;
-                    });
-
-                    toast.success('Logged Out', 'You have been successfully logged out');
-                } catch (error) {
-                    log.error('Logout error', error as Error);
-                    // Still clear auth state even if Supabase signout fails
-                    set((state) => {
-                        state.isAuthenticated = false;
-                        state.currentUser = null;
-                    });
-                }
+                const { authService } = await import('../services/auth');
+                await authService.signOut();
+                set({ isAuthenticated: false, currentUser: null });
+                toast.success('Logged Out', 'You have been successfully logged out');
             },
 
             updateUserProfile: (updates) => {

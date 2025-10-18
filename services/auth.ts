@@ -1,288 +1,222 @@
-/**
- * Authentication Service
- * Handles user authentication with Supabase
- */
-
-import { createClient, SupabaseClient, User, Session } from '@supabase/supabase-js';
-import { logger } from './logger';
-
-const log = logger;
-
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-let supabaseClient: SupabaseClient | null = null;
+// src/services/auth.ts
+import { getSupabaseClient } from './storage/supabase';
+import { log } from './logger';
+import type { User } from '../types';
 
 /**
- * Get Supabase client instance
+ * Get current authenticated user from Supabase
  */
-export function getSupabaseClient(): SupabaseClient {
-    if (!supabaseClient) {
-        if (!supabaseUrl || !supabaseAnonKey) {
-            throw new Error('Supabase credentials not configured');
+async function getCurrentUser() {
+    try {
+        const supabase = getSupabaseClient();
+        if (!supabase) {
+            log.warn('Supabase client not available, using local user');
+            return getLocalUser();
         }
-        supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
+
+        const { data: { session }, error } = await supabase.auth.getSession();
+
+        if (error) {
+            log.error('Failed to get Supabase session', error);
+            return getLocalUser(); // Fallback to local
+        }
+
+        if (session) {
+            log.info('Supabase session found', { userId: session.user.id });
+            return session.user;
+        } else {
+            log.info('No active Supabase session, checking local');
+            return getLocalUser();
+        }
+    } catch (error) {
+        log.error('Error getting current user', error);
+        return getLocalUser(); // Fallback on any error
     }
-    return supabaseClient;
 }
 
 /**
- * Authentication state
+ * Sign in with email and password
  */
-export interface AuthState {
-    user: User | null;
-    session: Session | null;
-    loading: boolean;
-    error: string | null;
+async function signInWithEmail(email: string, password: string) {
+    const supabase = getSupabaseClient();
+    if (!supabase) {
+        log.warn('Supabase not available, using fallback sign in');
+        return fallbackSignIn(email, password);
+    }
+
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+    if (error) {
+        log.error('Supabase sign in failed', error);
+        return { success: false, error: error.message };
+    }
+
+    if (data.user) {
+        const user: User = {
+            id: data.user.id,
+            email: data.user.email || '',
+            name: data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'User',
+            createdAt: new Date(data.user.created_at || ''),
+            lastLogin: new Date(data.user.last_sign_in_at || '')
+        };
+        return { success: true, user: data.user, session: data.session };
+    }
+
+    return { success: false, error: 'Unknown error during sign in' };
 }
 
 /**
- * Authentication service class
+ * Sign up with email and password
  */
-class AuthService {
-    private client: SupabaseClient;
-    private listeners: Set<(state: AuthState) => void> = new Set();
-    private currentState: AuthState = {
-        user: null,
-        session: null,
-        loading: true,
-        error: null,
-    };
+async function signUpWithEmail(email: string, password: string) {
+    const supabase = getSupabaseClient();
+    if (!supabase) {
+        log.warn('Supabase not available, using fallback sign up');
+        return fallbackSignUp(email, password);
+    }
+    const { data, error } = await supabase.auth.signUp({ email, password });
 
-    constructor() {
-        this.client = getSupabaseClient();
-        this.initialize();
+    if (error) {
+        log.error('Supabase sign up failed', error);
+        return { success: false, error: error.message };
     }
 
-    /**
-     * Initialize auth service and restore session
-     */
-    private async initialize() {
-        try {
-            // Get current session
-            const { data: { session }, error } = await this.client.auth.getSession();
+    // Note: Supabase returns a user object on signup, but session might be null until email confirmation
+    if (data.user) {
+         return { success: true, user: data.user, session: data.session };
+    }
 
-            if (error) {
-                log.error('Failed to get session', error);
-                this.updateState({ loading: false, error: error.message });
-                return;
-            }
+    return { success: false, error: 'Unknown error during sign up' };
+}
 
-            this.updateState({
-                user: session?.user ?? null,
-                session,
-                loading: false,
-                error: null,
-            });
-
-            // Listen for auth changes
-            this.client.auth.onAuthStateChange((event, session) => {
-                log.info('Auth state changed', { event });
-                this.updateState({
-                    user: session?.user ?? null,
-                    session,
-                    loading: false,
-                    error: null,
-                });
-            });
-
-            log.info('Auth service initialized', {
-                authenticated: !!session
-            });
-        } catch (error) {
-            log.error('Failed to initialize auth service', error as Error);
-            this.updateState({
-                loading: false,
-                error: (error as Error).message
-            });
+/**
+ * Sign out current user
+ */
+async function signOut() {
+    const supabase = getSupabaseClient();
+    if (supabase) {
+        const { error } = await supabase.auth.signOut();
+        if (error) {
+            log.warn('Supabase sign out failed', error);
         }
     }
 
-    /**
-     * Update auth state and notify listeners
-     */
-    private updateState(updates: Partial<AuthState>) {
-        this.currentState = { ...this.currentState, ...updates };
-        this.notifyListeners();
+    // Always clear local storage as a fallback/cleanup
+    try {
+        localStorage.removeItem('writtenupai_current_user');
+        log.info('User signed out successfully');
+        return { success: true };
+    } catch (error) {
+        log.error('Sign out failed', error as Error);
+        return { success: false, error: (error as Error).message };
     }
+}
 
-    /**
-     * Notify all listeners of state change
-     */
-    private notifyListeners() {
-        this.listeners.forEach(listener => {
-            try {
-                listener(this.currentState);
-            } catch (error) {
-                log.error('Error in auth state listener', error as Error);
-            }
-        });
+/**
+ * Listen to auth state changes
+ */
+function onAuthStateChange(callback: (event: string, session: any) => void) {
+    const client = getSupabaseClient();
+    if (!client) return { unsubscribe: () => {} };
+
+    const { data: { subscription } } = client.auth.onAuthStateChange(callback);
+    return subscription;
+}
+
+
+/**
+ * Fallback to get user from local storage
+ */
+function getLocalUser() {
+    try {
+        const localUser = localStorage.getItem('writtenupai_current_user');
+        if (localUser) {
+            log.info('Found user in local storage');
+            return JSON.parse(localUser);
+        }
+    } catch (error) {
+        log.error('Failed to get local user', error);
     }
+    return null;
+}
 
-    /**
-     * Subscribe to auth state changes
-     */
-    public subscribe(listener: (state: AuthState) => void): () => void {
-        this.listeners.add(listener);
-        // Immediately call with current state
-        listener(this.currentState);
-        // Return unsubscribe function
-        return () => this.listeners.delete(listener);
-    }
+/**
+ * Fallback authentication using localStorage
+ */
+function fallbackSignUp(email: string, password: string) {
+    try {
+        const users = JSON.parse(localStorage.getItem('bookcraft_local_users') || '{}');
+        const userKey = email.toLowerCase();
 
-    /**
-     * Get current auth state
-     */
-    public getState(): AuthState {
-        return { ...this.currentState };
-    }
+        if (users[userKey]) {
+            return { success: false, error: 'User already exists' };
+        }
 
-    /**
-     * Sign up with email and password
-     */
-    public async signUp(email: string, password: string): Promise<{ success: boolean; error?: string }> {
-        try {
-            this.updateState({ loading: true, error: null });
+        const userId = `local-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        users[userKey] = {
+            id: userId,
+            email,
+            password,
+            created_at: new Date().toISOString(),
+            user_metadata: { name: email.split('@')[0] }
+        };
 
-            const { data, error } = await this.client.auth.signUp({
+        localStorage.setItem('bookcraft_local_users', JSON.stringify(users));
+        localStorage.setItem('writtenupai_current_user', JSON.stringify(users[userKey]));
+
+        log.info('User signed up via local auth', { userId });
+        return {
+            success: true,
+            user: {
+                id: userId,
                 email,
-                password,
-            });
-
-            if (error) {
-                this.updateState({ loading: false, error: error.message });
-                return { success: false, error: error.message };
-            }
-
-            log.info('User signed up successfully', { userId: data.user?.id });
-            return { success: true };
-        } catch (error) {
-            const message = (error as Error).message;
-            log.error('Sign up failed', error as Error);
-            this.updateState({ loading: false, error: message });
-            return { success: false, error: message };
-        }
-    }
-
-    /**
-     * Sign in with email and password
-     */
-    public async signIn(email: string, password: string): Promise<{ success: boolean; error?: string }> {
-        try {
-            this.updateState({ loading: true, error: null });
-
-            const { data, error } = await this.client.auth.signInWithPassword({
-                email,
-                password,
-            });
-
-            if (error) {
-                this.updateState({ loading: false, error: error.message });
-                return { success: false, error: error.message };
-            }
-
-            log.info('User signed in successfully', { userId: data.user?.id });
-            return { success: true };
-        } catch (error) {
-            const message = (error as Error).message;
-            log.error('Sign in failed', error as Error);
-            this.updateState({ loading: false, error: message });
-            return { success: false, error: message };
-        }
-    }
-
-    /**
-     * Sign out current user
-     */
-    public async signOut(): Promise<{ success: boolean; error?: string }> {
-        try {
-            this.updateState({ loading: true, error: null });
-
-            const { error } = await this.client.auth.signOut();
-
-            if (error) {
-                this.updateState({ loading: false, error: error.message });
-                return { success: false, error: error.message };
-            }
-
-            log.info('User signed out successfully');
-            return { success: true };
-        } catch (error) {
-            const message = (error as Error).message;
-            log.error('Sign out failed', error as Error);
-            this.updateState({ loading: false, error: message });
-            return { success: false, error: message };
-        }
-    }
-
-    /**
-     * Get current user
-     */
-    public getCurrentUser(): User | null {
-        return this.currentState.user;
-    }
-
-    /**
-     * Get current session
-     */
-    public getCurrentSession(): Session | null {
-        return this.currentState.session;
-    }
-
-    /**
-     * Check if user is authenticated
-     */
-    public isAuthenticated(): boolean {
-        return !!this.currentState.user;
-    }
-
-    /**
-     * Reset password
-     */
-    public async resetPassword(email: string): Promise<{ success: boolean; error?: string }> {
-        try {
-            const { error } = await this.client.auth.resetPasswordForEmail(email, {
-                redirectTo: `${window.location.origin}/reset-password`,
-            });
-
-            if (error) {
-                return { success: false, error: error.message };
-            }
-
-            log.info('Password reset email sent', { email });
-            return { success: true };
-        } catch (error) {
-            const message = (error as Error).message;
-            log.error('Password reset failed', error as Error);
-            return { success: false, error: message };
-        }
-    }
-
-    /**
-     * Update password
-     */
-    public async updatePassword(newPassword: string): Promise<{ success: boolean; error?: string }> {
-        try {
-            const { error } = await this.client.auth.updateUser({
-                password: newPassword,
-            });
-
-            if (error) {
-                return { success: false, error: error.message };
-            }
-
-            log.info('Password updated successfully');
-            return { success: true };
-        } catch (error) {
-            const message = (error as Error).message;
-            log.error('Password update failed', error as Error);
-            return { success: false, error: message };
-        }
+                created_at: users[userKey].created_at,
+                user_metadata: users[userKey].user_metadata
+            },
+            session: { access_token: 'local-session' }
+        };
+    } catch (error) {
+        log.error('Local signup failed', error as Error);
+        return { success: false, error: 'Failed to create account' };
     }
 }
 
-// Export singleton instance
-export const authService = new AuthService();
+function fallbackSignIn(email: string, password: string) {
+    try {
+        const users = JSON.parse(localStorage.getItem('bookcraft_local_users') || '{}');
+        const userKey = email.toLowerCase();
 
-// Export types
-export type { User, Session };
+        if (!users[userKey]) {
+            return { success: false, error: 'User not found' };
+        }
+
+        if (users[userKey].password !== password) {
+            return { success: false, error: 'Invalid password' };
+        }
+
+        localStorage.setItem('writtenupai_current_user', JSON.stringify(users[userKey]));
+
+        log.info('User signed in via local auth', { userId: users[userKey].id });
+        return {
+            success: true,
+            user: {
+                id: users[userKey].id,
+                email: users[userKey].email,
+                created_at: users[userKey].created_at,
+                user_metadata: users[userKey].user_metadata
+            },
+            session: { access_token: 'local-session' }
+        };
+    } catch (error) {
+        log.error('Local signin failed', error as Error);
+        return { success: false, error: 'Failed to sign in' };
+    }
+}
+
+export const authService = {
+    getCurrentUser,
+    signInWithEmail,
+    signUpWithEmail,
+    signOut,
+    onAuthStateChange,
+};

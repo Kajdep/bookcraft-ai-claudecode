@@ -67,7 +67,7 @@ export const ChapterEditorView: React.FC<ChapterEditorViewProps> = ({ chapterId 
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [showGrammarChecker, setShowGrammarChecker] = useState(false);
     const [appliedSuggestions, setAppliedSuggestions] = useState<Set<number>>(new Set());
-    const [undoStack, setUndoStack] = useState<Array<{content: string; suggestionIndex: number}>>([]);
+    const [undoStack, setUndoStack] = useState<Array<{content: string; source: 'suggestion' | 'correction'; index: number}>>([]);
 
     useEffect(() => {
         if (chapter) {
@@ -201,16 +201,15 @@ export const ChapterEditorView: React.FC<ChapterEditorViewProps> = ({ chapterId 
     };
 
     const handleTextCorrection = (originalText: string, correctedText: string, startOffset: number, endOffset: number) => {
+        // Save current content for undo
+        setUndoStack(prev => [...prev, { content, source: 'correction', index: startOffset }]);
+
         setContent(prevContent => {
-            // Replace the first occurrence of the original text with corrected text
-            const newContent = prevContent.replace(originalText, correctedText);
-            log.debug('Grammar correction applied', { originalText, correctedText });
+            // Using offsets is more reliable than replacing the first occurrence
+            const newContent = prevContent.substring(0, startOffset) + correctedText + prevContent.substring(endOffset);
+            log.debug('Grammar correction applied', { originalText, correctedText, startOffset, endOffset });
             return newContent;
         });
-        // Force update the chapter content immediately
-        if (chapter) {
-            updateChapter(chapter.id, { content: content.replace(originalText, correctedText) });
-        }
     };
 
     const handleGenerateStructure = async () => {
@@ -361,39 +360,33 @@ Provide 5-7 suggestions, prioritizing the most impactful improvements.`;
 
     const handleApplySuggestion = (suggestionText: string, index: number) => {
         // Save current content for undo
-        setUndoStack(prev => [...prev, { content, suggestionIndex: index }]);
+        setUndoStack(prev => [...prev, { content, source: 'suggestion', index }]);
         
-        // Extract the actual suggestion text (remove the number prefix)
         const cleanSuggestion = suggestionText.replace(/^\d+\.\s*/, '');
-        
-        // Add suggestion as a note/comment at the end of the content
         const separator = content.trim().length > 0 ? '<p><br></p>' : '';
         const formattedSuggestion = `<p><em><strong>AI Suggestion:</strong> ${cleanSuggestion}</em></p>`;
         setContent(content + separator + formattedSuggestion);
         
-        // Mark as applied
         setAppliedSuggestions(prev => new Set(prev).add(index));
-        
         log.debug('Applied suggestion', { index, suggestion: cleanSuggestion });
     };
 
-    const handleUndoLastSuggestion = () => {
+    const handleUndoLastEdit = () => {
         if (undoStack.length === 0) return;
         
-        const lastUndo = undoStack[undoStack.length - 1];
-        setContent(lastUndo.content);
+        const lastEdit = undoStack[undoStack.length - 1];
+        setContent(lastEdit.content);
         
-        // Remove from applied set
-        setAppliedSuggestions(prev => {
-            const newSet = new Set(prev);
-            newSet.delete(lastUndo.suggestionIndex);
-            return newSet;
-        });
+        if (lastEdit.source === 'suggestion') {
+            setAppliedSuggestions(prev => {
+                const newSet = new Set(prev);
+                newSet.delete(lastEdit.index);
+                return newSet;
+            });
+        }
         
-        // Remove from undo stack
         setUndoStack(prev => prev.slice(0, -1));
-        
-        log.debug('Undid last suggestion', { suggestionIndex: lastUndo.suggestionIndex });
+        log.debug('Undid last AI edit', { source: lastEdit.source, index: lastEdit.index });
     };
 
     if (!chapter) return <div className="p-4 text-center">Chapter not found.</div>;
@@ -524,10 +517,10 @@ Provide 5-7 suggestions, prioritizing the most impactful improvements.`;
                                         <Button 
                                             size="sm" 
                                             variant="secondary" 
-                                            onClick={handleUndoLastSuggestion}
+                                            onClick={handleUndoLastEdit}
                                             className="text-xs py-1 px-2"
                                         >
-                                            Undo Last
+                                            Undo Last Edit
                                         </Button>
                                     )}
                                 </div>

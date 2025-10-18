@@ -26,7 +26,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     // FIX: Destructure the 'size' prop with a default value.
     ({ children, className = '', variant = 'primary', isLoading = false, size = 'md', ...props }, ref) => {
-        // FIX: Removed sizing classes from baseClasses to be handled by size variants.
+        // When isLoading is true, the button will be disabled and a spinner will be shown.
         const baseClasses = "inline-flex items-center justify-center rounded-md font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 dark:focus-visible:ring-offset-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md";
         const variantClasses = {
             primary: 'bg-brand-primary text-white hover:bg-brand-primary/90 focus-visible:ring-brand-primary focus-visible:shadow-[0_0_15px_1px_rgba(79,70,229,0.5)]',

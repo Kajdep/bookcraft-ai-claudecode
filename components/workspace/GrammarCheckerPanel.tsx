@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from '../UI';
 import { CheckIcon, XMarkIcon, SparklesIcon } from '../Icons';
 import { log } from '../../services/logger';
-import * as ai from '../../services/ai';
+import { checkGrammar, GrammarError as ApiGrammarError } from '../../services/grammarCheck';
 
 interface GrammarError {
     id: string;
@@ -17,7 +17,7 @@ interface GrammarError {
 
 interface GrammarCheckerPanelProps {
     text: string;
-    onTextCorrection: (originalText: string, correctedText: string, startOffset: number, endOffset: number) => void;
+    onTextCorrection: (originalText: string, correctedText: string, start: number, end: number) => void;
     className?: string;
 }
 
@@ -59,10 +59,22 @@ export const GrammarCheckerPanel: React.FC<GrammarCheckerPanelProps> = ({ text, 
         
         try {
             log.info('Starting grammar check', { textLength: cleanText.length });
-            const detectedErrors = await ai.checkGrammar(cleanText);
-            setErrors(detectedErrors);
+            const detectedErrors = await checkGrammar(cleanText);
+
+            const mappedErrors: GrammarError[] = detectedErrors.map((e, index) => ({
+                id: `${e.rule.id}-${e.offset}-${index}`,
+                type: e.rule.category.id.includes('SPELLING') ? 'spelling' : 'grammar',
+                originalText: cleanText.substring(e.offset, e.offset + e.length),
+                suggestion: e.replacements[0]?.value || '',
+                explanation: e.message,
+                startOffset: e.offset,
+                endOffset: e.offset + e.length,
+                severity: e.rule.issueType === 'typographical' ? 'error' : 'suggestion',
+            }));
+
+            setErrors(mappedErrors);
             setHasChecked(true);
-            log.info('Grammar check complete', { errorsFound: detectedErrors.length });
+            log.info('Grammar check complete', { errorsFound: mappedErrors.length });
         } catch (error) {
             log.error('Grammar check failed', error as Error, 'GrammarChecker');
             setErrors([]);

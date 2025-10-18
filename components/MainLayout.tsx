@@ -5,7 +5,7 @@ import {
     PhotoIcon,
     ArrowDownOnSquareIcon,
     CalculatorIcon,
-    BookCoverIcon,
+    BookOpenIcon,
     MagnifyingGlassIcon,
     PaperClipIcon,
     BrainCircuitIcon,
@@ -19,7 +19,7 @@ import { KDPCalculator } from './workspace/KDPCalculator';
 import { CoverCreator } from './workspace/CoverCreator';
 import { ResearchTab } from './workspace/ResearchTab';
 import { MaterialTab } from './workspace/MaterialTab';
-import { PlotTab } from './workspace/PlotTab';
+import { PlotTab } from './workspace/plot/PlotTab';
 
 type MainTab = 'Dashboard' | 'Writing' | 'Visuals' | 'Research' | 'Material' | 'Plot' | 'Cover Creator' | 'KDP Calculator' | 'Export';
 
@@ -179,9 +179,16 @@ export const MainLayout: React.FC = () => {
                                 Visuals
                             </TabButton>
                             <TabButton
+                                active={activeTab === 'Plot'}
+                                onClick={() => handleTabClick('Plot')}
+                                icon={<BrainCircuitIcon className="w-5 h-5"/>}
+                            >
+                                Plot
+                            </TabButton>
+                            <TabButton
                                 active={activeTab === 'Cover Creator'}
                                 onClick={() => handleTabClick('Cover Creator')}
-                                icon={<BookCoverIcon className="w-5 h-5"/>}
+                                icon={<BookOpenIcon className="w-5 h-5"/>}
                             >
                                 Cover Creator
                             </TabButton>

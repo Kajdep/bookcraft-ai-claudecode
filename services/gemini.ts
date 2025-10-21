@@ -27,14 +27,14 @@ interface GeminiConfig {
 
 // Get Gemini configuration from environment variables
 const getGeminiConfig = (): GeminiConfig => {
-    const isProduction = process.env.NODE_ENV === 'production';
-    const debugLogging = process.env.ENABLE_DEBUG_LOGGING === 'true' && !isProduction;
-    
+    const isProduction = import.meta.env.MODE === 'production';
+    const debugLogging = import.meta.env.VITE_ENABLE_DEBUG_LOGGING === 'true' && !isProduction;
+
     return {
-        apiKey: process.env.GEMINI_API_KEY || '',
+        apiKey: import.meta.env.VITE_GEMINI_API_KEY || '',
         model: 'gemini-1.5-flash-002', // Latest stable model
-        temperature: parseFloat(process.env.DEFAULT_TEMPERATURE || '0.7'),
-        maxTokens: parseInt(process.env.DEFAULT_MAX_TOKENS || '4000'),
+        temperature: parseFloat(import.meta.env.VITE_DEFAULT_TEMPERATURE || '0.7'),
+        maxTokens: parseInt(import.meta.env.VITE_DEFAULT_MAX_TOKENS || '4000'),
         enableDebugLogging: debugLogging
     };
 };
@@ -62,8 +62,8 @@ const createGeminiInstance = (): GoogleGenAI | null => {
 
 // Rate limiting check
 const checkRateLimit = async (apiKey: string): Promise<void> => {
-    const limit = parseInt(process.env.API_RATE_LIMIT || '60'); // More conservative for Gemini
-    const window = parseInt(process.env.API_RATE_WINDOW || '3600000'); // 1 hour
+    const limit = parseInt(import.meta.env.VITE_API_RATE_LIMIT || '60'); // More conservative for Gemini
+    const window = parseInt(import.meta.env.VITE_API_RATE_WINDOW || '3600000'); // 1 hour
     
     const keyHash = apiKey.slice(-8);
     const now = Date.now();
@@ -467,56 +467,51 @@ export const generateVisual = async (rec: VisualRecommendation): Promise<string>
 
 /**
  * Generates an image based on a text prompt.
- * Note: As of current Gemini API, image generation is not directly supported.
- * This function provides a fallback mechanism and placeholder for future implementations.
+ *
+ * IMPORTANT: The Google GenAI SDK (@google/genai) does not support image generation.
+ * This function now provides a clear error message to guide users to configure
+ * alternative image generation services.
+ *
+ * Supported services (configure in .env):
+ * - DALL-E 3: Set VITE_DALLE_API_KEY
+ * - Stability AI: Set VITE_STABILITY_API_KEY
  */
 export const generateImage = async (prompt: string): Promise<string> => {
-    return callGemini(
-        'generateImage',
-        async () => {
-            // Note: Current Google GenAI SDK doesn't support image generation
-            // This is a placeholder for when the feature becomes available
-            throw new Error('Image generation not yet supported in current Gemini API');
-        },
-        // Fallback function - return a placeholder image data URL
-        () => {
-            // Create a simple placeholder image as base64 data URL
-            const canvas = document.createElement('canvas');
-            canvas.width = 400;
-            canvas.height = 400;
-            const ctx = canvas.getContext('2d');
-            
-            if (ctx) {
-                // Create a gradient background
-                const gradient = ctx.createLinearGradient(0, 0, 400, 400);
-                gradient.addColorStop(0, '#667eea');
-                gradient.addColorStop(1, '#764ba2');
-                ctx.fillStyle = gradient;
-                ctx.fillRect(0, 0, 400, 400);
-                
-                // Add text
-                ctx.fillStyle = 'white';
-                ctx.font = 'bold 24px sans-serif';
-                ctx.textAlign = 'center';
-                ctx.fillText('Generated Image', 200, 180);
-                ctx.font = '16px sans-serif';
-                ctx.fillText('Placeholder', 200, 220);
-                
-                // Add a simple shape
-                ctx.strokeStyle = 'white';
-                ctx.lineWidth = 3;
-                ctx.beginPath();
-                ctx.arc(200, 280, 50, 0, 2 * Math.PI);
-                ctx.stroke();
-                
-                return canvas.toDataURL('image/png');
-            }
-            
-            // If canvas fails, return a minimal SVG as data URL
-            const svg = `<svg width="400" height="400" xmlns="http://www.w3.org/2000/svg">\n  <rect width="400" height="400" fill="#667eea"/>\n  <text x="200" y="200" text-anchor="middle" fill="white" font-family="sans-serif" font-size="24">Generated Image</text>\n  <text x="200" y="230" text-anchor="middle" fill="white" font-family="sans-serif" font-size="16">Placeholder</text>\n</svg>`;
-            return `data:image/svg+xml;base64,${btoa(svg)}`;
-        }
-    );
+    const config = getGeminiConfig();
+
+    // Check for alternative image generation services
+    const dalleKey = import.meta.env.VITE_DALLE_API_KEY;
+    const stabilityKey = import.meta.env.VITE_STABILITY_API_KEY;
+
+    // TODO: Implement actual image generation with these services
+    // For now, provide clear error message
+
+    const errorMessage = `⚠️ Image Generation Not Configured
+
+AI image generation requires an API key for one of these services:
+
+1. **DALL-E 3** (OpenAI) - Recommended
+   • Add to .env: VITE_DALLE_API_KEY=sk-...
+   • Cost: $0.04-0.08 per image
+   • Get key: https://platform.openai.com/api-keys
+
+2. **Stability AI** (SDXL)
+   • Add to .env: VITE_STABILITY_API_KEY=sk-...
+   • Free tier available
+   • Get key: https://platform.stability.ai/account/keys
+
+Note: Google's Gemini SDK does not support image generation.
+For Imagen 2, you would need Google Cloud Platform (Vertex AI) setup.
+
+Configure your preferred service in Settings → API Keys`;
+
+    log.warn('Image generation attempted without configured service', {
+        prompt: prompt.substring(0, 100),
+        hasDALLE: !!dalleKey,
+        hasStability: !!stabilityKey
+    });
+
+    throw new Error(errorMessage);
 };
 
 /**

@@ -129,6 +129,52 @@ const checkRateLimit = async (apiKey: string): Promise<void> => {
 };
 
 /**
+ * Extracts and validates JSON from potentially messy AI responses
+ * Handles markdown code blocks, extra text, and malformed responses
+ */
+const extractJSON = (text: string): any => {
+    if (!text || text.trim().length === 0) {
+        throw new Error('Empty response text');
+    }
+
+    // Remove markdown code blocks if present
+    let cleaned = text.trim();
+    const codeBlockMatch = cleaned.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/);
+    if (codeBlockMatch) {
+        cleaned = codeBlockMatch[1];
+    }
+
+    // Try to find JSON object boundaries
+    const jsonStart = cleaned.indexOf('{');
+    const jsonEnd = cleaned.lastIndexOf('}');
+
+    if (jsonStart === -1 || jsonEnd === -1 || jsonStart > jsonEnd) {
+        throw new Error('No valid JSON object found in response');
+    }
+
+    // Extract the JSON substring
+    const jsonText = cleaned.substring(jsonStart, jsonEnd + 1);
+
+    // Parse and validate
+    try {
+        const parsed = JSON.parse(jsonText);
+        if (typeof parsed !== 'object' || parsed === null) {
+            throw new Error('Parsed result is not an object');
+        }
+        return parsed;
+    } catch (parseError) {
+        // Log the problematic text for debugging
+        log.error('JSON parse failed', {
+            originalLength: text.length,
+            cleanedLength: cleaned.length,
+            jsonTextSample: jsonText.substring(0, 200),
+            error: parseError
+        });
+        throw new Error(`Invalid JSON format: ${parseError.message}`);
+    }
+};
+
+/**
  * Makes a request to OpenRouter API for text generation with enhanced error handling
  */
 const callOpenRouter = async (prompt: string, jsonMode = false, overrideModel?: string): Promise<string> => {
@@ -270,7 +316,7 @@ export const planChapters = async (prompt: string): Promise<string[]> => {
 
     try {
         const response = await callOpenRouter(fullPrompt, true);
-        const json = JSON.parse(response);
+        const json = extractJSON(response);
         return json.chapters || [];
     } catch (error) {
         log.aiError('Chapter planning failed', error as Error);
@@ -1385,25 +1431,31 @@ export const performResearch = async (query: string, type: ResearchType, context
 
     try {
         const response = await callOpenRouter(prompt, true);
-        
+
         // Validate response is not empty
         if (!response || response.trim().length === 0) {
             log.error('Empty response from OpenRouter for research query', { query, type });
             throw new Error("Received empty response from AI service");
         }
-        
+
+        // Use robust JSON extractor
         let result: any;
         try {
-            result = JSON.parse(response);
+            result = extractJSON(response);
         } catch (parseError) {
-            log.error('Failed to parse research response', { response: response.substring(0, 500), error: parseError });
-            throw new Error("AI response was not valid JSON format");
+            log.error('Failed to parse research response', {
+                response: response.substring(0, 500),
+                error: parseError,
+                query,
+                type
+            });
+            throw new Error("AI response was not valid JSON format. Please try again.");
         }
-        
+
         // Validate required fields exist
         if (!result.content || !result.summary || !result.confidence) {
             log.error('Missing required fields in research response', { result });
-            throw new Error("AI response missing required fields");
+            throw new Error("AI response missing required fields (content, summary, or confidence)");
         }
 
         // Convert response to proper format with fallbacks
@@ -1464,7 +1516,7 @@ export const verifyFacts = async (content: string, context: {projectId: string, 
 
     try {
         const response = await callOpenRouter(prompt, true);
-        const result = JSON.parse(response);
+        const result = extractJSON(response);
 
         return result.factChecks.map((fc: any, index: number) => ({
             id: `factcheck_${Date.now()}_${index}`,
@@ -1512,7 +1564,7 @@ export const suggestResearchTopics = async (chapterContent: string, genre: strin
 
     try {
         const response = await callOpenRouter(prompt, true);
-        const result = JSON.parse(response);
+        const result = extractJSON(response);
         return result.suggestions || [];
     } catch (error) {
         log.aiError('Research topic suggestion failed', error as Error);
@@ -1838,8 +1890,8 @@ export const summarizeWebContent = async (url: string): Promise<ResearchItem> =>
         `;
         
         const response = await callOpenRouter(analysisPrompt, true);
-        const analysisResult = JSON.parse(response);
-        
+        const analysisResult = extractJSON(response);
+
         // Create comprehensive research item
         const researchItem: ResearchItem = {
             id: `research_${Date.now()}`,
@@ -2240,8 +2292,8 @@ export const analyzeDocumentFile = async (file: File): Promise<ResearchItem> => 
         `;
         
         const response = await callOpenRouter(analysisPrompt, true);
-        const analysisResult = JSON.parse(response);
-        
+        const analysisResult = extractJSON(response);
+
         // Create comprehensive research item
         const researchItem: ResearchItem = {
             id: `research_${Date.now()}`,
@@ -2344,7 +2396,7 @@ export const generateCitation = async (researchId: string, sourceId: string, sty
 
     try {
         const response = await callOpenRouter(prompt, true);
-        const result = JSON.parse(response);
+        const result = extractJSON(response);
 
         const citation: Citation = {
             id: `citation_${Date.now()}`,
@@ -2399,7 +2451,7 @@ export const analyzeResearchThemes = async (researchItems: ResearchItem[]): Prom
 
     try {
         const response = await callOpenRouter(prompt, true);
-        const result = JSON.parse(response);
+        const result = extractJSON(response);
 
         return result.themes.map((theme: any, index: number) => ({
             id: `theme_${Date.now()}_${index}`,
@@ -2453,7 +2505,7 @@ export const detectResearchContradictions = async (researchItems: ResearchItem[]
 
     try {
         const response = await callOpenRouter(prompt, true);
-        const result = JSON.parse(response);
+        const result = extractJSON(response);
 
         return result.contradictions.map((contradiction: any, index: number) => ({
             id: `contradiction_${Date.now()}_${index}`,
@@ -2503,7 +2555,7 @@ export const createThematicTimeline = async (themeTag: string, researchItems: Re
 
     try {
         const response = await callOpenRouter(prompt, true);
-        const result = JSON.parse(response);
+        const result = extractJSON(response);
 
         const timeline: ResearchTimeline = {
             id: `timeline_${Date.now()}`,
@@ -2569,7 +2621,7 @@ export const createResearchMindMap = async (centerTopic: string, researchItems: 
 
     try {
         const response = await callOpenRouter(prompt, true);
-        const result = JSON.parse(response);
+        const result = extractJSON(response);
 
         const mindMap: ResearchMindMap = {
             id: `mindmap_${Date.now()}`,

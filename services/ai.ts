@@ -578,23 +578,29 @@ export const generateVisual = async (rec: VisualRecommendation): Promise<string>
 export const generateImage = async (prompt: string): Promise<string> => {
     const settings = await getAISettings();
     const envConfig = getEnvironmentConfig();
-    
+
     try {
         // Primary: Try Gemini Imagen if API key is available
         if (settings.geminiApiKey) {
-            log.info('Attempting Gemini Imagen generation', { prompt: prompt.substring(0, 50) });
+            log.info('Attempting Gemini Imagen generation with user API key', { prompt: prompt.substring(0, 50) });
             try {
-                return await generateImageWithGemini(prompt, settings.geminiApiKey);
+                const result = await generateImageWithGemini(prompt, settings.geminiApiKey);
+                log.info('Gemini Imagen generation successful');
+                return result;
             } catch (error) {
+                const errorMsg = error instanceof Error ? error.message : String(error);
                 log.error('Gemini image generation failed', error as Error);
-                // Continue to fallbacks
+
+                // If user has configured a Gemini API key, throw the error so they know what went wrong
+                // Don't silently fall back to placeholders when they expect real images
+                throw new Error(`Gemini Image Generation Failed: ${errorMsg}. Please check that: • Your Gemini API key is correct • Imagen API is enabled in your Google Cloud project • You have sufficient quota/credits`);
             }
         }
-        
+
         // Secondary: Check for alternative image generation APIs from environment
         const dalleApiKey = process.env.DALLE_API_KEY;
         const stabilityApiKey = process.env.STABILITY_API_KEY;
-        
+
         // Try DALL-E if available
         if (dalleApiKey) {
             log.info('Attempting DALL-E image generation', { prompt: prompt.substring(0, 50) });
@@ -602,9 +608,10 @@ export const generateImage = async (prompt: string): Promise<string> => {
                 return await generateImageWithDallE(prompt, dalleApiKey);
             } catch (error) {
                 log.error('DALL-E image generation failed', error as Error);
+                // Continue to next fallback
             }
         }
-        
+
         // Try Stability AI if available
         if (stabilityApiKey) {
             log.info('Attempting Stability AI image generation', { prompt: prompt.substring(0, 50) });
@@ -612,17 +619,22 @@ export const generateImage = async (prompt: string): Promise<string> => {
                 return await generateImageWithStability(prompt, stabilityApiKey);
             } catch (error) {
                 log.error('Stability AI image generation failed', error as Error);
+                // Continue to next fallback
             }
         }
-        
+
         // Fallback: Generate a placeholder image with text overlay
-        log.info('No image generation API configured, using placeholder', { prompt: prompt.substring(0, 50) });
+        // This block is reached only if NONE of the image generation API keys (Gemini, DALL-E, Stability) are configured
+        log.warn('No image generation API configured, using placeholder', { prompt: prompt.substring(0, 50) });
+        // Fallback: Generate a placeholder image with text overlay
+        // This only happens if NO API keys are configured
+        log.warn('No image generation API configured, using placeholder', { prompt: prompt.substring(0, 50) });
         return generatePlaceholderImage(prompt);
-        
+
     } catch (error) {
-        log.aiError('All image generation methods failed', error as Error);
-        // Always fall back to placeholder generation
-        return generatePlaceholderImage(prompt);
+        log.aiError('Image generation failed', error as Error);
+        // Re-throw the error so the user sees the actual problem
+        throw error;
     }
 };
 

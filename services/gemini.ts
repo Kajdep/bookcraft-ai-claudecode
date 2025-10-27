@@ -466,57 +466,14 @@ export const generateVisual = async (rec: VisualRecommendation): Promise<string>
 
 
 /**
- * Generates an image based on a text prompt.
- * Note: As of current Gemini API, image generation is not directly supported.
- * This function provides a fallback mechanism and placeholder for future implementations.
+ * @deprecated This function is deprecated. Use generateImage from services/ai.ts instead.
+ *
+ * Note: Image generation is now handled by services/ai.ts which properly uses
+ * the Gemini Imagen 3 API with user settings. This function is kept for backwards
+ * compatibility but should not be used in new code.
  */
 export const generateImage = async (prompt: string): Promise<string> => {
-    return callGemini(
-        'generateImage',
-        async () => {
-            // Note: Current Google GenAI SDK doesn't support image generation
-            // This is a placeholder for when the feature becomes available
-            throw new Error('Image generation not yet supported in current Gemini API');
-        },
-        // Fallback function - return a placeholder image data URL
-        () => {
-            // Create a simple placeholder image as base64 data URL
-            const canvas = document.createElement('canvas');
-            canvas.width = 400;
-            canvas.height = 400;
-            const ctx = canvas.getContext('2d');
-            
-            if (ctx) {
-                // Create a gradient background
-                const gradient = ctx.createLinearGradient(0, 0, 400, 400);
-                gradient.addColorStop(0, '#667eea');
-                gradient.addColorStop(1, '#764ba2');
-                ctx.fillStyle = gradient;
-                ctx.fillRect(0, 0, 400, 400);
-                
-                // Add text
-                ctx.fillStyle = 'white';
-                ctx.font = 'bold 24px sans-serif';
-                ctx.textAlign = 'center';
-                ctx.fillText('Generated Image', 200, 180);
-                ctx.font = '16px sans-serif';
-                ctx.fillText('Placeholder', 200, 220);
-                
-                // Add a simple shape
-                ctx.strokeStyle = 'white';
-                ctx.lineWidth = 3;
-                ctx.beginPath();
-                ctx.arc(200, 280, 50, 0, 2 * Math.PI);
-                ctx.stroke();
-                
-                return canvas.toDataURL('image/png');
-            }
-            
-            // If canvas fails, return a minimal SVG as data URL
-            const svg = `<svg width="400" height="400" xmlns="http://www.w3.org/2000/svg">\n  <rect width="400" height="400" fill="#667eea"/>\n  <text x="200" y="200" text-anchor="middle" fill="white" font-family="sans-serif" font-size="24">Generated Image</text>\n  <text x="200" y="230" text-anchor="middle" fill="white" font-family="sans-serif" font-size="16">Placeholder</text>\n</svg>`;
-            return `data:image/svg+xml;base64,${btoa(svg)}`;
-        }
-    );
+    throw new Error('This function is deprecated. Please use generateImage from services/ai.ts instead, which properly supports Gemini Imagen 3 API.');
 };
 
 /**

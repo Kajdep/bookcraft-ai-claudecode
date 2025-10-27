@@ -1209,8 +1209,11 @@ export const useBookCraftStore = create<BookCraftState & BookCraftActions>()(
                     toast.success('Image Generated', 'Your image has been generated successfully!');
                 } catch (error) {
                     log.storeError('Image generation failed', error as Error);
-                    const errorMessage = error instanceof Error ? error.message : 'Sorry, there was an error generating the image.';
-                    // Show the detailed error message to help users troubleshoot
+                    const errorMessage = error instanceof Error ? 
+                        'Image generation failed. Please check your API configuration and try again.' : 
+                        'Sorry, there was an error generating the image.';
+                    // Log the full error details for debugging
+                    log.error('Detailed image generation error', error as Error);
                     toast.error('Image Generation Failed', errorMessage);
                 } finally {
                     set({ isGeneratingImage: false });

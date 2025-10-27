@@ -50,8 +50,9 @@ export const GrammarCheckerPanel: React.FC<GrammarCheckerPanelProps> = ({ text, 
 
     const handleCheck = async () => {
         const rawText = text || '';
-        if (!rawText.trim() || rawText.trim().length < 50) {
-            log.warn('Text too short for grammar check', { length: rawText.trim().length });
+        const trimmedText = rawText.trim();
+        if (!trimmedText || trimmedText.length < 50) {
+            log.warn('Text too short for grammar check', { length: trimmedText.length });
             return;
         }
 

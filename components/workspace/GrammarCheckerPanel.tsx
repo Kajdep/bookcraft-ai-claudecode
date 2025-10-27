@@ -49,17 +49,20 @@ export const GrammarCheckerPanel: React.FC<GrammarCheckerPanelProps> = ({ text, 
     }, [cleanText]);
 
     const handleCheck = async () => {
-        if (!cleanText || cleanText.length < 50) {
-            log.warn('Text too short for grammar check', { length: cleanText.length });
+        const rawText = text || '';
+        const trimmedText = rawText.trim();
+        if (!trimmedText || trimmedText.length < 50) {
+            log.warn('Text too short for grammar check', { length: trimmedText.length });
             return;
         }
 
         setIsChecking(true);
         setHasChecked(false);
-        
+
         try {
-            log.info('Starting grammar check', { textLength: cleanText.length });
-            const detectedErrors = await ai.checkGrammar(cleanText);
+            log.info('Starting grammar check', { textLength: rawText.length });
+            // Call API with the raw text to keep offsets valid
+            const detectedErrors = await ai.checkGrammar(rawText);
             setErrors(detectedErrors);
             setHasChecked(true);
             log.info('Grammar check complete', { errorsFound: detectedErrors.length });

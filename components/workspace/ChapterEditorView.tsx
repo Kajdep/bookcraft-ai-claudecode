@@ -201,15 +201,62 @@ export const ChapterEditorView: React.FC<ChapterEditorViewProps> = ({ chapterId 
     };
 
     const handleTextCorrection = (originalText: string, correctedText: string, startOffset: number, endOffset: number) => {
+        // Save current content for undo
+        setUndoStack(prev => [...prev, { content, suggestionIndex: prev.length }]);
+
         setContent(prevContent => {
-            // Replace the first occurrence of the original text with corrected text
-            const newContent = prevContent.replace(originalText, correctedText);
-            log.debug('Grammar correction applied', { originalText, correctedText });
+            const len = prevContent.length;
+            // Guard invalid offsets
+            if (startOffset < 0 || endOffset < 0 || startOffset > endOffset || startOffset >= len || endOffset > len) {
+                log.warn('Invalid correction offsets; correction skipped', { startOffset, endOffset, len });
+                // Optionally notify the user via UI (e.g., toast)
+                toast('Correction could not be applied due to invalid offsets.', { type: 'warning' });
+                return prevContent;
+            }
+
+            // Verify the substring roughly matches expected originalText (best-effort)
+            const slice = prevContent.substring(startOffset, Math.min(endOffset, len));
+            if (slice && originalText && !slice.includes(originalText)) {
+                log.warn('Offset-text mismatch; attempting targeted replace', { slicePreview: slice.slice(0, 50), originalText });
+
+                // Find all occurrences of originalText
+                const occurrences: number[] = [];
+                let idx = 0;
+                while ((idx = prevContent.indexOf(originalText, idx)) !== -1) {
+                    occurrences.push(idx);
+                    idx += originalText.length;
+                }
+
+                // Find the occurrence closest to startOffset
+                let targetIdx = -1;
+                let minDistance = Number.MAX_SAFE_INTEGER;
+                for (const occ of occurrences) {
+                    const distance = Math.abs(occ - startOffset);
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        targetIdx = occ;
+                    }
+                }
+
+                if (targetIdx !== -1 && minDistance < 20) { // 20-char threshold for "near"
+                    // Replace only the targeted occurrence
+                    const before = prevContent.slice(0, targetIdx);
+                    const after = prevContent.slice(targetIdx + originalText.length);
+                    return before + correctedText + after;
+                } else {
+                    log.warn('Could not confidently locate originalText near offset; no replacement performed.', { startOffset, originalText, occurrences });
+                    // Optionally, notify user via UI (e.g., toast) here
+                    return prevContent;
+                }
+            }
+
+            const newContent = prevContent.substring(0, startOffset) + correctedText + prevContent.substring(Math.min(endOffset, len));
+            log.debug('Grammar correction applied', { originalText, correctedText, startOffset, endOffset });
             return newContent;
         });
         // Force update the chapter content immediately
         if (chapter) {
-            updateChapter(chapter.id, { content: content.replace(originalText, correctedText) });
+            updateChapter(chapter.id, { content });
         }
     };
 
@@ -451,8 +498,8 @@ Provide 5-7 suggestions, prioritizing the most impactful improvements.`;
             <div className="xl:col-span-1 h-full flex flex-col gap-4" style={{maxHeight: 'calc(100vh - 250px)'}}>
                 {/* Grammar Checker Panel */}
                 {showGrammarChecker ? (
-                    <GrammarCheckerPanel 
-                        text={content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()}
+                    <GrammarCheckerPanel
+                        text={content}
                         onTextCorrection={handleTextCorrection}
                         className="h-1/2"
                     />

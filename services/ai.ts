@@ -1,9 +1,20 @@
 import { GoogleGenAI } from "@google/genai";
-import { Chapter, Project, VisualRecommendation, VisualType, PlotPoint, ResearchType, ResearchConfidence, ResearchSource, SourceCredibility, FactCheckResult, ResearchItem, Citation, CitationStyle, ThematicTag, ResearchContradiction, ResearchTimeline, ResearchMindMap, Settings } from "../types";
+import { Chapter, Project, VisualRecommendation, VisualType, PlotPoint, ResearchType, ResearchConfidence, ResearchSource, SourceCredibility, FactCheckResult, ResearchItem, Citation, CitationStyle, ThematicTag, ResearchContradiction, ResearchTimeline, ResearchMindMap, Settings, DiagramFormat, FormatSelectionResult } from "../types";
 import { log } from "./logger";
 
 // Default configuration - will be overridden by user settings
 const DEFAULT_OPENROUTER_MODEL = "nvidia/nemotron-nano-9b-v2:free";
+
+// Free coding models for chart generation
+const FREE_CODING_MODELS = [
+    "qwen/qwen-2.5-coder-32b-instruct",
+    "meta-llama/llama-3.2-3b-instruct:free",
+    "google/gemma-2-9b-it:free",
+    "mistralai/mistral-7b-instruct:free"
+];
+
+// Default chart model (free coding model)
+const DEFAULT_CHART_MODEL = FREE_CODING_MODELS[0];
 
 // Enhanced environment configuration
 interface AIEnvironmentConfig {
@@ -568,6 +579,317 @@ export const generateVisual = async (rec: VisualRecommendation): Promise<string>
         log.aiError('Visual generation failed, using fallback', error as Error);
         // Return a fallback diagram instead of throwing
         return generateFallbackMermaid(rec.type, rec.context);
+    }
+};
+
+/**
+ * FORMAT SELECTION - Intelligently chooses the best diagram format
+ *
+ * Analyzes the visual type and context to select optimal format:
+ * - D2: Best for flowcharts, mind maps, architecture diagrams
+ * - GraphViz: Best for network diagrams, simple graphs
+ * - PlantUML: Best for UML, sequence diagrams, timelines
+ * - Mermaid: Fallback for compatibility
+ * - Nomnoml: Best for simple UML, comparisons
+ */
+export const selectDiagramFormat = async (rec: VisualRecommendation): Promise<FormatSelectionResult> => {
+    const FORMAT_SELECTION_PROMPT = `
+You are a diagram format expert. Choose the BEST diagram format for this visualization request.
+
+VISUALIZATION REQUEST:
+Type: ${rec.type}
+Context: "${rec.context.substring(0, 200)}"
+Purpose: ${rec.reasoning}
+
+AVAILABLE FORMATS:
+1. **d2** - Best for: Flowcharts, mind maps, architecture diagrams
+   - Beautiful output, forgiving syntax, excellent auto-layout
+   - Use when: Professional complex diagrams needed
+
+2. **graphviz** - Best for: Network diagrams, simple directed/undirected graphs
+   - Simplest syntax, fastest rendering, most reliable
+   - Use when: Simple node-edge relationships
+
+3. **plantuml** - Best for: UML diagrams, sequence diagrams, timelines, Gantt charts
+   - Industry standard, comprehensive diagram types
+   - Use when: UML standards required or sequence flows
+
+4. **mermaid** - Best for: Fallback, existing diagrams
+   - Keep for backward compatibility
+   - Use when: Other formats not suitable
+
+5. **nomnoml** - Best for: Simple UML, comparison charts
+   - Clean, lightweight, minimal syntax
+   - Use when: Simple class or comparison diagrams
+
+DECISION RULES:
+- Flowchart/Process Flow → d2
+- Mind Map/Hierarchy → d2
+- Timeline → plantuml
+- Gantt Chart → plantuml
+- Sequence Diagram → plantuml
+- Network/Graph → graphviz
+- UML Class Diagram → plantuml
+- Comparison Chart → nomnoml
+- Infographic → d2
+- When in doubt → d2 (most versatile)
+
+Respond with ONLY a valid JSON object:
+{
+  "format": "d2",
+  "reasoning": "Brief explanation why this format was chosen",
+  "confidence": 0.95
+}
+`;
+
+    try {
+        const settings = await getAISettings();
+        const chartModel = settings.chartModel || DEFAULT_CHART_MODEL;
+
+        log.info('Selecting diagram format', {
+            type: rec.type,
+            model: chartModel
+        });
+
+        const response = await callOpenRouter(FORMAT_SELECTION_PROMPT, true, chartModel);
+        const result: FormatSelectionResult = JSON.parse(response);
+
+        // Validate format
+        const validFormats: DiagramFormat[] = [
+            DiagramFormat.D2,
+            DiagramFormat.Graphviz,
+            DiagramFormat.PlantUML,
+            DiagramFormat.Mermaid,
+            DiagramFormat.Nomnoml
+        ];
+
+        if (!validFormats.includes(result.format)) {
+            log.warn('Invalid format selected, defaulting to D2', { selected: result.format });
+            result.format = DiagramFormat.D2;
+            result.reasoning = 'Default to D2 due to invalid format selection';
+        }
+
+        log.info('Format selected', {
+            format: result.format,
+            confidence: result.confidence,
+            reasoning: result.reasoning
+        });
+
+        return result;
+
+    } catch (error) {
+        log.error('Format selection failed, defaulting to D2', error as Error);
+        return {
+            format: DiagramFormat.D2,
+            reasoning: 'Defaulted to D2 due to selection error',
+            confidence: 0.5
+        };
+    }
+};
+
+/**
+ * FORMAT-SPECIFIC PROMPTS
+ * Optimized prompts for each diagram format
+ */
+const FORMAT_PROMPTS = {
+    [DiagramFormat.D2]: `Generate a D2 diagram. D2 is designed for beautiful, professional diagrams with minimal syntax.
+
+SYNTAX RULES:
+- Use -> for directed edges, -- for undirected edges
+- Format: NodeA -> NodeB: label text
+- Use indentation for hierarchies and containers
+- Use { } for styling only when needed
+- Keep it simple and clean
+
+EXAMPLE:
+User -> API: Sends request
+API -> Database: Queries data
+Database -> API: Returns results
+API -> User: Sends response
+
+styles: {
+  User: {fill: "#dae8fc"}
+  API: {fill: "#d5e8d4"}
+}`,
+
+    [DiagramFormat.Graphviz]: `Generate a Graphviz DOT diagram. Graphviz is perfect for simple, clean node-edge graphs.
+
+SYNTAX RULES:
+- Use "digraph" for directed graphs, "graph" for undirected
+- Keep EXTREMELY simple: A -> B [label="text"]
+- Use semicolons to end statements
+- No complex styling unless requested
+
+EXAMPLE:
+digraph {
+  User -> API [label="request"]
+  API -> Database [label="query"]
+  Database -> API [label="data"]
+  API -> User [label="response"]
+}`,
+
+    [DiagramFormat.PlantUML]: `Generate a PlantUML diagram. PlantUML is the industry standard for UML and sequence diagrams.
+
+SYNTAX RULES:
+- ALWAYS start with @startuml and end with @enduml
+- For sequence: Use -> for sync, --> for async
+- For timelines: Use @starttimeline and @endtimeline
+- For Gantt: Use @startgantt and @endgantt
+- Use : for labels
+
+EXAMPLE (Sequence):
+@startuml
+User -> API: Request
+API -> Database: Query
+Database -> API: Data
+API -> User: Response
+@enduml
+
+EXAMPLE (Timeline):
+@starttimeline
+2024-01 : Phase 1
+2024-06 : Phase 2
+2024-12 : Complete
+@endtimeline`,
+
+    [DiagramFormat.Mermaid]: `Generate a Mermaid diagram. Mermaid is widely used but can be syntax-sensitive.
+
+SYNTAX RULES:
+- Use --> (two dashes) for arrows
+- Use |text| for edge labels
+- Be very careful with special characters
+- Keep node IDs simple (A, B, C)
+
+EXAMPLE:
+flowchart TD
+  A[Start] --> B[Process]
+  B --> C{Decision}
+  C -->|Yes| D[End]
+  C -->|No| A`,
+
+    [DiagramFormat.Nomnoml]: `Generate a Nomnoml diagram. Nomnoml is perfect for simple, clean UML-style diagrams.
+
+SYNTAX RULES:
+- Use [Text] for boxes
+- Use -> for arrows
+- Use [<type> Text] for special boxes (actor, database, etc.)
+- Very minimal, very clean
+
+EXAMPLE:
+[<actor> User]
+[API]
+[<database> Database]
+
+[User] -> [API]
+[API] -> [Database]
+[Database] -> [API]
+[API] -> [User]`
+};
+
+/**
+ * Generate diagram code in a specific format
+ * Uses free coding models for better syntax accuracy
+ */
+export const generateDiagramWithFormat = async (
+    rec: VisualRecommendation,
+    format: DiagramFormat
+): Promise<string> => {
+    const settings = await getAISettings();
+    const chartModel = settings.chartModel || DEFAULT_CHART_MODEL;
+
+    const formatGuidance = FORMAT_PROMPTS[format] || FORMAT_PROMPTS[DiagramFormat.D2];
+
+    const prompt = `
+${formatGuidance}
+
+TASK:
+Generate a ${format} diagram for: "${rec.type}"
+
+Context: "${rec.context.substring(0, 400)}"
+Purpose: ${rec.reasoning}
+
+REQUIREMENTS:
+- Follow the ${format} syntax rules EXACTLY
+- Keep the diagram clean and professional
+- Use clear, concise labels
+- Focus on the key relationships and flow
+- Do NOT include markdown fences (\`\`\`)
+- Do NOT include explanations
+- Return ONLY the raw diagram code
+
+Generate the ${format} diagram code now:
+`;
+
+    try {
+        log.info('Generating diagram with format', {
+            format,
+            type: rec.type,
+            model: chartModel
+        });
+
+        const response = await callOpenRouter(prompt, false, chartModel);
+        let code = response.trim();
+
+        // Clean up common issues
+        code = code.replace(/```[\w]*\n?/g, '').trim();
+        code = code.replace(/^["']|["']$/g, '').trim();
+
+        log.info('Diagram code generated', {
+            format,
+            codeLength: code.length,
+            preview: code.substring(0, 100)
+        });
+
+        return code;
+
+    } catch (error) {
+        log.error('Diagram generation failed', error as Error);
+        throw new Error(`Failed to generate ${format} diagram: ${(error as Error).message}`);
+    }
+};
+
+/**
+ * Enhanced generateVisualWithFormat - Main entry point for multi-format diagram generation
+ *
+ * Flow:
+ * 1. Select best format using AI
+ * 2. Generate diagram code in selected format
+ * 3. Return code with format metadata
+ */
+export const generateVisualWithFormat = async (rec: VisualRecommendation): Promise<{
+    code: string;
+    format: DiagramFormat;
+    reasoning: string;
+}> => {
+    try {
+        // Step 1: Select best format
+        const selection = await selectDiagramFormat(rec);
+
+        log.info('Selected format for diagram', {
+            format: selection.format,
+            confidence: selection.confidence,
+            reasoning: selection.reasoning
+        });
+
+        // Step 2: Generate diagram in selected format
+        const code = await generateDiagramWithFormat(rec, selection.format);
+
+        return {
+            code,
+            format: selection.format,
+            reasoning: selection.reasoning
+        };
+
+    } catch (error) {
+        log.error('Enhanced visual generation failed, falling back to Mermaid', error as Error);
+
+        // Fallback to original Mermaid generation
+        const mermaidCode = await generateVisual(rec);
+        return {
+            code: mermaidCode,
+            format: DiagramFormat.Mermaid,
+            reasoning: 'Fallback to Mermaid due to generation error'
+        };
     }
 };
 

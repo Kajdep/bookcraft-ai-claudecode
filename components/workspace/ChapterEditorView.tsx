@@ -208,9 +208,12 @@ export const ChapterEditorView: React.FC<ChapterEditorViewProps> = ({ chapterId 
             const len = prevContent.length;
             // Guard invalid offsets
             if (startOffset < 0 || endOffset < 0 || startOffset > endOffset || startOffset > len) {
-                log.warn('Invalid correction offsets; attempting fallback replace', { startOffset, endOffset, len });
-                const replaced = prevContent.replace(originalText, correctedText);
-                return replaced === prevContent ? prevContent : replaced;
+                log.warn('Invalid correction offsets; correction skipped', { startOffset, endOffset, len });
+                // Optionally notify the user via UI (e.g., toast)
+                if (window && window.toast) {
+                    window.toast('Correction could not be applied due to invalid offsets.', { type: 'warning' });
+                }
+                return prevContent;
             }
 
             // Verify the substring roughly matches expected originalText (best-effort)

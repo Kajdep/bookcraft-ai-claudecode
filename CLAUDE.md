@@ -33,12 +33,15 @@ BookCraft AI is a React-based web application that helps users write books using
 ### AI Integration
 - **Hybrid Approach**:
   - **OpenRouter API** (default model: `nvidia/nemotron-nano-9b-v2:free`) for text generation
+  - **Free Coding Models** for diagram generation (default: `qwen/qwen-2.5-coder-32b-instruct`)
   - **Google Gemini API** for image generation and multimodal tasks
 - Service layer in `services/ai.ts` handles all AI interactions with:
   - Rate limiting and retry logic
   - Environment config fallbacks via `getAISettings()`
   - Centralized error handling and logging
-- All AI calls go through service functions: `generateChapterContent()`, `analyzeForVisuals()`, `generateResearch()`, etc.
+  - Intelligent format selection for diagrams (`selectDiagramFormat()`)
+  - Format-specific code generation (`generateDiagramWithFormat()`)
+- All AI calls go through service functions: `generateChapterContent()`, `analyzeForVisuals()`, `generateResearch()`, `generateVisualWithFormat()`, etc.
 
 ### Component Structure
 - **App.tsx**: Root component with Header, SettingsModal, and MainLayout
@@ -46,7 +49,7 @@ BookCraft AI is a React-based web application that helps users write books using
 - **Dashboard.tsx**: Project management, creation, and listing
 - **ProjectWorkspace.tsx**: Main writing environment with tabbed interface:
   - **Writing Studio** (`WritingStudio.tsx`): Chapter management with Lexical rich text editor
-  - **Visuals** (`VisualsWorkspace.tsx`, `AIVisualsTab.tsx`): AI-generated diagrams (Mermaid.js) and images
+  - **Visuals** (`VisualsWorkspace.tsx`, `AIVisualsTab.tsx`): AI-generated diagrams (D2, Graphviz, PlantUML, Nomnoml, Mermaid) and images
   - **Research** (`ResearchTab.tsx`): AI research tools, fact-checking, folder organization
   - **Material** (`MaterialTab.tsx`): Reference materials, documents, and attachments
   - **Plot** (`PlotTab.tsx`): Story structure and plot point management
@@ -58,7 +61,9 @@ BookCraft AI is a React-based web application that helps users write books using
 ### Type System
 - All types defined in `types.ts` with comprehensive TypeScript enums
 - Key entities: `Project`, `Chapter`, `Visual`, `PlotPoint`, `ResearchItem`, `MaterialItem`, `WritingSession`, `WritingGoal`
-- Uses enums for: `ProjectStatus`, `ChapterStatus`, `VisualType`, `ResearchType`, `CitationStyle`, etc.
+- Uses enums for: `ProjectStatus`, `ChapterStatus`, `VisualType`, `DiagramFormat`, `ResearchType`, `CitationStyle`, etc.
+- **New Diagram Types**: `DiagramFormat` enum (D2, Graphviz, PlantUML, Mermaid, Nomnoml), `DiagramConfig`, `DiagramResult`, `FormatSelectionResult`
+- **Visual Interface**: Now includes optional `format`, `renderedSvg`, and `krokiUrl` fields for multi-format support
 
 ### Rich Text Editor (Lexical)
 - **Lexical v0.35.0** with React 19 integration
@@ -87,10 +92,18 @@ BookCraft AI is a React-based web application that helps users write books using
 - Fact-checking panel with confidence levels and source credibility tracking
 
 ### Visual Generation
+- **Multi-Format Diagram Support**: Intelligent format selection based on diagram type and complexity
+  - **D2**: Flowcharts, mind maps, architecture diagrams (primary format for quality)
+  - **Graphviz**: Network diagrams, simple node-edge graphs
+  - **PlantUML**: UML diagrams, sequence diagrams, timelines, Gantt charts
+  - **Nomnoml**: Simple UML, comparison charts
+  - **Mermaid**: Backward compatibility and fallback
+- **Kroki Integration**: Multi-format rendering via Kroki API (kroki.io) in `services/krokiDiagramService.ts`
+- **AI Format Selection**: Free coding models (Qwen Coder 32B, Llama 3.2) intelligently choose optimal format
+- **Caching Layer**: 1-hour TTL for rendered diagrams, improving performance and reducing API calls
 - Text analysis recommends visual types (flowcharts, timelines, mind maps, comparison charts)
-- Generates Mermaid.js diagram code
-- Renders diagrams using mermaid library
 - Image generation via Gemini API with prompt customization
+- Format badges in UI show which diagram format is used
 
 ### Analytics & Productivity
 - Tracks writing sessions with word count, keystroke data, active/idle time
@@ -115,6 +128,8 @@ DEFAULT_MAX_TOKENS=4000
 ENABLE_DEBUG_LOGGING=false
 VALIDATE_API_KEYS=true
 API_RATE_LIMIT=100
+VITE_KROKI_API_URL=https://kroki.io
+VITE_DIAGRAM_CACHE_TTL=3600000
 ```
 
 See `vite.config.ts` for full environment configuration.
@@ -161,7 +176,8 @@ See `vite.config.ts` for full environment configuration.
 ### State & Services
 - `store/useStore.ts` - Central Zustand store with all actions
 - `store/storageAdapter.ts` - localStorage/IndexedDB persistence
-- `services/ai.ts` - AI service integration (OpenRouter, Gemini)
+- `services/ai.ts` - AI service integration (OpenRouter, Gemini, diagram generation)
+- `services/krokiDiagramService.ts` - Multi-format diagram rendering via Kroki API
 - `services/export.ts` - Multi-format export functionality
 - `services/logger.ts` - Logging utility
 - `services/toast.ts` - Toast notification system

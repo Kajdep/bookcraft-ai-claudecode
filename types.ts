@@ -40,6 +40,34 @@ export enum VisualType {
     MindMap = 'Mind Map',
 }
 
+export enum DiagramFormat {
+    D2 = 'd2',
+    Graphviz = 'graphviz',
+    PlantUML = 'plantuml',
+    Mermaid = 'mermaid',
+    Nomnoml = 'nomnoml',
+}
+
+export interface DiagramConfig {
+    format: DiagramFormat;
+    code: string;
+    title?: string;
+    description?: string;
+}
+
+export interface DiagramResult {
+    format: DiagramFormat;
+    svg?: string;
+    url?: string;
+    error?: string;
+}
+
+export interface FormatSelectionResult {
+    format: DiagramFormat;
+    reasoning: string;
+    confidence: number;
+}
+
 export enum ResearchType {
     FactCheck = 'Fact Check',
     TopicalResearch = 'Topical Research',
@@ -126,10 +154,13 @@ export interface Visual {
     id: string;
     recommendationId: string;
     type: VisualType;
+    format?: DiagramFormat; // Format used to generate diagram (defaults to Mermaid for legacy)
     content: {
-        mermaidCode: string;
+        mermaidCode: string; // Legacy field, also stores diagram code for other formats
     };
     pageNumber: number;
+    renderedSvg?: string; // Cached SVG from Kroki for faster loading
+    krokiUrl?: string; // Embeddable Kroki URL
 }
 
 export interface GeneratedImage {
@@ -414,6 +445,7 @@ export interface Settings {
     openRouterEndpoint?: string;
     geminiApiKey?: string;
     geminiEndpoint?: string;
+    krokiApiUrl?: string; // Kroki API endpoint for diagram rendering
 
     // UI Preferences
     theme?: 'dark' | 'light';
@@ -422,6 +454,7 @@ export interface Settings {
 
     // AI Preferences
     defaultModel?: string;
+    chartModel?: string; // Model for diagram/chart generation (defaults to free coding model)
     maxTokens?: number;
     temperature?: number;
 }

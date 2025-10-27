@@ -1113,12 +1113,20 @@ export const useBookCraftStore = create<BookCraftState & BookCraftActions>()(
 
                 set({ generatingVisualFor: rec.id });
                 try {
-                    const mermaidCode = await ai.generateVisual(rec);
+                    // Use new multi-format generation with intelligent format selection
+                    const result = await ai.generateVisualWithFormat(rec);
+
+                    log.info('Generated visual with format', {
+                        format: result.format,
+                        reasoning: result.reasoning
+                    });
+
                     const newVisual: Visual = {
                         id: `vis_${Date.now()}`,
                         recommendationId: rec.id,
                         type: rec.type,
-                        content: { mermaidCode },
+                        format: result.format, // Store format metadata
+                        content: { mermaidCode: result.code }, // Store code (mermaidCode field is legacy name)
                         pageNumber: rec.pageNumber,
                     };
 
@@ -1129,8 +1137,8 @@ export const useBookCraftStore = create<BookCraftState & BookCraftActions>()(
                            project.recommendations = project.recommendations.filter(r => r.id !== rec.id);
                         }
                     });
-                    
-                    toast.success('Diagram Generated', 'The diagram has been added to your Visual Library!');
+
+                    toast.success('Diagram Generated', `Created ${result.format.toUpperCase()} diagram!`);
 
                 } catch (error) {
                     log.storeError('Visual recommendation acceptance failed', error as Error);

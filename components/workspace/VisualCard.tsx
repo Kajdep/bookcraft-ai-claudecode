@@ -2,11 +2,13 @@
 import React, { useEffect, useState } from 'react';
 // FIX: Corrected import path for types.
 import type { Visual } from '../../types';
+import { DiagramFormat } from '../../types';
 import { Card, Spinner, Button } from '../UI';
 import { VisualIcon } from './VisualIcon';
 import { log } from '../../services/logger';
 import { PhotoIcon, RefreshCwIcon } from '../Icons';
 import { useBookCraftStore } from '../../store/useStore';
+import * as krokiService from '../../services/krokiDiagramService';
 
 import mermaid from 'mermaid';
 
@@ -27,49 +29,79 @@ export const VisualCard: React.FC<VisualCardProps> = ({ visual }) => {
         const renderDiagram = async () => {
             if (visual.content.mermaidCode) {
                 try {
-                    // Log the Mermaid code for debugging
-                    log.debug('Rendering Mermaid diagram', { 
-                        visualId: visual.id, 
+                    const diagramCode = visual.content.mermaidCode;
+                    const format = visual.format || DiagramFormat.Mermaid; // Default to Mermaid for legacy diagrams
+
+                    log.debug('Rendering diagram', {
+                        visualId: visual.id,
                         type: visual.type,
-                        codePreview: visual.content.mermaidCode.substring(0, 100) 
-                    });
-                    
-                    // Initialize Mermaid with dark theme and enhanced error handling
-                    mermaid.initialize({
-                        startOnLoad: false,
-                        theme: 'dark',
-                        securityLevel: 'loose',
-                        logLevel: 'error', // Reduce console noise
-                        suppressErrors: false // Show errors for debugging
+                        format,
+                        codePreview: diagramCode.substring(0, 100)
                     });
 
-                    const { svg } = await mermaid.render(
-                        `mermaid-svg-${visual.id}`, 
-                        visual.content.mermaidCode
-                    );
-                    
-                    if (isMounted) {
-                        setSvgContent(svg);
-                        setError(null);
-                        log.debug('Mermaid diagram rendered successfully', { visualId: visual.id });
+                    // Use Kroki for non-Mermaid formats
+                    if (format !== DiagramFormat.Mermaid) {
+                        log.info('Using Kroki for rendering', { format });
+
+                        const result = await krokiService.renderDiagram(diagramCode, format, 'svg');
+
+                        if (isMounted) {
+                            if (result.error) {
+                                log.warn('Kroki rendering failed', { error: result.error, format });
+                                setError(`${format.toUpperCase()} rendering error: ${result.error}`);
+                                setShowImageFallback(true);
+                            } else if (result.svg) {
+                                setSvgContent(result.svg);
+                                setError(null);
+                                log.info('Diagram rendered successfully via Kroki', {
+                                    format,
+                                    visualId: visual.id
+                                });
+                            } else {
+                                setError('No SVG content returned from Kroki');
+                                setShowImageFallback(true);
+                            }
+                        }
+                    } else {
+                        // Use Mermaid for Mermaid format (legacy and backward compatibility)
+                        log.info('Using Mermaid for rendering');
+
+                        mermaid.initialize({
+                            startOnLoad: false,
+                            theme: 'dark',
+                            securityLevel: 'loose',
+                            logLevel: 'error',
+                            suppressErrors: false
+                        });
+
+                        const { svg } = await mermaid.render(
+                            `mermaid-svg-${visual.id}`,
+                            diagramCode
+                        );
+
+                        if (isMounted) {
+                            setSvgContent(svg);
+                            setError(null);
+                            log.debug('Mermaid diagram rendered successfully', { visualId: visual.id });
+                        }
                     }
                 } catch (e: any) {
                     const errorMessage = e?.message || e?.toString() || 'Unknown error';
-                    log.error('Mermaid diagram render failed', {
+                    log.error('Diagram render failed', {
                         error: errorMessage,
                         visualId: visual.id,
                         type: visual.type,
+                        format: visual.format || 'mermaid',
                         codePreview: visual.content.mermaidCode.substring(0, 200)
                     });
-                    
+
                     if (isMounted) {
-                        // Provide more specific error message
-                        const userMessage = errorMessage.includes('Parse error') 
+                        const userMessage = errorMessage.includes('Parse error')
                             ? "Diagram syntax error detected. The diagram code has formatting issues."
                             : errorMessage.includes('Lexical error')
                             ? "Invalid characters in diagram code."
                             : "Could not render diagram. The diagram structure may be invalid.";
-                        
+
                         setError(userMessage);
                         setShowImageFallback(true);
                     }
@@ -82,11 +114,11 @@ export const VisualCard: React.FC<VisualCardProps> = ({ visual }) => {
         };
 
         renderDiagram();
-        
+
         return () => {
             isMounted = false;
         };
-    }, [visual.content.mermaidCode, visual.id]);
+    }, [visual.content.mermaidCode, visual.id, visual.format]);
     
     const handleRetryRender = () => {
         setError(null);
@@ -140,17 +172,31 @@ export const VisualCard: React.FC<VisualCardProps> = ({ visual }) => {
         }
     };
 
+    const formatDisplay = visual.format || DiagramFormat.Mermaid;
+    const formatColor = {
+        [DiagramFormat.D2]: 'bg-blue-100 text-blue-800',
+        [DiagramFormat.Graphviz]: 'bg-green-100 text-green-800',
+        [DiagramFormat.PlantUML]: 'bg-purple-100 text-purple-800',
+        [DiagramFormat.Mermaid]: 'bg-gray-100 text-gray-800',
+        [DiagramFormat.Nomnoml]: 'bg-yellow-100 text-yellow-800',
+    }[formatDisplay] || 'bg-gray-100 text-gray-800';
+
     return (
         <Card className="transition-shadow hover:shadow-green-500/10">
             <div className="p-5">
-                 <div className="flex items-center space-x-3 mb-3">
-                    <div className="flex-shrink-0 bg-white/50 p-2 rounded-full">
-                        <VisualIcon type={visual.type} className="h-6 w-6 text-green-400" />
+                 <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center space-x-3">
+                        <div className="flex-shrink-0 bg-white/50 p-2 rounded-full">
+                            <VisualIcon type={visual.type} className="h-6 w-6 text-green-400" />
+                        </div>
+                        <div>
+                            <h4 className="font-bold text-lg text-gray-900">{visual.type}</h4>
+                            <p className="text-sm text-gray-600">On page {visual.pageNumber}.</p>
+                        </div>
                     </div>
-                    <div>
-                        <h4 className="font-bold text-lg text-gray-900">{visual.type}</h4>
-                        <p className="text-sm text-gray-600">On page {visual.pageNumber}.</p>
-                    </div>
+                    <span className={`px-2 py-1 text-xs font-semibold rounded-md ${formatColor}`}>
+                        {formatDisplay.toUpperCase()}
+                    </span>
                 </div>
                 <div className="mt-4 p-3 bg-white/70 rounded-lg min-h-[10rem] flex items-center justify-center overflow-auto border border-gray-300">
                     {error && (

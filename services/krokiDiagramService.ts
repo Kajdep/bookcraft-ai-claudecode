@@ -325,7 +325,7 @@ export const clearExpiredCache = (): void => {
  * Clear all cache entries
  */
 export const clearCache = (): void => {
-    const size = cache.size;
+    const {size} = cache;
     cache.clear();
     log.debug('Cleared Kroki cache', { entriesCleared: size });
 };

@@ -35,7 +35,7 @@ const cache = new Map<string, CacheEntry>();
 const getKrokiUrl = async (): Promise<string> => {
     try {
         const { useBookCraftStore } = await import('../store/useStore');
-        const settings = useBookCraftStore.getState().settings;
+        const {settings} = useBookCraftStore.getState();
         return settings?.krokiApiUrl || import.meta.env.VITE_KROKI_API_URL || DEFAULT_KROKI_URL;
     } catch (error) {
         log.warn('Failed to load settings, using default Kroki URL', { error });

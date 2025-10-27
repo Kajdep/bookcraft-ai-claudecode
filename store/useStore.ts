@@ -1206,9 +1206,12 @@ export const useBookCraftStore = create<BookCraftState & BookCraftActions>()(
                             project.generatedImages.unshift(newImage);
                         }
                     });
+                    toast.success('Image Generated', 'Your image has been generated successfully!');
                 } catch (error) {
                     log.storeError('Image generation failed', error as Error);
-                    toast.error('Image Generation Failed', 'Sorry, there was an error generating the image.');
+                    const errorMessage = error instanceof Error ? error.message : 'Sorry, there was an error generating the image.';
+                    // Show the detailed error message to help users troubleshoot
+                    toast.error('Image Generation Failed', errorMessage);
                 } finally {
                     set({ isGeneratingImage: false });
                 }
@@ -1249,7 +1252,8 @@ export const useBookCraftStore = create<BookCraftState & BookCraftActions>()(
                     }
                 } catch (error) {
                      log.storeError('Visual suggestion failed', error as Error);
-                     toast.error('Visual Creation Failed', 'Sorry, there was an error creating the visual.');
+                     const errorMessage = error instanceof Error ? error.message : 'Sorry, there was an error creating the visual.';
+                     toast.error('Visual Creation Failed', errorMessage);
                 } finally {
                     set({ isSuggestingVisual: false });
                 }

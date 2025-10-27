@@ -106,10 +106,10 @@ export const validateFormat = (code: string, format: DiagramFormat): { valid: bo
     switch (format) {
         case DiagramFormat.PlantUML:
             if (!code.includes('@startuml') || !code.includes('@enduml')) {
-            if (!code.match(/^\s*(strict\s+)?(di)?graph/i)) {
                 return {
                     valid: false,
-                    error: 'Graphviz diagrams must start with "graph", "digraph", "strict graph", or "strict digraph"'
+                    error: 'PlantUML diagrams must start with @startuml and end with @enduml'
+                };
             }
             break;
 

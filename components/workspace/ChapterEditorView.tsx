@@ -201,15 +201,33 @@ export const ChapterEditorView: React.FC<ChapterEditorViewProps> = ({ chapterId 
     };
 
     const handleTextCorrection = (originalText: string, correctedText: string, startOffset: number, endOffset: number) => {
+        // Save current content for undo
+        setUndoStack(prev => [...prev, { content, suggestionIndex: startOffset }]);
+
         setContent(prevContent => {
-            // Replace the first occurrence of the original text with corrected text
-            const newContent = prevContent.replace(originalText, correctedText);
-            log.debug('Grammar correction applied', { originalText, correctedText });
+            const len = prevContent.length;
+            // Guard invalid offsets
+            if (startOffset < 0 || endOffset < 0 || startOffset > endOffset || startOffset > len) {
+                log.warn('Invalid correction offsets; attempting fallback replace', { startOffset, endOffset, len });
+                const replaced = prevContent.replace(originalText, correctedText);
+                return replaced === prevContent ? prevContent : replaced;
+            }
+
+            // Verify the substring roughly matches expected originalText (best-effort)
+            const slice = prevContent.substring(startOffset, Math.min(endOffset, len));
+            if (slice && originalText && !slice.includes(originalText)) {
+                log.warn('Offset-text mismatch; attempting safe replace', { slicePreview: slice.slice(0, 50), originalText });
+                const replaced = prevContent.replace(originalText, correctedText);
+                return replaced === prevContent ? prevContent : replaced;
+            }
+
+            const newContent = prevContent.substring(0, startOffset) + correctedText + prevContent.substring(Math.min(endOffset, len));
+            log.debug('Grammar correction applied', { originalText, correctedText, startOffset, endOffset });
             return newContent;
         });
         // Force update the chapter content immediately
         if (chapter) {
-            updateChapter(chapter.id, { content: content.replace(originalText, correctedText) });
+            updateChapter(chapter.id, { content });
         }
     };
 
@@ -451,8 +469,8 @@ Provide 5-7 suggestions, prioritizing the most impactful improvements.`;
             <div className="xl:col-span-1 h-full flex flex-col gap-4" style={{maxHeight: 'calc(100vh - 250px)'}}>
                 {/* Grammar Checker Panel */}
                 {showGrammarChecker ? (
-                    <GrammarCheckerPanel 
-                        text={content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()}
+                    <GrammarCheckerPanel
+                        text={content}
                         onTextCorrection={handleTextCorrection}
                         className="h-1/2"
                     />

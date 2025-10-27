@@ -1058,3 +1058,206 @@ The application is:
 *Testing performed by: Automated analysis + code verification*
 *Next update: After manual UI testing*
 
+
+---
+
+# 🚨 CRITICAL ISSUE DISCOVERED
+
+**Date**: 2025-10-27
+**Severity**: HIGH
+**Blocker**: Multi-device/multi-user functionality
+
+---
+
+## Issue: API Keys Not Stored Per-User
+
+### Problem Statement
+
+**Current Architecture FLAW**: API keys are stored only in browser localStorage/IndexedDB, NOT in Supabase per-user database.
+
+### What This Means
+
+❌ **Broken Behavior**:
+- User logs in on Device A → enters API keys → keys work
+- User logs in on Device B → **API keys are MISSING**
+- User clears browser data → **API keys are LOST**
+- API keys are NOT associated with user accounts
+
+✅ **Expected Behavior**:
+- Each user provides their own OpenRouter & Gemini API keys
+- Keys are stored in Supabase encrypted per-user
+- Keys sync across all devices
+- Keys loaded automatically after login
+
+### Architecture Gap
+
+```
+CURRENT (Broken):
+User → Settings Modal → Zustand Store → localStorage ONLY
+                                      ❌ NOT synced to cloud
+
+NEEDED (Correct):
+User → Settings Modal → Zustand Store → localStorage
+                               ↓
+                        Supabase (encrypted per-user)
+```
+
+### Database Schema Missing
+
+**Supabase Tables**:
+- ✅ `projects` (synced per-user)
+- ✅ `chapters` (synced per-user)
+- ✅ `research_items` (synced per-user)
+- ✅ `materials` (synced per-user)
+- ❌ **`user_settings`** (MISSING!)
+
+**No table exists for storing user-specific settings/API keys in Supabase.**
+
+---
+
+## Impact Assessment
+
+### Severity: HIGH
+
+| Aspect | Impact |
+|--------|--------|
+| **Multi-device Support** | ❌ **BROKEN** - Keys don't sync |
+| **Data Persistence** | ❌ **UNRELIABLE** - Keys lost easily |
+| **Multi-user Support** | ❌ **FLAWED** - Not true multi-tenancy |
+| **Security** | ⚠️ **CONCERN** - No encryption |
+| **User Experience** | ❌ **POOR** - Re-enter keys on every device |
+
+### User Impact
+
+**Scenario 1**: User at home
+1. Creates account
+2. Enters OpenRouter API key
+3. Starts writing → works ✅
+
+**Scenario 2**: Same user at work
+1. Logs in
+2. Tries to use AI features
+3. Gets error: "API key not configured" ❌
+4. Must re-enter keys (annoying!)
+
+**Scenario 3**: User clears browser
+1. Clears cache/cookies
+2. Logs back in
+3. API keys GONE ❌
+
+---
+
+## Solution Required
+
+### 1. Create Supabase Table
+
+```sql
+CREATE TABLE user_settings (
+    id UUID PRIMARY KEY,
+    user_id UUID REFERENCES auth.users(id),
+    openrouter_api_key_encrypted TEXT,
+    gemini_api_key_encrypted TEXT,
+    -- ... other settings
+    UNIQUE(user_id)
+);
+```
+
+### 2. Implement Encryption
+
+```typescript
+// Encrypt API keys before storing in database
+import CryptoJS from 'crypto-js';
+
+export const encryptApiKey = (key: string): string => {
+    return CryptoJS.AES.encrypt(key, ENCRYPTION_KEY).toString();
+};
+```
+
+### 3. Sync Functions
+
+```typescript
+// Load settings after login
+await loadSettingsFromSupabase(user.id);
+
+// Save settings when updated
+await saveSettingsToSupabase(settings);
+```
+
+### 4. Store Integration
+
+```typescript
+// In login action:
+const settings = await loadSettingsFromSupabase();
+set({ settings });
+
+// In updateSettings action:
+set({ settings: newSettings });
+await saveSettingsToSupabase(newSettings);
+```
+
+---
+
+## Implementation Effort
+
+| Task | Estimate | Difficulty |
+|------|----------|------------|
+| Database Schema | 30 min | Easy |
+| Encryption Service | 1-2 hours | Medium |
+| Sync Functions | 2-3 hours | Medium |
+| Store Integration | 1-2 hours | Easy |
+| Testing | 2-3 hours | Medium |
+| **TOTAL** | **8-13 hours (1-2 days)** | **Medium** |
+
+---
+
+## Priority
+
+**MUST FIX BEFORE**:
+- ❗ Public beta launch
+- ❗ Production deployment
+- ❗ Multi-device testing
+- ❗ Any user with >1 device
+
+**CAN WAIT IF**:
+- Single-device testing only
+- Internal team testing
+- Demo/prototype phase
+
+---
+
+## Detailed Documentation
+
+See `API_KEY_ARCHITECTURE_ISSUE.md` for:
+- Complete implementation guide
+- Code examples for all changes
+- Security considerations
+- Step-by-step checklist
+- Testing procedures
+- Migration strategy
+
+---
+
+## Updated Production Readiness
+
+### Previous Assessment: 75%
+
+### Revised Assessment: 65%
+
+**Deductions**:
+- -10% for missing per-user API key storage
+
+**Revised Blockers**:
+1. ❗ Implement user_settings table and sync
+2. Manual UI testing (1-2 days)
+3. User documentation (2-3 days)
+
+**Revised Time to Production**: **2-3 weeks**
+- Week 1: Fix API key storage (1-2 days) + manual testing (3-4 days)
+- Week 2: Documentation (3-5 days)
+- Week 3: Beta testing and fixes
+
+---
+
+*Critical issue identified: 2025-10-27*
+*See API_KEY_ARCHITECTURE_ISSUE.md for complete details*
+

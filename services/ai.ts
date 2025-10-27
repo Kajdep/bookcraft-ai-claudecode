@@ -593,7 +593,7 @@ export const generateImage = async (prompt: string): Promise<string> => {
 
                 // If user has configured a Gemini API key, throw the error so they know what went wrong
                 // Don't silently fall back to placeholders when they expect real images
-                throw new Error(`Gemini Image Generation Failed: ${errorMsg}. Please check that:\n1. Your Gemini API key is correct\n2. Imagen API is enabled in your Google Cloud project\n3. You have sufficient quota/credits`);
+                throw new Error(`Gemini Image Generation Failed: ${errorMsg}. Please check that: • Your Gemini API key is correct • Imagen API is enabled in your Google Cloud project • You have sufficient quota/credits`);
             }
         }
 

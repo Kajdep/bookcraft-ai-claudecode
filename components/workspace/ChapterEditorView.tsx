@@ -202,7 +202,7 @@ export const ChapterEditorView: React.FC<ChapterEditorViewProps> = ({ chapterId 
 
     const handleTextCorrection = (originalText: string, correctedText: string, startOffset: number, endOffset: number) => {
         // Save current content for undo
-        setUndoStack(prev => [...prev, { content, suggestionIndex: startOffset }]);
+        setUndoStack(prev => [...prev, { content, suggestionIndex: prev.length }]);
 
         setContent(prevContent => {
             const len = prevContent.length;

@@ -57,17 +57,25 @@ const isCacheValid = (entry: CacheEntry): boolean => {
     return Date.now() - entry.timestamp < CACHE_TTL;
 };
 
+import pako from 'pako';
+
 /**
- * Compress diagram code to base64 for URL embedding
+ * Compress diagram code using deflate and encode to base64 for Kroki URL embedding
  */
 const compressToBase64 = (text: string): string => {
-    // For browser environments, we'll use base64 encoding
-    // In production, you might want to use pako for deflate compression
     try {
-        return btoa(unescape(encodeURIComponent(text)));
+        // Deflate the text using pako
+        const deflated = pako.deflate(text, { level: 9 });
+        // Convert Uint8Array to string for base64 encoding
+        let binary = '';
+        deflated.forEach((byte) => {
+            binary += String.fromCharCode(byte);
+        });
+        // Encode to base64
+        return btoa(binary);
     } catch (error) {
-        log.error('Failed to encode diagram to base64', error as Error);
-        throw new Error('Failed to encode diagram');
+        log.error('Failed to compress and encode diagram for Kroki', error as Error);
+        throw new Error('Failed to compress and encode diagram');
     }
 };
 

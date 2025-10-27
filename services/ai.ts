@@ -626,7 +626,10 @@ export const generateImage = async (prompt: string): Promise<string> => {
         // Fallback: Generate a placeholder image with text overlay
         // This block is reached only if NONE of the image generation API keys (Gemini, DALL-E, Stability) are configured
         log.warn('No image generation API configured, using placeholder', { prompt: prompt.substring(0, 50) });
-        throw new Error('No image generation API configured. Please add your Gemini API key in Settings to generate real images.');
+        // Fallback: Generate a placeholder image with text overlay
+        // This only happens if NO API keys are configured
+        log.warn('No image generation API configured, using placeholder', { prompt: prompt.substring(0, 50) });
+        return generatePlaceholderImage(prompt);
 
     } catch (error) {
         log.aiError('Image generation failed', error as Error);

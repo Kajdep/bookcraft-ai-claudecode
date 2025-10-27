@@ -219,9 +219,37 @@ export const ChapterEditorView: React.FC<ChapterEditorViewProps> = ({ chapterId 
             // Verify the substring roughly matches expected originalText (best-effort)
             const slice = prevContent.substring(startOffset, Math.min(endOffset, len));
             if (slice && originalText && !slice.includes(originalText)) {
-                log.warn('Offset-text mismatch; attempting safe replace', { slicePreview: slice.slice(0, 50), originalText });
-                const replaced = prevContent.replace(originalText, correctedText);
-                return replaced === prevContent ? prevContent : replaced;
+                log.warn('Offset-text mismatch; attempting targeted replace', { slicePreview: slice.slice(0, 50), originalText });
+
+                // Find all occurrences of originalText
+                const occurrences: number[] = [];
+                let idx = 0;
+                while ((idx = prevContent.indexOf(originalText, idx)) !== -1) {
+                    occurrences.push(idx);
+                    idx += originalText.length;
+                }
+
+                // Find the occurrence closest to startOffset
+                let targetIdx = -1;
+                let minDistance = Number.MAX_SAFE_INTEGER;
+                for (const occ of occurrences) {
+                    const distance = Math.abs(occ - startOffset);
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        targetIdx = occ;
+                    }
+                }
+
+                if (targetIdx !== -1 && minDistance < 20) { // 20-char threshold for "near"
+                    // Replace only the targeted occurrence
+                    const before = prevContent.slice(0, targetIdx);
+                    const after = prevContent.slice(targetIdx + originalText.length);
+                    return before + correctedText + after;
+                } else {
+                    log.warn('Could not confidently locate originalText near offset; no replacement performed.', { startOffset, originalText, occurrences });
+                    // Optionally, notify user via UI (e.g., toast) here
+                    return prevContent;
+                }
             }
 
             const newContent = prevContent.substring(0, startOffset) + correctedText + prevContent.substring(Math.min(endOffset, len));

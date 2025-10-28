@@ -967,6 +967,8 @@ export const generateImage = async (prompt: string): Promise<string> => {
  */
 const generateImageWithGemini = async (prompt: string, apiKey: string): Promise<string> => {
     log.info('Attempting Gemini-based image generation', { promptLength: prompt.length });
+    // WARNING: Gemini Imagen API has CORS restrictions when called from browsers.
+    // This may fail with CORS errors. Consider using a server-side proxy.
     
     try {
         // Try using Vertex AI Imagen API format
@@ -1260,6 +1262,51 @@ export const generateChapterContent = async (project: Project, chapter: Chapter,
 
     try {
         const response = await callOpenRouter(fullPrompt);
+        
+        // Enforce word count if specified
+        if (wordCount) {
+            const targetCount = parseInt(wordCount);
+            if (!isNaN(targetCount) && targetCount > 0) {
+                const actualCount = response.split(/\s+/).filter(word => word.length > 0).length;
+                const tolerance = Math.max(50, targetCount * 0.1); // 10% tolerance or 50 words
+                
+                // Log word count accuracy
+                log.info('Word count check', { 
+                    target: targetCount, 
+                    actual: actualCount, 
+                    difference: Math.abs(actualCount - targetCount),
+                    tolerance
+                });
+                
+                // If significantly over, truncate intelligently
+                if (actualCount > targetCount + tolerance) {
+                    log.warn('Generated content exceeds word count, truncating', {
+                        target: targetCount,
+                        actual: actualCount
+                    });
+                    
+                    // Truncate at sentence boundary near target
+                    const words = response.split(/\s+/);
+                    const truncated = words.slice(0, targetCount).join(' ');
+                    // Find last complete sentence
+                    const lastPeriod = truncated.lastIndexOf('.');
+                    if (lastPeriod > truncated.length * 0.8) {
+                        return truncated.substring(0, lastPeriod + 1);
+                    }
+                    return truncated;
+                }
+                
+                // If significantly under, log warning (don't pad automatically)
+                if (actualCount < targetCount - tolerance) {
+                    log.warn('Generated content is under word count target', {
+                        target: targetCount,
+                        actual: actualCount,
+                        shortfall: targetCount - actualCount
+                    });
+                }
+            }
+        }
+        
         return response;
     } catch (error) {
         log.aiError('Chapter content generation failed', error as Error);

@@ -16,13 +16,61 @@ import type { Project, Chapter } from '../types';
 let realtimeSubscription: any = null;
 
 /**
+ * Load all user data from IndexedDB into store (for local-only mode)
+ */
+export async function loadFromIndexedDB(): Promise<void> {
+    try {
+        logger.info('Loading data from IndexedDB');
+        const { db } = await import('../services/storage/indexedDB');
+        
+        // Load all projects
+        const projects = await db.projects.toArray();
+        
+        if (!projects || projects.length === 0) {
+            logger.info('No projects found in IndexedDB');
+            return;
+        }
+        
+        // Load chapters for each project
+        const projectsWithChapters = await Promise.all(
+            projects.map(async (project) => {
+                const chapters = await db.chapters.where('projectId').equals(project.id).toArray();
+                return {
+                    ...project,
+                    chapters: chapters || []
+                };
+            })
+        );
+        
+        // Transform to Record<string, Project>
+        const projectsRecord = projectsWithChapters.reduce((acc, project) => {
+            acc[project.id] = project as any;
+            return acc;
+        }, {} as Record<string, Project>);
+        
+        // Update store
+        useBookCraftStore.setState({
+            projects: projectsRecord,
+            syncStatus: 'idle',
+            lastSyncTime: new Date()
+        });
+        
+        logger.info('Data loaded from IndexedDB', { projectCount: projects.length });
+    } catch (error) {
+        logger.error('Failed to load from IndexedDB', error);
+    }
+}
+
+/**
  * Load all user data from Supabase into store
  */
 export async function loadFromSupabase(): Promise<void> {
     try {
         const user = await authService.getCurrentUser();
         if (!user) {
-            logger.info('No authenticated user, skipping data load');
+            logger.info('No authenticated user, trying IndexedDB instead');
+            // Try loading from IndexedDB for local-only mode
+            await loadFromIndexedDB();
             return;
         }
 
@@ -30,7 +78,9 @@ export async function loadFromSupabase(): Promise<void> {
         const supabase = getSupabaseClient();
         
         if (!supabase) {
-            logger.info('Supabase not configured, skipping cloud data load');
+            logger.info('Supabase not configured, loading from IndexedDB instead');
+            // Fall back to IndexedDB when Supabase is not configured
+            await loadFromIndexedDB();
             return;
         }
 

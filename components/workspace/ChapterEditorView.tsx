@@ -210,7 +210,7 @@ export const ChapterEditorView: React.FC<ChapterEditorViewProps> = ({ chapterId 
             if (startOffset < 0 || endOffset < 0 || startOffset > endOffset || startOffset >= len || endOffset > len) {
                 log.warn('Invalid correction offsets; correction skipped', { startOffset, endOffset, len });
                 // Optionally notify the user via UI (e.g., toast)
-                toast('Correction could not be applied due to invalid offsets.', { type: 'warning' });
+                toast.warning('Correction could not be applied due to invalid offsets.');
                 return prevContent;
             }
 

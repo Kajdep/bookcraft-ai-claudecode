@@ -451,6 +451,19 @@ export interface Settings {
     theme?: 'dark' | 'light';
     editorFontSize?: number;
     autoSave?: boolean;
+    fontSize?: number;
+    fontFamily?: string;
+    autoSaveInterval?: number;
+    spellCheck?: boolean;
+
+    // Export Preferences
+    exportFormat?: string;
+    includeMetadata?: boolean;
+    includeImages?: boolean;
+
+    // Advanced Settings
+    debugMode?: boolean;
+    telemetry?: boolean;
 
     // AI Preferences
     defaultModel?: string;

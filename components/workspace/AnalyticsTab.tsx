@@ -366,7 +366,10 @@ export const AnalyticsTab: React.FC = () => {
     const handleCreateGoal = () => {
         if (!newGoal.title.trim()) return;
         
+        if (!activeProjectId) return;
+        
         createWritingGoal({
+            projectId: activeProjectId,
             title: newGoal.title,
             type: newGoal.type,
             target: newGoal.target,

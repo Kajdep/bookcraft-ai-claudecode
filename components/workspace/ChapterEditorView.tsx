@@ -242,7 +242,12 @@ export const ChapterEditorView: React.FC<ChapterEditorViewProps> = ({ chapterId 
                     // Replace only the targeted occurrence
                     const before = prevContent.slice(0, targetIdx);
                     const after = prevContent.slice(targetIdx + originalText.length);
-                    return before + correctedText + after;
+                    const newContent = before + correctedText + after;
+                    // Update chapter with new content
+                    if (chapter) {
+                        updateChapter(chapter.id, { content: newContent });
+                    }
+                    return newContent;
                 } else {
                     log.warn('Could not confidently locate originalText near offset; no replacement performed.', { startOffset, originalText, occurrences });
                     // Optionally, notify user via UI (e.g., toast) here
@@ -252,12 +257,12 @@ export const ChapterEditorView: React.FC<ChapterEditorViewProps> = ({ chapterId 
 
             const newContent = prevContent.substring(0, startOffset) + correctedText + prevContent.substring(Math.min(endOffset, len));
             log.debug('Grammar correction applied', { originalText, correctedText, startOffset, endOffset });
+            // Update chapter with new content
+            if (chapter) {
+                updateChapter(chapter.id, { content: newContent });
+            }
             return newContent;
         });
-        // Force update the chapter content immediately
-        if (chapter) {
-            updateChapter(chapter.id, { content });
-        }
     };
 
     const handleGenerateStructure = async () => {

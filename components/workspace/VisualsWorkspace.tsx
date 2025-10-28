@@ -33,10 +33,10 @@ export const VisualsWorkspace: React.FC<VisualsWorkspaceProps> = ({ project }) =
                 <nav className="flex space-x-2">
                     <TabButton active={activeTab === 'AI Visuals'} onClick={() => setActiveTab('AI Visuals')}>AI Visuals</TabButton>
                     <TabButton active={activeTab === 'Visual Library'} onClick={() => setActiveTab('Visual Library')}>
-                        Visual Library <span className="ml-2 bg-white text-gray-800 text-xs font-bold px-2 py-0.5 rounded-full">{project.visuals.length}</span>
+                        Visual Library <span className="ml-2 bg-white text-gray-800 text-xs font-bold px-2 py-0.5 rounded-full">{project.visuals?.length || 0}</span>
                     </TabButton>
                     <TabButton active={activeTab === 'Image Generation'} onClick={() => setActiveTab('Image Generation')}>
-                        Image Generation <span className="ml-2 bg-white text-gray-800 text-xs font-bold px-2 py-0.5 rounded-full">{project.generatedImages.length}</span>
+                        Image Generation <span className="ml-2 bg-white text-gray-800 text-xs font-bold px-2 py-0.5 rounded-full">{project.generatedImages?.length || 0}</span>
                     </TabButton>
                 </nav>
             </div>

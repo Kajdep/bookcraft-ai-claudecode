@@ -16,11 +16,10 @@ let supabaseClient: SupabaseClient | null = null;
 /**
  * Get Supabase client instance
  */
-export function getSupabaseClient(): SupabaseClient | null {
+export function getSupabaseClient(): SupabaseClient {
     if (!supabaseClient) {
         if (!supabaseUrl || !supabaseAnonKey) {
-            log.warn('Supabase credentials not configured - using local auth only');
-            return null;
+            throw new Error('Supabase credentials not configured');
         }
         supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
     }
@@ -41,30 +40,24 @@ export interface AuthState {
  * Authentication service class
  */
 class AuthService {
-    private client: SupabaseClient | null;
+    private client: SupabaseClient;
     private listeners: Set<(state: AuthState) => void> = new Set();
     private currentState: AuthState = {
         user: null,
         session: null,
-        loading: false,
+        loading: true,
         error: null,
     };
 
     constructor() {
         this.client = getSupabaseClient();
-        if (this.client) {
-            this.initialize();
-        } else {
-            log.info('Auth service initialized in local-only mode');
-        }
+        this.initialize();
     }
 
     /**
      * Initialize auth service and restore session
      */
     private async initialize() {
-        if (!this.client) return;
-        
         try {
             // Get current session
             const { data: { session }, error } = await this.client.auth.getSession();
@@ -148,10 +141,6 @@ class AuthService {
      * Sign up with email and password
      */
     public async signUp(email: string, password: string): Promise<{ success: boolean; error?: string }> {
-        if (!this.client) {
-            return { success: false, error: 'Supabase not configured' };
-        }
-        
         try {
             this.updateState({ loading: true, error: null });
 
@@ -179,10 +168,6 @@ class AuthService {
      * Sign in with email and password
      */
     public async signIn(email: string, password: string): Promise<{ success: boolean; error?: string }> {
-        if (!this.client) {
-            return { success: false, error: 'Supabase not configured' };
-        }
-        
         try {
             this.updateState({ loading: true, error: null });
 
@@ -207,17 +192,16 @@ class AuthService {
     }
 
     /**
-     * Sign out
+     * Sign out current user
      */
     public async signOut(): Promise<{ success: boolean; error?: string }> {
-        if (!this.client) {
-            return { success: false, error: 'Supabase not configured' };
-        }
-        
         try {
+            this.updateState({ loading: true, error: null });
+
             const { error } = await this.client.auth.signOut();
 
             if (error) {
+                this.updateState({ loading: false, error: error.message });
                 return { success: false, error: error.message };
             }
 
@@ -226,6 +210,7 @@ class AuthService {
         } catch (error) {
             const message = (error as Error).message;
             log.error('Sign out failed', error as Error);
+            this.updateState({ loading: false, error: message });
             return { success: false, error: message };
         }
     }
@@ -255,10 +240,6 @@ class AuthService {
      * Reset password
      */
     public async resetPassword(email: string): Promise<{ success: boolean; error?: string }> {
-        if (!this.client) {
-            return { success: false, error: 'Supabase not configured' };
-        }
-        
         try {
             const { error } = await this.client.auth.resetPasswordForEmail(email, {
                 redirectTo: `${window.location.origin}/reset-password`,
@@ -268,7 +249,7 @@ class AuthService {
                 return { success: false, error: error.message };
             }
 
-            log.info('Password reset email sent');
+            log.info('Password reset email sent', { email });
             return { success: true };
         } catch (error) {
             const message = (error as Error).message;
@@ -281,10 +262,6 @@ class AuthService {
      * Update password
      */
     public async updatePassword(newPassword: string): Promise<{ success: boolean; error?: string }> {
-        if (!this.client) {
-            return { success: false, error: 'Supabase not configured' };
-        }
-        
         try {
             const { error } = await this.client.auth.updateUser({
                 password: newPassword,
@@ -309,4 +286,3 @@ export const authService = new AuthService();
 
 // Export types
 export type { User, Session };
-

@@ -28,6 +28,11 @@ export async function loadFromSupabase(): Promise<void> {
 
         logger.info('Loading data from Supabase', { userId: user.id });
         const supabase = getSupabaseClient();
+        
+        if (!supabase) {
+            logger.info('Supabase not configured, skipping cloud data load');
+            return;
+        }
 
         // Load projects with chapters
         const { data: projects, error } = await supabase
@@ -81,6 +86,12 @@ export async function saveProjectToSupabase(project: Project): Promise<void> {
         }
 
         const supabase = getSupabaseClient();
+        
+        if (!supabase) {
+            logger.debug('Supabase not configured, skipping cloud save');
+            return;
+        }
+        
         logger.debug('Saving project to Supabase', { projectId: project.id });
 
         // Prepare project data (exclude chapters for separate save)
@@ -140,6 +151,7 @@ export async function saveChapterToSupabase(chapter: Chapter): Promise<void> {
         if (!user) return;
 
         const supabase = getSupabaseClient();
+        if (!supabase) return;
 
         const { error } = await supabase
             .from('chapters')
@@ -169,6 +181,7 @@ export async function deleteProjectFromSupabase(projectId: string): Promise<void
         if (!user) return;
 
         const supabase = getSupabaseClient();
+        if (!supabase) return;
 
         // Delete chapters first (cascade should handle this, but explicit is safer)
         await supabase
@@ -204,6 +217,7 @@ export async function deleteChapterFromSupabase(chapterId: string): Promise<void
         if (!user) return;
 
         const supabase = getSupabaseClient();
+        if (!supabase) return;
 
         const { error } = await supabase
             .from('chapters')
@@ -230,6 +244,10 @@ export function subscribeToRealtimeUpdates(): void {
     if (!user) return;
 
     const supabase = getSupabaseClient();
+    if (!supabase) {
+        logger.info('Supabase not configured, skipping realtime updates');
+        return;
+    }
 
     // Clean up existing subscription
     if (realtimeSubscription) {

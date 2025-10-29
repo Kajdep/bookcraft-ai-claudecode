@@ -27,6 +27,31 @@
   --color-info-light: #cffafe;
 }
 
+/* Dark mode variables with improved contrast */
+.dark {
+  --color-bg-primary: #0f172a;
+  --color-bg-secondary: #1e293b;
+  --color-bg-tertiary: #334155;
+  --color-bg-hover: #475569;
+  --color-text-primary: #f1f5f9;
+  --color-text-secondary: #e2e8f0;
+  --color-text-tertiary: #cbd5e1;
+  --color-text-muted: #94a3b8;
+  --color-border: #475569;
+  --color-border-light: #334155;
+  --color-accent: #3b82f6;
+  --color-accent-hover: #60a5fa;
+  --color-accent-light: #1e3a8a;
+  --color-success: #10b981;
+  --color-success-light: #064e3b;
+  --color-warning: #f59e0b;
+  --color-warning-light: #78350f;
+  --color-error: #ef4444;
+  --color-error-light: #7f1d1d;
+  --color-info: #06b6d4;
+  --color-info-light: #164e63;
+}
+
 /* Basic styles for the Lexical editor */
 .lexical-editor {
   font-family: system-ui, -apple-system, sans-serif;

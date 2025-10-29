@@ -31,19 +31,38 @@ export async function loadFromIndexedDB(): Promise<void> {
             return;
         }
         
-        // Load chapters for each project
-        const projectsWithChapters = await Promise.all(
+        // Load all related data for each project
+        const projectsWithData = await Promise.all(
             projects.map(async (project) => {
+                // Load chapters
                 const chapters = await db.chapters.where('projectId').equals(project.id).toArray();
+                
+                // Load research items
+                const research = await db.research.where('projectId').equals(project.id).toArray();
+                
+                // Load materials
+                const materials = await db.materials.where('projectId').equals(project.id).toArray();
+                
+                // Load citations
+                const citations = await db.citations.where('projectId').equals(project.id).toArray();
+                
+                // Load generated images
+                const generatedImages = await db.generatedImages.where('projectId').equals(project.id).toArray();
+                
                 return {
                     ...project,
-                    chapters: chapters || []
+                    chapters: chapters || [],
+                    research: research || [],
+                    materials: materials || [],
+                    citations: citations || [],
+                    generatedImages: generatedImages || [],
+                    visuals: project.visuals || []
                 };
             })
         );
         
         // Transform to Record<string, Project>
-        const projectsRecord = projectsWithChapters.reduce((acc, project) => {
+        const projectsRecord = projectsWithData.reduce((acc, project) => {
             acc[project.id] = project as any;
             return acc;
         }, {} as Record<string, Project>);
@@ -55,7 +74,12 @@ export async function loadFromIndexedDB(): Promise<void> {
             lastSyncTime: new Date()
         });
         
-        logger.info('Data loaded from IndexedDB', { projectCount: projects.length });
+        logger.info('Data loaded from IndexedDB', { 
+            projectCount: projects.length,
+            totalChapters: projectsWithData.reduce((sum, p) => sum + (p.chapters?.length || 0), 0),
+            totalResearch: projectsWithData.reduce((sum, p) => sum + (p.research?.length || 0), 0),
+            totalMaterials: projectsWithData.reduce((sum, p) => sum + (p.materials?.length || 0), 0)
+        });
     } catch (error) {
         logger.error('Failed to load from IndexedDB', error);
     }

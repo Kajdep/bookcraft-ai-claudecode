@@ -9,9 +9,9 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { migrateLocalStorageToIndexedDB } from '../../store/storageAdapter';
-import { db } from '../../services/storage/indexedDB';
-import { logger } from '../../services/logger';
+import { migrateLocalStorageToIndexedDB } from '../store/storageAdapter';
+import { db } from '../services/storage/indexedDB';
+import { logger } from '../services/logger';
 
 // Mock localStorage
 const createMockLocalStorage = () => {

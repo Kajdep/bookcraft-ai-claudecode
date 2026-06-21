@@ -140,6 +140,44 @@ const checkRateLimit = async (apiKey: string): Promise<void> => {
 };
 
 /**
+ * Safely parses JSON content from AI responses that may include markdown wrappers
+ * or accidental HTML/error pages from misconfigured endpoints.
+ */
+const parseJsonFromAIResponse = (rawResponse: string, contextLabel: string): any => {
+    const responseText = (rawResponse || '').trim();
+
+    if (!responseText) {
+        throw new Error(`${contextLabel} returned an empty response`);
+    }
+
+    if (responseText.startsWith('<!DOCTYPE') || responseText.startsWith('<html')) {
+        throw new Error(`${contextLabel} returned HTML instead of JSON. Check API endpoint configuration.`);
+    }
+
+    try {
+        return JSON.parse(responseText);
+    } catch {
+        // Handle markdown-wrapped JSON: ```json ... ```
+        const fencedMatch = responseText.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+        if (fencedMatch?.[1]) {
+            try {
+                return JSON.parse(fencedMatch[1].trim());
+            } catch {
+                // Continue to object extraction fallback
+            }
+        }
+
+        // Handle conversational output that contains a JSON object
+        const objectMatch = responseText.match(/\{[\s\S]*\}/);
+        if (objectMatch?.[0]) {
+            return JSON.parse(objectMatch[0]);
+        }
+
+        throw new Error(`${contextLabel} was not valid JSON`);
+    }
+};
+
+/**
  * Makes a request to OpenRouter API for text generation with enhanced error handling
  */
 const callOpenRouter = async (prompt: string, jsonMode = false, overrideModel?: string): Promise<string> => {
@@ -245,7 +283,8 @@ const callOpenRouter = async (prompt: string, jsonMode = false, overrideModel?: 
 
     let data: any;
     try {
-        data = await response.json();
+        const rawResponse = await response.text();
+        data = parseJsonFromAIResponse(rawResponse, 'OpenRouter API response');
     } catch (parseError) {
         const errorMsg = "Failed to parse OpenRouter API response";
         log.aiError('Parse Error', parseError as Error);
@@ -1775,7 +1814,7 @@ export const performResearch = async (query: string, type: ResearchType, context
         
         let result: any;
         try {
-            result = JSON.parse(response);
+            result = parseJsonFromAIResponse(response, 'Research response');
         } catch (parseError) {
             log.error('Failed to parse research response', { response: response.substring(0, 500), error: parseError });
             throw new Error("AI response was not valid JSON format");
